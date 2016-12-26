@@ -211,6 +211,105 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
     return command_buffer;
 }
 
+struct swapchain_info
+{
+    vk::Device device;
+    vk::SwapchainKHR swapchain;
+    std::vector<vk::Image> images;
+    std::vector<vk::ImageView> image_views;
+    std::vector<vk::Framebuffer> framebuffers;
+    vk::CommandPool command_pool;
+    std::vector<vk::CommandBuffer> command_buffers;
+    vk::Semaphore acquire_semaphore;
+    vk::Semaphore render_semaphore;
+
+    void destroy()
+    {
+        device.destroySemaphore(render_semaphore);
+        device.destroySemaphore(acquire_semaphore);
+        device.destroyCommandPool(command_pool);
+
+        for (auto framebuffer : framebuffers)
+        {
+            device.destroyFramebuffer(framebuffer);
+        }
+
+        for (auto image_view : image_views)
+        {
+            device.destroyImageView(image_view);
+        }
+
+        device.destroySwapchainKHR(swapchain);
+    }
+};
+
+static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, vk::SurfaceKHR surface)
+{
+    auto caps = physical_device.getSurfaceCapabilitiesKHR(surface);
+
+    auto swapchain = device.createSwapchainKHR(
+        vk::SwapchainCreateInfoKHR()
+        .setSurface(surface)
+        .setMinImageCount(2)
+        .setImageFormat(vk::Format::eB8G8R8A8Unorm)
+        .setImageExtent(caps.currentExtent)
+        .setImageArrayLayers(1)
+        .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
+        .setPreTransform(caps.currentTransform)
+        .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
+        .setClipped(true)
+        .setPresentMode(vk::PresentModeKHR::eFifo)
+    );
+
+    auto images = device.getSwapchainImagesKHR(swapchain);
+
+    swapchain_info swapchain_info = {};
+    swapchain_info.device = device;
+    swapchain_info.swapchain = swapchain;
+    swapchain_info.images = images;
+    swapchain_info.command_pool = device.createCommandPool(vk::CommandPoolCreateInfo());
+
+    for (auto image : images)
+    {
+        auto view = device.createImageView(
+            vk::ImageViewCreateInfo()
+            .setFormat(vk::Format::eB8G8R8A8Unorm)
+            .setViewType(vk::ImageViewType::e2D)
+            .setImage(image)
+            .setSubresourceRange(
+                vk::ImageSubresourceRange()
+                .setAspectMask(vk::ImageAspectFlagBits::eColor)
+                .setLevelCount(VK_REMAINING_MIP_LEVELS)
+                .setLayerCount(1)
+            )
+        );
+        swapchain_info.image_views.push_back(view);
+
+        auto framebuffer = device.createFramebuffer(
+            vk::FramebufferCreateInfo()
+            .setRenderPass(render_pass)
+            .setAttachmentCount(1)
+            .setPAttachments(&view)
+            .setWidth(WIDTH)
+            .setHeight(HEIGHT)
+            .setLayers(1)
+        );
+        swapchain_info.framebuffers.push_back(framebuffer);
+
+        swapchain_info.command_buffers.push_back(create_command_buffer(
+            device,
+            swapchain_info.command_pool,
+            image,
+            render_pass,
+            framebuffer
+        ));
+    }
+
+    swapchain_info.acquire_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
+    swapchain_info.render_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
+
+    return swapchain_info;
+}
 
 int main(int argc, char** argv)
 {
@@ -235,10 +334,14 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
+    auto swapchain = create_swapchain(physical_device, device, render_pass, surface);
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
     }
+
+    swapchain.destroy();
 
     instance.destroySurfaceKHR(surface);
 
