@@ -3,6 +3,50 @@
 static const uint32_t WIDTH = 1024u;
 static const uint32_t HEIGHT = 768u;
 
+static PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT = nullptr;
+static PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT = nullptr;
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report_callback(
+    VkDebugReportFlagsEXT flags,
+    VkDebugReportObjectTypeEXT objectType,
+    uint64_t object,
+    size_t location,
+    int32_t messageCode,
+    const char* pLayerPrefix,
+    const char* pMessage,
+    void* pUserData)
+{
+    std::fprintf(stderr, "%s: %s\n", pLayerPrefix, pMessage);
+    return false;
+}
+
+static VkDebugReportCallbackEXT create_debug_report_callback(VkInstance vulkan)
+{
+    pfnCreateDebugReportCallbackEXT = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
+        vkGetInstanceProcAddr(vulkan, "vkCreateDebugReportCallbackEXT")
+    );
+    pfnDestroyDebugReportCallbackEXT = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
+        vkGetInstanceProcAddr(vulkan, "vkDestroyDebugReportCallbackEXT")
+    );
+
+#if _DEBUG
+    VkDebugReportCallbackCreateInfoEXT info = {};
+    info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
+    info.flags =
+        VK_DEBUG_REPORT_ERROR_BIT_EXT |
+        VK_DEBUG_REPORT_WARNING_BIT_EXT |
+        VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+    info.pfnCallback = &debug_report_callback;
+
+    VkDebugReportCallbackEXT callback;
+    auto error = pfnCreateDebugReportCallbackEXT(vulkan, &info, nullptr, &callback);
+    assert(!error);
+    return callback;
+#else
+    return nullptr;
+#endif
+}
+
 static void error_callback(int error, const char* description)
 {
     throw std::runtime_error(description);
@@ -40,6 +84,8 @@ int main(int argc, char** argv)
 {
     auto instance = create_instance();
 
+    auto callback = create_debug_report_callback(instance);
+
     auto success = glfwInit();
     assert(success);
 
@@ -63,6 +109,7 @@ int main(int argc, char** argv)
 
     glfwTerminate();
 
+    pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
     instance.destroy();
 
     return EXIT_SUCCESS;
