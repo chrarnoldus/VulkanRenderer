@@ -88,13 +88,46 @@ static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
     return devices[0];
 }
 
+static vk::Device create_device(vk::PhysicalDevice physical_device)
+{
+    float priorities[] = {0.f};
+    auto queueInfo = vk::DeviceQueueCreateInfo()
+        .setQueueCount(1)
+        .setPQueuePriorities(priorities);
+
+#if _DEBUG
+    const auto layerCount = 1;
+    const char* layerNames[layerCount] = {"VK_LAYER_LUNARG_standard_validation"};
+#else
+    const auto layerCount = 0;
+    const char **layerNames = nullptr;
+#endif
+
+    const auto extensionCount = 1;
+    const char* extensionNames[extensionCount] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+    auto features = vk::PhysicalDeviceFeatures()
+        .setShaderClipDistance(true)
+        .setShaderCullDistance(true);
+
+    return physical_device.createDevice(
+        vk::DeviceCreateInfo()
+        .setQueueCreateInfoCount(1)
+        .setPQueueCreateInfos(&queueInfo)
+        .setEnabledLayerCount(layerCount)
+        .setPpEnabledLayerNames(layerNames)
+        .setEnabledExtensionCount(1)
+        .setPpEnabledExtensionNames(extensionNames)
+        .setPEnabledFeatures(&features)
+    );
+}
+
 int main(int argc, char** argv)
 {
     auto instance = create_instance();
-
     auto callback = create_debug_report_callback(instance);
-
     auto physical_device = get_physical_device(instance);
+    auto device = create_device(physical_device);
 
     auto success = glfwInit();
     assert(success);
@@ -119,6 +152,7 @@ int main(int argc, char** argv)
 
     glfwTerminate();
 
+    device.destroy();
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
     instance.destroy();
 
