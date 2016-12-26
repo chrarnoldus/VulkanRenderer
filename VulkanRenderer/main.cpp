@@ -122,12 +122,42 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
     );
 }
 
+static vk::RenderPass create_render_pass(vk::Device device)
+{
+    auto attachment = vk::AttachmentDescription()
+        .setFormat(vk::Format::eB8G8R8A8Unorm)
+        .setSamples(vk::SampleCountFlagBits::e1)
+        .setLoadOp(vk::AttachmentLoadOp::eClear)
+        .setStoreOp(vk::AttachmentStoreOp::eStore)
+        .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+        .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+        .setInitialLayout(vk::ImageLayout::eColorAttachmentOptimal)
+        .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+    auto color_attachment = vk::AttachmentReference()
+        .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+    auto subpass = vk::SubpassDescription()
+        .setColorAttachmentCount(1)
+        .setPColorAttachments(&color_attachment);
+
+    return device.createRenderPass(
+        vk::RenderPassCreateInfo()
+        .setAttachmentCount(1)
+        .setPAttachments(&attachment)
+        .setSubpassCount(1)
+        .setPSubpasses(&subpass)
+    );
+}
+
 int main(int argc, char** argv)
 {
     auto instance = create_instance();
     auto callback = create_debug_report_callback(instance);
     auto physical_device = get_physical_device(instance);
     auto device = create_device(physical_device);
+    auto queue = device.getQueue(0, 0);
+    auto render_pass = create_render_pass(device);
 
     auto success = glfwInit();
     assert(success);
@@ -152,6 +182,7 @@ int main(int argc, char** argv)
 
     glfwTerminate();
 
+    device.destroyRenderPass(render_pass);
     device.destroy();
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
     instance.destroy();
