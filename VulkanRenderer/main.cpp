@@ -245,6 +245,9 @@ struct swapchain_info
 
 static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, vk::SurfaceKHR surface)
 {
+    auto supported = physical_device.getSurfaceSupportKHR(0, surface);
+    assert(supported);
+
     auto caps = physical_device.getSurfaceCapabilitiesKHR(surface);
 
     auto swapchain = device.createSwapchainKHR(
@@ -311,6 +314,37 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
     return swapchain_info;
 }
 
+static void update(
+    vk::Device device,
+    const swapchain_info& swapchain,
+    vk::Queue queue)
+{
+    auto current_image = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, swapchain.acquire_semaphore, nullptr).value;
+
+    auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+
+    queue.submit({
+                     vk::SubmitInfo()
+                     .setCommandBufferCount(1)
+                     .setPCommandBuffers(&swapchain.command_buffers[current_image])
+                     .setPWaitDstStageMask(&wait_dst_stage_mask)
+                     .setWaitSemaphoreCount(1)
+                     .setPWaitSemaphores(&swapchain.acquire_semaphore)
+                     .setSignalSemaphoreCount(1)
+                     .setPSignalSemaphores(&swapchain.render_semaphore)
+                 }, nullptr);
+
+    queue.presentKHR(
+        vk::PresentInfoKHR()
+        .setSwapchainCount(1)
+        .setPSwapchains(&swapchain.swapchain)
+        .setWaitSemaphoreCount(1)
+        .setPImageIndices(&current_image)
+        .setWaitSemaphoreCount(1)
+        .setPWaitSemaphores(&swapchain.render_semaphore)
+    );
+}
+
 int main(int argc, char** argv)
 {
     auto instance = create_instance();
@@ -338,6 +372,7 @@ int main(int argc, char** argv)
 
     while (!glfwWindowShouldClose(window))
     {
+        update(device, swapchain, queue);
         glfwPollEvents();
     }
 
