@@ -78,11 +78,23 @@ vk::Instance create_instance()
     );
 }
 
+static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
+{
+    auto devices = vulkan.enumeratePhysicalDevices();
+    assert(devices.size() == 1);
+
+    auto props = devices[0].getProperties();
+    std::printf("Using physical device: %s\n", props.deviceName);
+    return devices[0];
+}
+
 int main(int argc, char** argv)
 {
     auto instance = create_instance();
 
     auto callback = create_debug_report_callback(instance);
+
+    auto physical_device = get_physical_device(instance);
 
     auto success = glfwInit();
     assert(success);
