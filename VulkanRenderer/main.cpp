@@ -1,7 +1,8 @@
 #include "stdafx.h"
+#include "shaders.h"
 
-static const uint32_t WIDTH = 1024u;
-static const uint32_t HEIGHT = 768u;
+const uint32_t WIDTH = 1024u;
+const uint32_t HEIGHT = 768u;
 
 static PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT = nullptr;
 static PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT = nullptr;
@@ -353,6 +354,7 @@ int main(int argc, char** argv)
     auto device = create_device(physical_device);
     auto queue = device.getQueue(0, 0);
     auto render_pass = create_render_pass(device);
+    auto pipeline = create_pipeline(device, render_pass, "", "");
 
     auto success = glfwInit();
     assert(success);
@@ -382,6 +384,7 @@ int main(int argc, char** argv)
 
     glfwTerminate();
 
+    pipeline.destroy(device);
     device.destroyRenderPass(render_pass);
     device.destroy();
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
