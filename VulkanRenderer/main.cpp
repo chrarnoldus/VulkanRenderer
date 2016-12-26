@@ -69,15 +69,13 @@ vk::Instance create_instance()
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
     };
 
-    auto instance = vk::createInstance(
+    return vk::createInstance(
         vk::InstanceCreateInfo()
         .setEnabledLayerCount(layerCount)
         .setPpEnabledLayerNames(layerNames)
         .setEnabledExtensionCount(extensionCount)
         .setPpEnabledExtensionNames(extensionNames)
     );
-
-    return instance;
 }
 
 int main(int argc, char** argv)
