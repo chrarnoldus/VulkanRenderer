@@ -150,6 +150,68 @@ static vk::RenderPass create_render_pass(vk::Device device)
     );
 }
 
+static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, vk::Framebuffer framebuffer)
+{
+    auto command_buffer = device.allocateCommandBuffers(
+        vk::CommandBufferAllocateInfo()
+        .setCommandPool(command_pool)
+        .setLevel(vk::CommandBufferLevel::ePrimary)
+        .setCommandBufferCount(1)
+    )[0];
+
+    command_buffer.begin(vk::CommandBufferBeginInfo()
+        .setFlags(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
+
+    auto barrier = vk::ImageMemoryBarrier()
+        .setImage(image)
+        .setOldLayout(vk::ImageLayout::eUndefined)
+        .setNewLayout(vk::ImageLayout::eColorAttachmentOptimal)
+        .setSubresourceRange(
+            vk::ImageSubresourceRange()
+            .setAspectMask(vk::ImageAspectFlagBits::eColor)
+            .setLevelCount(VK_REMAINING_MIP_LEVELS)
+            .setLayerCount(VK_REMAINING_ARRAY_LAYERS)
+        )
+        .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
+    command_buffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eColorAttachmentOutput,
+        vk::PipelineStageFlagBits::eColorAttachmentOutput,
+        vk::DependencyFlags(),
+        {},
+        {},
+        {barrier}
+    );
+
+    auto clear_value = vk::ClearValue()
+        .setColor(vk::ClearColorValue().setFloat32({0.f, 0.f, 1.f, 0.f}));
+
+    vk::Rect2D render_area;
+    render_area.extent.width = WIDTH;
+    render_area.extent.height = HEIGHT;
+
+    command_buffer.beginRenderPass(
+        vk::RenderPassBeginInfo()
+        .setRenderPass(render_pass)
+        .setClearValueCount(1)
+        .setPClearValues(&clear_value)
+        .setRenderArea(render_area)
+        .setFramebuffer(framebuffer)
+        ,
+        vk::SubpassContents::eInline
+    );
+
+    //command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+
+    // TODO draw
+
+    command_buffer.endRenderPass();
+
+    command_buffer.end();
+
+    return command_buffer;
+}
+
+
 int main(int argc, char** argv)
 {
     auto instance = create_instance();
