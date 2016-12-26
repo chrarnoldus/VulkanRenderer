@@ -151,7 +151,7 @@ static vk::RenderPass create_render_pass(vk::Device device)
     );
 }
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, vk::Framebuffer framebuffer)
+static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, vk::Pipeline pipeline, vk::Framebuffer framebuffer)
 {
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -201,7 +201,7 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
         vk::SubpassContents::eInline
     );
 
-    //command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 
     // TODO draw
 
@@ -244,7 +244,7 @@ struct swapchain_info
     }
 };
 
-static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, vk::SurfaceKHR surface)
+static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, vk::Pipeline pipeline, vk::SurfaceKHR surface)
 {
     auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
@@ -305,6 +305,7 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
             swapchain_info.command_pool,
             image,
             render_pass,
+            pipeline,
             framebuffer
         ));
     }
@@ -354,7 +355,7 @@ int main(int argc, char** argv)
     auto device = create_device(physical_device);
     auto queue = device.getQueue(0, 0);
     auto render_pass = create_render_pass(device);
-    auto pipeline = create_pipeline(device, render_pass, "", "");
+    auto pipeline = create_pipeline(device, render_pass, "vert.spv", "frag.spv");
 
     auto success = glfwInit();
     assert(success);
@@ -370,13 +371,15 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
-    auto swapchain = create_swapchain(physical_device, device, render_pass, surface);
+    auto swapchain = create_swapchain(physical_device, device, render_pass, pipeline.pipeline, surface);
 
     while (!glfwWindowShouldClose(window))
     {
         update(device, swapchain, queue);
         glfwPollEvents();
     }
+
+    queue.waitIdle();
 
     swapchain.destroy();
 
