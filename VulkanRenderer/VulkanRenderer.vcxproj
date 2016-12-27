@@ -64,9 +64,25 @@
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <CustomBuildStep>
       <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)vert.spv" "$(ProjectDir)shader.vert"
 "$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)frag.spv" "$(ProjectDir)shader.frag"</Command>
-    </PostBuildEvent>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Compiling shaders</Message>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)vert.spv;$(ProjectDir)frag.spv;%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Inputs>$(ProjectDir)shader.vert;$(ProjectDir)shader.frag;%(Inputs)</Inputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <TreatOutputAsContent>true</TreatOutputAsContent>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -88,9 +104,25 @@
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <CustomBuildStep>
       <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)vert.spv" "$(ProjectDir)shader.vert"
 "$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)frag.spv" "$(ProjectDir)shader.frag"</Command>
-    </PostBuildEvent>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Compiling shaders</Message>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)vert.spv;$(ProjectDir)frag.spv;%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Inputs>$(ProjectDir)shader.vert;$(ProjectDir)shader.frag;%(Inputs)</Inputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <TreatOutputAsContent>true</TreatOutputAsContent>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
