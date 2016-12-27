@@ -92,7 +92,13 @@ shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, const
     auto multisample_state = vk::PipelineMultisampleStateCreateInfo()
         .setRasterizationSamples(vk::SampleCountFlagBits::e1);
 
-    auto attachment_state = vk::PipelineColorBlendAttachmentState();
+    auto attachment_state = vk::PipelineColorBlendAttachmentState()
+        .setColorWriteMask(
+            vk::ColorComponentFlagBits::eR |
+            vk::ColorComponentFlagBits::eG |
+            vk::ColorComponentFlagBits::eB |
+            vk::ColorComponentFlagBits::eA
+        );
     auto blend_state = vk::PipelineColorBlendStateCreateInfo()
         .setAttachmentCount(1)
         .setPAttachments(&attachment_state);
