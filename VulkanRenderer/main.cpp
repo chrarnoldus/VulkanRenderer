@@ -264,8 +264,7 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
         .setClearValueCount(1)
         .setPClearValues(&clear_value)
         .setRenderArea(render_area)
-        .setFramebuffer(framebuffer)
-        ,
+        .setFramebuffer(framebuffer),
         vk::SubpassContents::eInline
     );
 
