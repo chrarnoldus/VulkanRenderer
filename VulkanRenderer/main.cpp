@@ -7,6 +7,8 @@ const uint32_t HEIGHT = 768u;
 static PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT = nullptr;
 static PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT = nullptr;
 
+static FILE* file = nullptr;
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report_callback(
     VkDebugReportFlagsEXT flags,
     VkDebugReportObjectTypeEXT objectType,
@@ -17,7 +19,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report_callback(
     const char* pMessage,
     void* pUserData)
 {
-    std::fprintf(stderr, "%s: %s\n", pLayerPrefix, pMessage);
+    std::fprintf(file, "%s: %s\n", pLayerPrefix, pMessage);
     return false;
 }
 
@@ -415,6 +417,11 @@ static void update(
 
 int main(int argc, char** argv)
 {
+#if _DEBUG
+    auto file_ok = fopen_s(&file, "debug_report.log", "w");
+    assert(file_ok == 0);
+#endif
+
     auto instance = create_instance();
     auto callback = create_debug_report_callback(instance);
     auto physical_device = get_physical_device(instance);
