@@ -63,6 +63,10 @@
       <AdditionalLibraryDirectories>$(VK_SDK_PATH)\Bin\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)vert.spv" "$(ProjectDir)shader.vert"
+"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)frag.spv" "$(ProjectDir)shader.frag"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -83,6 +87,10 @@
       <AdditionalLibraryDirectories>$(VK_SDK_PATH)\Bin\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)vert.spv" "$(ProjectDir)shader.vert"
+"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)frag.spv" "$(ProjectDir)shader.frag"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
