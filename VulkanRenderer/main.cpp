@@ -151,6 +151,72 @@ static vk::RenderPass create_render_pass(vk::Device device)
     );
 }
 
+struct buffer_info
+{
+    vk::DeviceMemory memory;
+    vk::Buffer buffer;
+
+    void destroy(vk::Device device)
+    {
+        device.destroyBuffer(buffer);
+        device.freeMemory(memory);
+    }
+};
+
+static buffer_info create_buffer(vk::PhysicalDevice physical_device, vk::Device device)
+{
+    auto desired_flags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+    auto props = physical_device.getMemoryProperties();
+
+    auto memory_type_index = UINT32_MAX;
+    for (auto i = uint32_t(0); i < props.memoryTypeCount; i++)
+    {
+        if ((props.memoryTypes[i].propertyFlags & desired_flags) == desired_flags)
+        {
+            memory_type_index = i;
+            break;
+        }
+    }
+    assert(memory_type_index != UINT32_MAX);
+
+    auto queue_familiy_index = uint32_t(0);
+    auto size = 6 * sizeof(vertex);
+
+    auto memory = device.allocateMemory(
+        vk::MemoryAllocateInfo()
+        .setAllocationSize(size)
+        .setMemoryTypeIndex(memory_type_index)
+    );
+
+    auto ptr = reinterpret_cast<vertex*>(device.mapMemory(memory, 0, VK_WHOLE_SIZE));
+    ptr[0] = {-1.f, 1.f, 255, 0, 0};
+    ptr[1] = {1.f, 1.f, 0, 255, 0};
+    ptr[2] = {1.f, -1.f, 0, 0, 255};
+    ptr[3] = {1.f, -1.f, 0, 0, 255};
+    ptr[4] = {-1.f, -1.f, 0, 255, 0};
+    ptr[5] = {-1.f, 1.f, 255, 0, 0};
+    device.unmapMemory(memory);
+
+    auto buffer = device.createBuffer(
+        vk::BufferCreateInfo()
+        .setSize(size)
+        .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
+        .setQueueFamilyIndexCount(0)
+        .setPQueueFamilyIndices(&queue_familiy_index)
+        .setSharingMode(vk::SharingMode::eExclusive)
+    );
+
+    auto reqs = device.getBufferMemoryRequirements(buffer);
+    assert((reqs.memoryTypeBits & 1u << memory_type_index) == 1u << memory_type_index);
+
+    device.bindBufferMemory(buffer, memory, 0);
+
+    buffer_info info;
+    info.memory = memory;
+    info.buffer = buffer;
+    return info;
+}
+
 static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, vk::Pipeline pipeline, vk::Framebuffer framebuffer)
 {
     auto command_buffer = device.allocateCommandBuffers(
@@ -355,6 +421,7 @@ int main(int argc, char** argv)
     auto device = create_device(physical_device);
     auto queue = device.getQueue(0, 0);
     auto render_pass = create_render_pass(device);
+    auto buffer = create_buffer(physical_device, device);
     auto pipeline = create_pipeline(device, render_pass, "vert.spv", "frag.spv");
 
     auto success = glfwInit();
@@ -388,6 +455,7 @@ int main(int argc, char** argv)
     glfwTerminate();
 
     pipeline.destroy(device);
+    buffer.destroy(device);
     device.destroyRenderPass(render_pass);
     device.destroy();
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);

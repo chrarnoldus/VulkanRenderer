@@ -56,14 +56,14 @@ shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, const
         .setStride(sizeof(vertex));
 
     auto position_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR32G32B32A32Sfloat)
+        .setFormat(vk::Format::eR32G32Sfloat)
         .setLocation(0)
-        .setOffset(offsetof(vertex, position));
+        .setOffset(offsetof(vertex, x));
 
     auto color_attribute = vk::VertexInputAttributeDescription()
         .setFormat(vk::Format::eR8G8B8A8Unorm)
         .setLocation(1)
-        .setOffset(offsetof(vertex, color));
+        .setOffset(offsetof(vertex, r));
 
     const auto attribute_count = 2u;
     vk::VertexInputAttributeDescription attributes[attribute_count] = {position_attribute, color_attribute};

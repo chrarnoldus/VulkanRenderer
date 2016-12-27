@@ -6,8 +6,11 @@ extern const uint32_t HEIGHT;
 
 struct vertex
 {
-    float position[2];
-    uint8_t color[3];
+    float x;
+    float y;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
 };
 
 struct shader_info
