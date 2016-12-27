@@ -195,7 +195,7 @@ static buffer_info create_buffer(vk::PhysicalDevice physical_device, vk::Device 
     ptr[1] = {1.f, 1.f, 0, 255, 0};
     ptr[2] = {1.f, -1.f, 0, 0, 255};
     ptr[3] = {1.f, -1.f, 0, 0, 255};
-    ptr[4] = {-1.f, -1.f, 0, 255, 0};
+    ptr[4] = {-1.f, -1.f, 255, 255, 0};
     ptr[5] = {-1.f, 1.f, 255, 0, 0};
     device.unmapMemory(memory);
 
@@ -219,7 +219,7 @@ static buffer_info create_buffer(vk::PhysicalDevice physical_device, vk::Device 
     return info;
 }
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, vk::Pipeline pipeline, vk::Framebuffer framebuffer)
+static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, vk::Pipeline pipeline, vk::Framebuffer framebuffer, vk::Buffer buffer)
 {
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -252,7 +252,7 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
     );
 
     auto clear_value = vk::ClearValue()
-        .setColor(vk::ClearColorValue().setFloat32({0.f, 0.f, 1.f, 0.f}));
+        .setColor(vk::ClearColorValue().setFloat32({0.f, 1.f, 1.f, 1.f}));
 
     vk::Rect2D render_area;
     render_area.extent.width = WIDTH;
@@ -270,7 +270,9 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
 
     command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 
-    // TODO draw
+    command_buffer.bindVertexBuffers(0, {buffer}, {0});
+
+    command_buffer.draw(6, 1, 0, 0);
 
     command_buffer.endRenderPass();
 
@@ -311,7 +313,7 @@ struct swapchain_info
     }
 };
 
-static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, vk::Pipeline pipeline, vk::SurfaceKHR surface)
+static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, vk::Pipeline pipeline, vk::SurfaceKHR surface, vk::Buffer buffer)
 {
     auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
@@ -373,7 +375,8 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
             image,
             render_pass,
             pipeline,
-            framebuffer
+            framebuffer,
+            buffer
         ));
     }
 
@@ -444,7 +447,7 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
-    auto swapchain = create_swapchain(physical_device, device, render_pass, pipeline.pipeline, surface);
+    auto swapchain = create_swapchain(physical_device, device, render_pass, pipeline.pipeline, surface, buffer.buffer);
 
     while (!glfwWindowShouldClose(window))
     {
