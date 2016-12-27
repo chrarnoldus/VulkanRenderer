@@ -61,7 +61,7 @@ shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, const
         .setOffset(offsetof(vertex, x));
 
     auto color_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR8G8B8A8Unorm)
+        .setFormat(vk::Format::eR8G8B8Unorm)
         .setLocation(1)
         .setOffset(offsetof(vertex, r));
 
