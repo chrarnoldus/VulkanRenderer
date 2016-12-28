@@ -219,7 +219,7 @@ static buffer_info create_mesh(vk::PhysicalDevice physical_device, vk::Device de
     ptr[1] = {1.f, 1.f, 0, 255, 0};
     ptr[2] = {1.f, -1.f, 0, 0, 255};
     ptr[3] = {1.f, -1.f, 0, 0, 255};
-    ptr[4] = {-1.f, -1.f, 255, 255, 0};
+    ptr[4] = {-1.f, -1.f, 127, 127, 127};
     ptr[5] = {-1.f, 1.f, 255, 0, 0};
     device.unmapMemory(result.memory);
 
@@ -228,7 +228,14 @@ static buffer_info create_mesh(vk::PhysicalDevice physical_device, vk::Device de
 
 static buffer_info create_uniform_buffer(vk::PhysicalDevice physical_device, vk::Device device)
 {
-    glm::mat4 transform(1.f);
+    auto transform =
+        glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f)
+        *
+        glm::lookAt(
+            glm::vec3(0.f, 0.f, 2.f),
+            glm::vec3(0.f, 0.f, 0.f),
+            glm::vec3(0.f, -1.f, 0.f)
+        );
 
     auto size = sizeof(transform);
     auto result = create_buffer(physical_device, device, size, vk::BufferUsageFlagBits::eUniformBuffer);
