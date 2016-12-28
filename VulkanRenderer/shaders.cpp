@@ -31,7 +31,7 @@ static vk::ShaderModule create_shader_module(vk::Device device, const std::vecto
     );
 }
 
-shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, const char* vert_shader_file_name, const char* frag_shader_file_name)
+shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, vk::Buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name)
 {
     auto vert_shader = create_shader_module(device, read_file(vert_shader_file_name));
     auto frag_shader = create_shader_module(device, read_file(frag_shader_file_name));
@@ -103,7 +103,47 @@ shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, const
         .setAttachmentCount(1)
         .setPAttachments(&attachment_state);
 
-    shaders.layout = device.createPipelineLayout(vk::PipelineLayoutCreateInfo());
+    auto binding = vk::DescriptorSetLayoutBinding()
+        .setDescriptorCount(1)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+
+    shaders.set_layout = device.createDescriptorSetLayout(
+        vk::DescriptorSetLayoutCreateInfo()
+        .setBindingCount(1)
+        .setPBindings(&binding)
+    );
+    shaders.layout = device.createPipelineLayout(
+        vk::PipelineLayoutCreateInfo()
+        .setSetLayoutCount(1)
+        .setPSetLayouts(&shaders.set_layout)
+    );
+
+    std::vector<vk::DescriptorPoolSize> sizes({vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, 10)});
+    shaders.descriptor_pool = device.createDescriptorPool(
+        vk::DescriptorPoolCreateInfo()
+        .setPoolSizeCount(sizes.size())
+        .setPPoolSizes(sizes.data())
+        .setMaxSets(10)
+    );
+    shaders.descriptor_sets = device.allocateDescriptorSets(
+        vk::DescriptorSetAllocateInfo()
+        .setDescriptorPool(shaders.descriptor_pool)
+        .setDescriptorSetCount(1)
+        .setPSetLayouts(&shaders.set_layout)
+    );
+
+    auto buffer_info = vk::DescriptorBufferInfo()
+        .setBuffer(uniform_buffer)
+        .setRange(sizeof(glm::mat4) /*TODO*/);
+
+    auto write = vk::WriteDescriptorSet()
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setDescriptorCount(1)
+        .setDstSet(shaders.descriptor_sets[0])
+        .setPBufferInfo(&buffer_info);
+
+    device.updateDescriptorSets({write}, {});
 
     shaders.pipeline = device.createGraphicsPipeline(
         nullptr,
@@ -127,6 +167,8 @@ void shader_info::destroy(vk::Device device)
 {
     device.destroyPipeline(pipeline);
     device.destroyPipelineLayout(layout);
+    device.destroyDescriptorSetLayout(set_layout);
+    device.destroyDescriptorPool(descriptor_pool);
     device.destroyShaderModule(frag_shader);
     device.destroyShaderModule(vert_shader);
 }

@@ -165,7 +165,7 @@ struct buffer_info
     }
 };
 
-static buffer_info create_buffer(vk::PhysicalDevice physical_device, vk::Device device)
+static buffer_info create_buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::DeviceSize allocation_size, vk::BufferUsageFlags usage_flags)
 {
     auto desired_flags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
     auto props = physical_device.getMemoryProperties();
@@ -182,27 +182,17 @@ static buffer_info create_buffer(vk::PhysicalDevice physical_device, vk::Device 
     assert(memory_type_index != UINT32_MAX);
 
     auto queue_familiy_index = uint32_t(0);
-    auto size = 6 * sizeof(vertex);
 
     auto memory = device.allocateMemory(
         vk::MemoryAllocateInfo()
-        .setAllocationSize(size)
+        .setAllocationSize(allocation_size)
         .setMemoryTypeIndex(memory_type_index)
     );
 
-    auto ptr = reinterpret_cast<vertex*>(device.mapMemory(memory, 0, VK_WHOLE_SIZE));
-    ptr[0] = {-1.f, 1.f, 255, 0, 0};
-    ptr[1] = {1.f, 1.f, 0, 255, 0};
-    ptr[2] = {1.f, -1.f, 0, 0, 255};
-    ptr[3] = {1.f, -1.f, 0, 0, 255};
-    ptr[4] = {-1.f, -1.f, 255, 255, 0};
-    ptr[5] = {-1.f, 1.f, 255, 0, 0};
-    device.unmapMemory(memory);
-
     auto buffer = device.createBuffer(
         vk::BufferCreateInfo()
-        .setSize(size)
-        .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
+        .setSize(allocation_size)
+        .setUsage(usage_flags)
         .setQueueFamilyIndexCount(0)
         .setPQueueFamilyIndices(&queue_familiy_index)
         .setSharingMode(vk::SharingMode::eExclusive)
@@ -219,7 +209,38 @@ static buffer_info create_buffer(vk::PhysicalDevice physical_device, vk::Device 
     return info;
 }
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, vk::Pipeline pipeline, vk::Framebuffer framebuffer, vk::Buffer buffer)
+static buffer_info create_mesh(vk::PhysicalDevice physical_device, vk::Device device)
+{
+    auto size = 6 * sizeof(vertex);
+    auto result = create_buffer(physical_device, device, size, vk::BufferUsageFlagBits::eVertexBuffer);
+
+    auto ptr = reinterpret_cast<vertex*>(device.mapMemory(result.memory, 0, VK_WHOLE_SIZE));
+    ptr[0] = {-1.f, 1.f, 255, 0, 0};
+    ptr[1] = {1.f, 1.f, 0, 255, 0};
+    ptr[2] = {1.f, -1.f, 0, 0, 255};
+    ptr[3] = {1.f, -1.f, 0, 0, 255};
+    ptr[4] = {-1.f, -1.f, 255, 255, 0};
+    ptr[5] = {-1.f, 1.f, 255, 0, 0};
+    device.unmapMemory(result.memory);
+
+    return result;
+}
+
+static buffer_info create_uniform_buffer(vk::PhysicalDevice physical_device, vk::Device device)
+{
+    glm::mat4 transform(1.f);
+
+    auto size = sizeof(transform);
+    auto result = create_buffer(physical_device, device, size, vk::BufferUsageFlagBits::eUniformBuffer);
+
+    auto ptr = reinterpret_cast<glm::mat4*>(device.mapMemory(result.memory, 0, VK_WHOLE_SIZE));
+    *ptr = transform;
+    device.unmapMemory(result.memory);
+
+    return result;
+}
+
+static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, shader_info pipeline, vk::Framebuffer framebuffer, vk::Buffer buffer)
 {
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -268,7 +289,9 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
         vk::SubpassContents::eInline
     );
 
-    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.pipeline);
+
+    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.layout, 0, pipeline.descriptor_sets, {});
 
     command_buffer.bindVertexBuffers(0, {buffer}, {0});
 
@@ -313,7 +336,7 @@ struct swapchain_info
     }
 };
 
-static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, vk::Pipeline pipeline, vk::SurfaceKHR surface, vk::Buffer buffer)
+static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, shader_info pipeline, vk::SurfaceKHR surface, vk::Buffer buffer)
 {
     auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
@@ -430,8 +453,9 @@ int main(int argc, char** argv)
     auto device = create_device(physical_device);
     auto queue = device.getQueue(0, 0);
     auto render_pass = create_render_pass(device);
-    auto buffer = create_buffer(physical_device, device);
-    auto pipeline = create_pipeline(device, render_pass, "vert.spv", "frag.spv");
+    auto mesh = create_mesh(physical_device, device);
+    auto uniform_buffer = create_uniform_buffer(physical_device, device);
+    auto pipeline = create_pipeline(device, render_pass, uniform_buffer.buffer, "vert.spv", "frag.spv");
 
     auto success = glfwInit();
     assert(success);
@@ -447,7 +471,7 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
-    auto swapchain = create_swapchain(physical_device, device, render_pass, pipeline.pipeline, surface, buffer.buffer);
+    auto swapchain = create_swapchain(physical_device, device, render_pass, pipeline, surface, mesh.buffer);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -464,7 +488,8 @@ int main(int argc, char** argv)
     glfwTerminate();
 
     pipeline.destroy(device);
-    buffer.destroy(device);
+    uniform_buffer.destroy(device);
+    mesh.destroy(device);
     device.destroyRenderPass(render_pass);
     device.destroy();
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);

@@ -18,9 +18,12 @@ struct shader_info
     vk::ShaderModule vert_shader;
     vk::ShaderModule frag_shader;
     vk::PipelineLayout layout;
+    vk::DescriptorSetLayout set_layout;
+    vk::DescriptorPool descriptor_pool;
+    std::vector<vk::DescriptorSet> descriptor_sets;
     vk::Pipeline pipeline;
 
     void destroy(vk::Device device);
 };
 
-shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, const char* vert_shader_file_name, const char* frag_shader_file_name);
+shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, vk::Buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name);
