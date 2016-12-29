@@ -24,7 +24,7 @@ struct pipeline
     std::vector<vk::DescriptorSet> descriptor_sets;
     vk::Pipeline pl;
 
+    pipeline(vk::Device device, vk::RenderPass render_pass, buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name);
     void destroy(vk::Device device) const;
 };
 
-pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name);

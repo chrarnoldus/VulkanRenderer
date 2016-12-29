@@ -381,7 +381,7 @@ int main(int argc, char** argv)
     auto render_pass = create_render_pass(device);
     auto mesh = create_mesh(physical_device, device);
     auto uniform_buffer = create_uniform_buffer(physical_device, device);
-    auto pipeline = create_pipeline(device, render_pass, uniform_buffer, "vert.spv", "frag.spv");
+    auto pl = pipeline(device, render_pass, uniform_buffer, "vert.spv", "frag.spv");
 
     auto success = glfwInit();
     assert(success);
@@ -397,7 +397,7 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
-    auto swapchain = create_swapchain(physical_device, device, render_pass, pipeline, surface, mesh);
+    auto swapchain = create_swapchain(physical_device, device, render_pass, pl, surface, mesh);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -413,7 +413,7 @@ int main(int argc, char** argv)
 
     glfwTerminate();
 
-    pipeline.destroy(device);
+    pl.destroy(device);
     uniform_buffer.destroy(device);
     mesh.destroy(device);
     device.destroyRenderPass(render_pass);

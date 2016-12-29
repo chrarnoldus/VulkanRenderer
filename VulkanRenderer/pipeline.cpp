@@ -31,13 +31,10 @@ static vk::ShaderModule create_shader_module(vk::Device device, const std::vecto
     );
 }
 
-pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name)
+pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, struct buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name)
 {
-    auto vert_shader = create_shader_module(device, read_file(vert_shader_file_name));
-    auto frag_shader = create_shader_module(device, read_file(frag_shader_file_name));
-    pipeline shaders;
-    shaders.vert_shader = vert_shader;
-    shaders.frag_shader = frag_shader;
+    vert_shader = create_shader_module(device, read_file(vert_shader_file_name));
+    frag_shader = create_shader_module(device, read_file(frag_shader_file_name));
 
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
         .setStage(vk::ShaderStageFlagBits::eVertex)
@@ -108,29 +105,29 @@ pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer u
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
         .setStageFlags(vk::ShaderStageFlagBits::eVertex);
 
-    shaders.set_layout = device.createDescriptorSetLayout(
+    set_layout = device.createDescriptorSetLayout(
         vk::DescriptorSetLayoutCreateInfo()
         .setBindingCount(1)
         .setPBindings(&binding)
     );
-    shaders.layout = device.createPipelineLayout(
+    layout = device.createPipelineLayout(
         vk::PipelineLayoutCreateInfo()
         .setSetLayoutCount(1)
-        .setPSetLayouts(&shaders.set_layout)
+        .setPSetLayouts(&set_layout)
     );
 
     std::vector<vk::DescriptorPoolSize> sizes({vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, 10)});
-    shaders.descriptor_pool = device.createDescriptorPool(
+    descriptor_pool = device.createDescriptorPool(
         vk::DescriptorPoolCreateInfo()
         .setPoolSizeCount(sizes.size())
         .setPPoolSizes(sizes.data())
         .setMaxSets(10)
     );
-    shaders.descriptor_sets = device.allocateDescriptorSets(
+    descriptor_sets = device.allocateDescriptorSets(
         vk::DescriptorSetAllocateInfo()
-        .setDescriptorPool(shaders.descriptor_pool)
+        .setDescriptorPool(descriptor_pool)
         .setDescriptorSetCount(1)
-        .setPSetLayouts(&shaders.set_layout)
+        .setPSetLayouts(&set_layout)
     );
 
     auto buffer_info = vk::DescriptorBufferInfo()
@@ -140,12 +137,12 @@ pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer u
     auto write = vk::WriteDescriptorSet()
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
         .setDescriptorCount(1)
-        .setDstSet(shaders.descriptor_sets[0])
+        .setDstSet(descriptor_sets[0])
         .setPBufferInfo(&buffer_info);
 
     device.updateDescriptorSets({write}, {});
 
-    shaders.pl = device.createGraphicsPipeline(
+    pl = device.createGraphicsPipeline(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
         .setStageCount(stage_count)
@@ -157,10 +154,8 @@ pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer u
         .setPMultisampleState(&multisample_state)
         .setPColorBlendState(&blend_state)
         .setRenderPass(render_pass)
-        .setLayout(shaders.layout)
+        .setLayout(layout)
     );
-
-    return shaders;
 }
 
 void pipeline::destroy(vk::Device device) const
