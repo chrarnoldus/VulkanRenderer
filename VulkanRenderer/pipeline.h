@@ -2,9 +2,6 @@
 #include <vulkan/vulkan.h>
 #include "buffer.h"
 
-extern const uint32_t WIDTH;
-extern const uint32_t HEIGHT;
-
 struct vertex
 {
     float x;

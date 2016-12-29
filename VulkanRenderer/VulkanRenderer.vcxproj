@@ -126,6 +126,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="buffer.cpp" />
+    <ClCompile Include="dimensions.cpp" />
+    <ClCompile Include="frame.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pipeline.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -135,6 +137,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buffer.h" />
+    <ClInclude Include="dimensions.h" />
+    <ClInclude Include="frame.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

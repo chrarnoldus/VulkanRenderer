@@ -1,9 +1,8 @@
 #include "stdafx.h"
 #include "buffer.h"
 #include "pipeline.h"
-
-const uint32_t WIDTH = 1024u;
-const uint32_t HEIGHT = 768u;
+#include "frame.h"
+#include "dimensions.h"
 
 static PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT = nullptr;
 static PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT = nullptr;
@@ -188,76 +187,21 @@ static buffer create_uniform_buffer(vk::PhysicalDevice physical_device, vk::Devi
     return buf;
 }
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::RenderPass render_pass, pipeline pipeline, vk::Framebuffer framebuffer, buffer buf)
-{
-    auto command_buffer = device.allocateCommandBuffers(
-        vk::CommandBufferAllocateInfo()
-        .setCommandPool(command_pool)
-        .setLevel(vk::CommandBufferLevel::ePrimary)
-        .setCommandBufferCount(1)
-    )[0];
-
-    command_buffer.begin(vk::CommandBufferBeginInfo()
-        .setFlags(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
-
-    auto clear_value = vk::ClearValue()
-        .setColor(vk::ClearColorValue().setFloat32({0.f, 1.f, 1.f, 1.f}));
-
-    vk::Rect2D render_area;
-    render_area.extent.width = WIDTH;
-    render_area.extent.height = HEIGHT;
-
-    command_buffer.beginRenderPass(
-        vk::RenderPassBeginInfo()
-        .setRenderPass(render_pass)
-        .setClearValueCount(1)
-        .setPClearValues(&clear_value)
-        .setRenderArea(render_area)
-        .setFramebuffer(framebuffer),
-        vk::SubpassContents::eInline
-    );
-
-    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.pl);
-
-    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.layout, 0, pipeline.descriptor_sets, {});
-
-    command_buffer.bindVertexBuffers(0, {buf.buf}, {0});
-
-    command_buffer.draw(6, 1, 0, 0);
-
-    command_buffer.endRenderPass();
-
-    command_buffer.end();
-
-    return command_buffer;
-}
-
 struct swapchain_info
 {
     vk::Device device;
     vk::SwapchainKHR swapchain;
-    std::vector<vk::Image> images;
-    std::vector<vk::ImageView> image_views;
-    std::vector<vk::Framebuffer> framebuffers;
     vk::CommandPool command_pool;
-    std::vector<vk::CommandBuffer> command_buffers;
-    vk::Semaphore acquire_semaphore;
-    vk::Semaphore render_semaphore;
+    std::vector<frame> frames;
+    std::vector<vk::Semaphore> acquired_semaphores;
 
     void destroy()
     {
-        device.destroySemaphore(render_semaphore);
-        device.destroySemaphore(acquire_semaphore);
         device.destroyCommandPool(command_pool);
 
-        for (auto framebuffer : framebuffers)
+        for (auto frame : frames)
         {
-            device.destroyFramebuffer(framebuffer);
-        }
-
-        for (auto image_view : image_views)
-        {
-            device.destroyImageView(image_view);
+            frame.destroy(device);
         }
 
         device.destroySwapchainKHR(swapchain);
@@ -290,48 +234,13 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
     swapchain_info swapchain_info = {};
     swapchain_info.device = device;
     swapchain_info.swapchain = swapchain;
-    swapchain_info.images = images;
     swapchain_info.command_pool = device.createCommandPool(vk::CommandPoolCreateInfo());
 
     for (auto image : images)
     {
-        auto view = device.createImageView(
-            vk::ImageViewCreateInfo()
-            .setFormat(vk::Format::eB8G8R8A8Unorm)
-            .setViewType(vk::ImageViewType::e2D)
-            .setImage(image)
-            .setSubresourceRange(
-                vk::ImageSubresourceRange()
-                .setAspectMask(vk::ImageAspectFlagBits::eColor)
-                .setLevelCount(VK_REMAINING_MIP_LEVELS)
-                .setLayerCount(1)
-            )
-        );
-        swapchain_info.image_views.push_back(view);
-
-        auto framebuffer = device.createFramebuffer(
-            vk::FramebufferCreateInfo()
-            .setRenderPass(render_pass)
-            .setAttachmentCount(1)
-            .setPAttachments(&view)
-            .setWidth(WIDTH)
-            .setHeight(HEIGHT)
-            .setLayers(1)
-        );
-        swapchain_info.framebuffers.push_back(framebuffer);
-
-        swapchain_info.command_buffers.push_back(create_command_buffer(
-            device,
-            swapchain_info.command_pool,
-            render_pass,
-            pipeline,
-            framebuffer,
-            buffer
-        ));
+        swapchain_info.frames.push_back(frame(device, swapchain_info.command_pool, image, render_pass, pipeline, buffer));
+        swapchain_info.acquired_semaphores.push_back(device.createSemaphore(vk::SemaphoreCreateInfo()));
     }
-
-    swapchain_info.acquire_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
-    swapchain_info.render_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
 
     return swapchain_info;
 }
@@ -339,21 +248,23 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
 static void update(
     vk::Device device,
     const swapchain_info& swapchain,
-    vk::Queue queue)
+    vk::Queue queue,
+    vk::Semaphore acquired_semaphore
+)
 {
-    auto current_image = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, swapchain.acquire_semaphore, nullptr).value;
+    auto current_image = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, acquired_semaphore, nullptr).value;
 
     auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
 
     queue.submit({
                      vk::SubmitInfo()
                      .setCommandBufferCount(1)
-                     .setPCommandBuffers(&swapchain.command_buffers[current_image])
+                     .setPCommandBuffers(&swapchain.frames[current_image].command_buffer)
                      .setPWaitDstStageMask(&wait_dst_stage_mask)
                      .setWaitSemaphoreCount(1)
-                     .setPWaitSemaphores(&swapchain.acquire_semaphore)
+                     .setPWaitSemaphores(&acquired_semaphore)
                      .setSignalSemaphoreCount(1)
-                     .setPSignalSemaphores(&swapchain.render_semaphore)
+                     .setPSignalSemaphores(&swapchain.frames[current_image].submitted_semaphore)
                  }, nullptr);
 
     queue.presentKHR(
@@ -362,7 +273,7 @@ static void update(
         .setPSwapchains(&swapchain.swapchain)
         .setPImageIndices(&current_image)
         .setWaitSemaphoreCount(1)
-        .setPWaitSemaphores(&swapchain.render_semaphore)
+        .setPWaitSemaphores(&swapchain.frames[current_image].submitted_semaphore)
     );
 }
 
@@ -399,9 +310,11 @@ int main(int argc, char** argv)
 
     auto swapchain = create_swapchain(physical_device, device, render_pass, pl, surface, mesh);
 
+    auto i = uint32_t(0);
     while (!glfwWindowShouldClose(window))
     {
-        update(device, swapchain, queue);
+        update(device, swapchain, queue, swapchain.acquired_semaphores[i]);
+        i = (i + 1) % swapchain.acquired_semaphores.size();
         glfwPollEvents();
     }
 

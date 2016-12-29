@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "pipeline.h"
+#include "dimensions.h"
 
 static std::vector<char> read_file(const char* file_name)
 {
