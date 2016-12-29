@@ -163,7 +163,7 @@ pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer u
     return shaders;
 }
 
-void pipeline::destroy(vk::Device device)
+void pipeline::destroy(vk::Device device) const
 {
     device.destroyPipeline(pl);
     device.destroyPipelineLayout(layout);
