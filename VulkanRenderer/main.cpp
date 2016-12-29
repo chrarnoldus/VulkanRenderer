@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "shaders.h"
+#include "buffer.h"
 
 const uint32_t WIDTH = 1024u;
 const uint32_t HEIGHT = 768u;
@@ -153,80 +154,24 @@ static vk::RenderPass create_render_pass(vk::Device device)
     );
 }
 
-struct buffer_info
+static buffer create_mesh(vk::PhysicalDevice physical_device, vk::Device device)
 {
-    vk::DeviceMemory memory;
-    vk::Buffer buffer;
+    const uint32_t vertex_count = 6;
+    auto buf = buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, vertex_count * sizeof(vertex));
 
-    void destroy(vk::Device device)
-    {
-        device.destroyBuffer(buffer);
-        device.freeMemory(memory);
-    }
-};
+    vertex data[vertex_count];
+    data[0] = {-1.f, 1.f, 255, 0, 0};
+    data[1] = {1.f, 1.f, 0, 255, 0};
+    data[2] = {1.f, -1.f, 0, 0, 255};
+    data[3] = {1.f, -1.f, 0, 0, 255};
+    data[4] = {-1.f, -1.f, 127, 127, 127};
+    data[5] = {-1.f, 1.f, 255, 0, 0};
+    buf.update(device, data);
 
-static buffer_info create_buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::DeviceSize allocation_size, vk::BufferUsageFlags usage_flags)
-{
-    auto desired_flags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-    auto props = physical_device.getMemoryProperties();
-
-    auto memory_type_index = UINT32_MAX;
-    for (auto i = uint32_t(0); i < props.memoryTypeCount; i++)
-    {
-        if ((props.memoryTypes[i].propertyFlags & desired_flags) == desired_flags)
-        {
-            memory_type_index = i;
-            break;
-        }
-    }
-    assert(memory_type_index != UINT32_MAX);
-
-    auto queue_familiy_index = uint32_t(0);
-
-    auto memory = device.allocateMemory(
-        vk::MemoryAllocateInfo()
-        .setAllocationSize(allocation_size)
-        .setMemoryTypeIndex(memory_type_index)
-    );
-
-    auto buffer = device.createBuffer(
-        vk::BufferCreateInfo()
-        .setSize(allocation_size)
-        .setUsage(usage_flags)
-        .setQueueFamilyIndexCount(0)
-        .setPQueueFamilyIndices(&queue_familiy_index)
-        .setSharingMode(vk::SharingMode::eExclusive)
-    );
-
-    auto reqs = device.getBufferMemoryRequirements(buffer);
-    assert((reqs.memoryTypeBits & 1u << memory_type_index) == 1u << memory_type_index);
-
-    device.bindBufferMemory(buffer, memory, 0);
-
-    buffer_info info;
-    info.memory = memory;
-    info.buffer = buffer;
-    return info;
+    return buf;
 }
 
-static buffer_info create_mesh(vk::PhysicalDevice physical_device, vk::Device device)
-{
-    auto size = 6 * sizeof(vertex);
-    auto result = create_buffer(physical_device, device, size, vk::BufferUsageFlagBits::eVertexBuffer);
-
-    auto ptr = reinterpret_cast<vertex*>(device.mapMemory(result.memory, 0, VK_WHOLE_SIZE));
-    ptr[0] = {-1.f, 1.f, 255, 0, 0};
-    ptr[1] = {1.f, 1.f, 0, 255, 0};
-    ptr[2] = {1.f, -1.f, 0, 0, 255};
-    ptr[3] = {1.f, -1.f, 0, 0, 255};
-    ptr[4] = {-1.f, -1.f, 127, 127, 127};
-    ptr[5] = {-1.f, 1.f, 255, 0, 0};
-    device.unmapMemory(result.memory);
-
-    return result;
-}
-
-static buffer_info create_uniform_buffer(vk::PhysicalDevice physical_device, vk::Device device)
+static buffer create_uniform_buffer(vk::PhysicalDevice physical_device, vk::Device device)
 {
     auto transform =
         glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f)
@@ -238,16 +183,12 @@ static buffer_info create_uniform_buffer(vk::PhysicalDevice physical_device, vk:
         );
 
     auto size = sizeof(transform);
-    auto result = create_buffer(physical_device, device, size, vk::BufferUsageFlagBits::eUniformBuffer);
-
-    auto ptr = reinterpret_cast<glm::mat4*>(device.mapMemory(result.memory, 0, VK_WHOLE_SIZE));
-    *ptr = transform;
-    device.unmapMemory(result.memory);
-
-    return result;
+    auto buf = buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, size);
+    buf.update(device, &transform);
+    return buf;
 }
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::RenderPass render_pass, shader_info pipeline, vk::Framebuffer framebuffer, vk::Buffer buffer)
+static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::RenderPass render_pass, shader_info pipeline, vk::Framebuffer framebuffer, buffer buf)
 {
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -280,7 +221,7 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
 
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.layout, 0, pipeline.descriptor_sets, {});
 
-    command_buffer.bindVertexBuffers(0, {buffer}, {0});
+    command_buffer.bindVertexBuffers(0, {buf.buf}, {0});
 
     command_buffer.draw(6, 1, 0, 0);
 
@@ -323,7 +264,7 @@ struct swapchain_info
     }
 };
 
-static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, shader_info pipeline, vk::SurfaceKHR surface, vk::Buffer buffer)
+static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, shader_info pipeline, vk::SurfaceKHR surface, buffer buffer)
 {
     auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
@@ -440,7 +381,7 @@ int main(int argc, char** argv)
     auto render_pass = create_render_pass(device);
     auto mesh = create_mesh(physical_device, device);
     auto uniform_buffer = create_uniform_buffer(physical_device, device);
-    auto pipeline = create_pipeline(device, render_pass, uniform_buffer.buffer, "vert.spv", "frag.spv");
+    auto pipeline = create_pipeline(device, render_pass, uniform_buffer, "vert.spv", "frag.spv");
 
     auto success = glfwInit();
     assert(success);
@@ -456,7 +397,7 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
-    auto swapchain = create_swapchain(physical_device, device, render_pass, pipeline, surface, mesh.buffer);
+    auto swapchain = create_swapchain(physical_device, device, render_pass, pipeline, surface, mesh);
 
     while (!glfwWindowShouldClose(window))
     {

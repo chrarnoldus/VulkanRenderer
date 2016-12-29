@@ -31,7 +31,7 @@ static vk::ShaderModule create_shader_module(vk::Device device, const std::vecto
     );
 }
 
-shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, vk::Buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name)
+shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name)
 {
     auto vert_shader = create_shader_module(device, read_file(vert_shader_file_name));
     auto frag_shader = create_shader_module(device, read_file(frag_shader_file_name));
@@ -134,8 +134,8 @@ shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, vk::B
     );
 
     auto buffer_info = vk::DescriptorBufferInfo()
-        .setBuffer(uniform_buffer)
-        .setRange(sizeof(glm::mat4) /*TODO*/);
+        .setBuffer(uniform_buffer.buf)
+        .setRange(uniform_buffer.allocation_size);
 
     auto write = vk::WriteDescriptorSet()
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)

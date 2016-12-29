@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include "buffer.h"
 
 extern const uint32_t WIDTH;
 extern const uint32_t HEIGHT;
@@ -26,4 +27,4 @@ struct shader_info
     void destroy(vk::Device device);
 };
 
-shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, vk::Buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name);
+shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name);
