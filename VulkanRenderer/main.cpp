@@ -1,6 +1,6 @@
 #include "stdafx.h"
-#include "shaders.h"
 #include "buffer.h"
+#include "pipeline.h"
 
 const uint32_t WIDTH = 1024u;
 const uint32_t HEIGHT = 768u;
@@ -188,7 +188,7 @@ static buffer create_uniform_buffer(vk::PhysicalDevice physical_device, vk::Devi
     return buf;
 }
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::RenderPass render_pass, shader_info pipeline, vk::Framebuffer framebuffer, buffer buf)
+static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::RenderPass render_pass, pipeline pipeline, vk::Framebuffer framebuffer, buffer buf)
 {
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -217,7 +217,7 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
         vk::SubpassContents::eInline
     );
 
-    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.pipeline);
+    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.pl);
 
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.layout, 0, pipeline.descriptor_sets, {});
 
@@ -264,7 +264,7 @@ struct swapchain_info
     }
 };
 
-static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, shader_info pipeline, vk::SurfaceKHR surface, buffer buffer)
+static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, pipeline pipeline, vk::SurfaceKHR surface, buffer buffer)
 {
     auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);

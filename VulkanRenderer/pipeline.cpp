@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "shaders.h"
+#include "pipeline.h"
 
 static std::vector<char> read_file(const char* file_name)
 {
@@ -31,11 +31,11 @@ static vk::ShaderModule create_shader_module(vk::Device device, const std::vecto
     );
 }
 
-shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name)
+pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass, buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name)
 {
     auto vert_shader = create_shader_module(device, read_file(vert_shader_file_name));
     auto frag_shader = create_shader_module(device, read_file(frag_shader_file_name));
-    shader_info shaders;
+    pipeline shaders;
     shaders.vert_shader = vert_shader;
     shaders.frag_shader = frag_shader;
 
@@ -145,7 +145,7 @@ shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, buffe
 
     device.updateDescriptorSets({write}, {});
 
-    shaders.pipeline = device.createGraphicsPipeline(
+    shaders.pl = device.createGraphicsPipeline(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
         .setStageCount(stage_count)
@@ -163,9 +163,9 @@ shader_info create_pipeline(vk::Device device, vk::RenderPass render_pass, buffe
     return shaders;
 }
 
-void shader_info::destroy(vk::Device device)
+void pipeline::destroy(vk::Device device)
 {
-    device.destroyPipeline(pipeline);
+    device.destroyPipeline(pl);
     device.destroyPipelineLayout(layout);
     device.destroyDescriptorSetLayout(set_layout);
     device.destroyDescriptorPool(descriptor_pool);

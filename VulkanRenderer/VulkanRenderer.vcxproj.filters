@@ -21,10 +21,10 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="shaders.cpp">
+    <ClCompile Include="buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="buffer.cpp">
+    <ClCompile Include="pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,10 +32,10 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="shaders.h">
+    <ClInclude Include="buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="buffer.h">
+    <ClInclude Include="pipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
