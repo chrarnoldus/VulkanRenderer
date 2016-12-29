@@ -440,7 +440,6 @@ static void update(
         vk::PresentInfoKHR()
         .setSwapchainCount(1)
         .setPSwapchains(&swapchain.swapchain)
-        .setWaitSemaphoreCount(1)
         .setPImageIndices(&current_image)
         .setWaitSemaphoreCount(1)
         .setPWaitSemaphores(&swapchain.render_semaphore)
