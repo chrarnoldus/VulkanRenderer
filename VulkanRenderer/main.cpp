@@ -134,7 +134,7 @@ static vk::RenderPass create_render_pass(vk::Device device)
         .setStoreOp(vk::AttachmentStoreOp::eStore)
         .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
         .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
-        .setInitialLayout(vk::ImageLayout::eColorAttachmentOptimal)
+        .setInitialLayout(vk::ImageLayout::eUndefined)
         .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
     auto color_attachment = vk::AttachmentReference()
@@ -247,7 +247,7 @@ static buffer_info create_uniform_buffer(vk::PhysicalDevice physical_device, vk:
     return result;
 }
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, shader_info pipeline, vk::Framebuffer framebuffer, vk::Buffer buffer)
+static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::RenderPass render_pass, shader_info pipeline, vk::Framebuffer framebuffer, vk::Buffer buffer)
 {
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -258,26 +258,6 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
 
     command_buffer.begin(vk::CommandBufferBeginInfo()
         .setFlags(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
-
-    auto barrier = vk::ImageMemoryBarrier()
-        .setImage(image)
-        .setOldLayout(vk::ImageLayout::eUndefined)
-        .setNewLayout(vk::ImageLayout::eColorAttachmentOptimal)
-        .setSubresourceRange(
-            vk::ImageSubresourceRange()
-            .setAspectMask(vk::ImageAspectFlagBits::eColor)
-            .setLevelCount(VK_REMAINING_MIP_LEVELS)
-            .setLayerCount(VK_REMAINING_ARRAY_LAYERS)
-        )
-        .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
-    command_buffer.pipelineBarrier(
-        vk::PipelineStageFlagBits::eColorAttachmentOutput,
-        vk::PipelineStageFlagBits::eColorAttachmentOutput,
-        vk::DependencyFlags(),
-        {},
-        {},
-        {barrier}
-    );
 
     auto clear_value = vk::ClearValue()
         .setColor(vk::ClearColorValue().setFloat32({0.f, 1.f, 1.f, 1.f}));
@@ -402,7 +382,6 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
         swapchain_info.command_buffers.push_back(create_command_buffer(
             device,
             swapchain_info.command_pool,
-            image,
             render_pass,
             pipeline,
             framebuffer,
