@@ -32,7 +32,7 @@ static vk::ShaderModule create_shader_module(vk::Device device, const std::vecto
     );
 }
 
-pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, struct buffer uniform_buffer, const char* vert_shader_file_name, const char* frag_shader_file_name)
+pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, const char* vert_shader_file_name, const char* frag_shader_file_name)
 {
     vert_shader = create_shader_module(device, read_file(vert_shader_file_name));
     frag_shader = create_shader_module(device, read_file(frag_shader_file_name));
@@ -117,32 +117,6 @@ pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, struct b
         .setPSetLayouts(&set_layout)
     );
 
-    std::vector<vk::DescriptorPoolSize> sizes({vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, 10)});
-    descriptor_pool = device.createDescriptorPool(
-        vk::DescriptorPoolCreateInfo()
-        .setPoolSizeCount(sizes.size())
-        .setPPoolSizes(sizes.data())
-        .setMaxSets(10)
-    );
-    descriptor_sets = device.allocateDescriptorSets(
-        vk::DescriptorSetAllocateInfo()
-        .setDescriptorPool(descriptor_pool)
-        .setDescriptorSetCount(1)
-        .setPSetLayouts(&set_layout)
-    );
-
-    auto buffer_info = vk::DescriptorBufferInfo()
-        .setBuffer(uniform_buffer.buf)
-        .setRange(uniform_buffer.allocation_size);
-
-    auto write = vk::WriteDescriptorSet()
-        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-        .setDescriptorCount(1)
-        .setDstSet(descriptor_sets[0])
-        .setPBufferInfo(&buffer_info);
-
-    device.updateDescriptorSets({write}, {});
-
     pl = device.createGraphicsPipeline(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
@@ -164,7 +138,6 @@ void pipeline::destroy(vk::Device device) const
     device.destroyPipeline(pl);
     device.destroyPipelineLayout(layout);
     device.destroyDescriptorSetLayout(set_layout);
-    device.destroyDescriptorPool(descriptor_pool);
     device.destroyShaderModule(frag_shader);
     device.destroyShaderModule(vert_shader);
 }

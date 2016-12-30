@@ -2,7 +2,7 @@
 #include "frame.h"
 #include "dimensions.h"
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, vk::RenderPass render_pass, pipeline pipeline, vk::Framebuffer framebuffer, buffer buf)
+static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, const std::vector<vk::DescriptorSet>& descriptor_sets, vk::RenderPass render_pass, pipeline pipeline, vk::Framebuffer framebuffer, buffer buf)
 {
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -15,7 +15,7 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
         .setFlags(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
 
     auto clear_value = vk::ClearValue()
-        .setColor(vk::ClearColorValue().setFloat32({ 0.f, 1.f, 1.f, 1.f }));
+        .setColor(vk::ClearColorValue().setFloat32({0.f, 1.f, 1.f, 1.f}));
 
     vk::Rect2D render_area;
     render_area.extent.width = WIDTH;
@@ -33,9 +33,9 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
 
     command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.pl);
 
-    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.layout, 0, pipeline.descriptor_sets, {});
+    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.layout, 0, descriptor_sets, {});
 
-    command_buffer.bindVertexBuffers(0, { buf.buf }, { 0 });
+    command_buffer.bindVertexBuffers(0, {buf.buf}, {0});
 
     command_buffer.draw(6, 1, 0, 0);
 
@@ -46,7 +46,16 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
     return command_buffer;
 }
 
-frame::frame(vk::Device device, vk::CommandPool command_pool, vk::Image image, vk::RenderPass render_pass, pipeline pipeline, buffer vertex_buffer)
+frame::frame(
+    vk::PhysicalDevice physical_device,
+    vk::Device device,
+    vk::CommandPool command_pool,
+    vk::DescriptorPool descriptor_pool,
+    vk::Image image,
+    vk::RenderPass render_pass,
+    pipeline pipeline,
+    buffer vertex_buffer)
+    : uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(uniform_data))
 {
     this->image = image;
 
@@ -73,15 +82,38 @@ frame::frame(vk::Device device, vk::CommandPool command_pool, vk::Image image, v
         .setLayers(1)
     );
 
-    command_buffer = create_command_buffer(device, command_pool, render_pass, pipeline, framebuffer, vertex_buffer);
+    rendered_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
 
-    submitted_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
+    rendered_fence = device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+
+    auto descriptor_sets = device.allocateDescriptorSets(
+        vk::DescriptorSetAllocateInfo()
+        .setDescriptorPool(descriptor_pool)
+        .setDescriptorSetCount(1)
+        .setPSetLayouts(&pipeline.set_layout)
+    );
+
+    auto buffer_info = vk::DescriptorBufferInfo()
+        .setBuffer(uniform_buffer.buf)
+        .setRange(uniform_buffer.allocation_size);
+
+    auto write_descriptor_set = vk::WriteDescriptorSet()
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setDescriptorCount(1)
+        .setDstSet(descriptor_sets[0])
+        .setPBufferInfo(&buffer_info);
+
+    device.updateDescriptorSets({ write_descriptor_set }, {});
+
+    command_buffer = create_command_buffer(device, command_pool, descriptor_sets, render_pass, pipeline, framebuffer, vertex_buffer);
 }
 
 void frame::destroy(vk::Device device) const
 {
+    uniform_buffer.destroy(device);
     device.destroyFramebuffer(framebuffer);
     device.destroyImageView(image_view);
     device.destroyImage(image);
-    device.destroySemaphore(submitted_semaphore);
+    device.destroySemaphore(rendered_semaphore);
+    device.destroyFence(rendered_fence);
 }

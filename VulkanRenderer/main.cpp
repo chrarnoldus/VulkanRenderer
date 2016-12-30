@@ -170,23 +170,6 @@ static buffer create_mesh(vk::PhysicalDevice physical_device, vk::Device device)
     return buf;
 }
 
-static buffer create_uniform_buffer(vk::PhysicalDevice physical_device, vk::Device device)
-{
-    auto transform =
-        glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f)
-        *
-        glm::lookAt(
-            glm::vec3(0.f, 0.f, 2.f),
-            glm::vec3(0.f, 0.f, 0.f),
-            glm::vec3(0.f, -1.f, 0.f)
-        );
-
-    auto size = sizeof(transform);
-    auto buf = buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, size);
-    buf.update(device, &transform);
-    return buf;
-}
-
 struct swapchain_info
 {
     vk::Device device;
@@ -210,7 +193,7 @@ struct swapchain_info
     }
 };
 
-static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::RenderPass render_pass, pipeline pipeline, vk::SurfaceKHR surface, buffer buffer)
+static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool, vk::RenderPass render_pass, pipeline pipeline, vk::SurfaceKHR surface, buffer buffer)
 {
     auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
@@ -240,7 +223,7 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
 
     for (auto image : images)
     {
-        swapchain_info.frames.push_back(frame(device, swapchain_info.command_pool, image, render_pass, pipeline, buffer));
+        swapchain_info.frames.push_back(frame(physical_device, device, swapchain_info.command_pool, descriptor_pool, image, render_pass, pipeline, buffer));
     }
 
     swapchain_info.acquired_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
@@ -250,22 +233,34 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
 static void update(
     vk::Device device,
     const swapchain_info& swapchain,
-    vk::Queue queue
-)
+    vk::Queue queue)
 {
     auto current_image = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, swapchain.acquired_semaphore, nullptr).value;
-    auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    auto frame = swapchain.frames[current_image];
 
+    device.waitForFences({frame.rendered_fence}, true, UINT64_MAX);
+    auto transform =
+        glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f)
+        *
+        glm::lookAt(
+            glm::vec3(0.f, 0.f, 2.f),
+            glm::vec3(0.f, 0.f, 0.f),
+            glm::vec3(0.f, -1.f, 0.f)
+        );
+    frame.uniform_buffer.update(device, &transform);
+
+    device.resetFences({frame.rendered_fence});
+    auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     queue.submit({
                      vk::SubmitInfo()
                      .setCommandBufferCount(1)
-                     .setPCommandBuffers(&swapchain.frames[current_image].command_buffer)
+                     .setPCommandBuffers(&frame.command_buffer)
                      .setPWaitDstStageMask(&wait_dst_stage_mask)
                      .setWaitSemaphoreCount(1)
                      .setPWaitSemaphores(&swapchain.acquired_semaphore)
                      .setSignalSemaphoreCount(1)
-                     .setPSignalSemaphores(&swapchain.frames[current_image].submitted_semaphore)
-                 }, nullptr);
+                     .setPSignalSemaphores(&frame.rendered_semaphore)
+                 }, frame.rendered_fence);
 
     queue.presentKHR(
         vk::PresentInfoKHR()
@@ -273,7 +268,19 @@ static void update(
         .setPSwapchains(&swapchain.swapchain)
         .setPImageIndices(&current_image)
         .setWaitSemaphoreCount(1)
-        .setPWaitSemaphores(&swapchain.frames[current_image].submitted_semaphore)
+        .setPWaitSemaphores(&frame.rendered_semaphore)
+    );
+}
+
+static vk::DescriptorPool create_descriptor_pool(vk::Device device)
+{
+    auto max_ub_count = uint32_t(10);
+    std::vector<vk::DescriptorPoolSize> sizes({vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_ub_count)});
+    return device.createDescriptorPool(
+        vk::DescriptorPoolCreateInfo()
+        .setPoolSizeCount(sizes.size())
+        .setPPoolSizes(sizes.data())
+        .setMaxSets(max_ub_count)
     );
 }
 
@@ -291,8 +298,8 @@ int main(int argc, char** argv)
     auto queue = device.getQueue(0, 0);
     auto render_pass = create_render_pass(device);
     auto mesh = create_mesh(physical_device, device);
-    auto uniform_buffer = create_uniform_buffer(physical_device, device);
-    auto pl = pipeline(device, render_pass, uniform_buffer, "vert.spv", "frag.spv");
+    auto pl = pipeline(device, render_pass, "vert.spv", "frag.spv");
+    auto descriptor_pool = create_descriptor_pool(device);
 
     auto success = glfwInit();
     assert(success);
@@ -308,7 +315,7 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
-    auto swapchain = create_swapchain(physical_device, device, render_pass, pl, surface, mesh);
+    auto swapchain = create_swapchain(physical_device, device, descriptor_pool, render_pass, pl, surface, mesh);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -324,8 +331,8 @@ int main(int argc, char** argv)
 
     glfwTerminate();
 
+    device.destroyDescriptorPool(descriptor_pool);
     pl.destroy(device);
-    uniform_buffer.destroy(device);
     mesh.destroy(device);
     device.destroyRenderPass(render_pass);
     device.destroy();
