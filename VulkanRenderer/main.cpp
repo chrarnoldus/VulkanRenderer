@@ -19,7 +19,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report_callback(
     const char* pMessage,
     void* pUserData)
 {
-    std::fprintf(file, "%s: %s\n", pLayerPrefix, pMessage);
+    fprintf(file, "%s: %s\n", pLayerPrefix, pMessage);
+    fflush(file);
     return false;
 }
 
@@ -339,5 +340,6 @@ int main(int argc, char** argv)
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
     instance.destroy();
 
+    fclose(file);
     return EXIT_SUCCESS;
 }
