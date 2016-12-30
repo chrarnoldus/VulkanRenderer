@@ -194,6 +194,7 @@ struct swapchain_info
     vk::CommandPool command_pool;
     std::vector<frame> frames;
     std::vector<vk::Semaphore> acquired_semaphores;
+    vk::Semaphore acquired_semaphore;
 
     void destroy()
     {
@@ -204,6 +205,7 @@ struct swapchain_info
             frame.destroy(device);
         }
 
+        device.destroySemaphore(acquired_semaphore);
         device.destroySwapchainKHR(swapchain);
     }
 };
@@ -239,21 +241,19 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
     for (auto image : images)
     {
         swapchain_info.frames.push_back(frame(device, swapchain_info.command_pool, image, render_pass, pipeline, buffer));
-        swapchain_info.acquired_semaphores.push_back(device.createSemaphore(vk::SemaphoreCreateInfo()));
     }
 
+    swapchain_info.acquired_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
     return swapchain_info;
 }
 
 static void update(
     vk::Device device,
     const swapchain_info& swapchain,
-    vk::Queue queue,
-    vk::Semaphore acquired_semaphore
+    vk::Queue queue
 )
 {
-    auto current_image = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, acquired_semaphore, nullptr).value;
-
+    auto current_image = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, swapchain.acquired_semaphore, nullptr).value;
     auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
 
     queue.submit({
@@ -262,7 +262,7 @@ static void update(
                      .setPCommandBuffers(&swapchain.frames[current_image].command_buffer)
                      .setPWaitDstStageMask(&wait_dst_stage_mask)
                      .setWaitSemaphoreCount(1)
-                     .setPWaitSemaphores(&acquired_semaphore)
+                     .setPWaitSemaphores(&swapchain.acquired_semaphore)
                      .setSignalSemaphoreCount(1)
                      .setPSignalSemaphores(&swapchain.frames[current_image].submitted_semaphore)
                  }, nullptr);
@@ -310,11 +310,9 @@ int main(int argc, char** argv)
 
     auto swapchain = create_swapchain(physical_device, device, render_pass, pl, surface, mesh);
 
-    auto i = uint32_t(0);
     while (!glfwWindowShouldClose(window))
     {
-        update(device, swapchain, queue, swapchain.acquired_semaphores[i]);
-        i = (i + 1) % swapchain.acquired_semaphores.size();
+        update(device, swapchain, queue);
         glfwPollEvents();
     }
 
