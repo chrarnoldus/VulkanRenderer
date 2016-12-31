@@ -94,6 +94,9 @@ static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
 
 static vk::Device create_device(vk::PhysicalDevice physical_device)
 {
+    auto props = physical_device.getQueueFamilyProperties();
+    assert((props[0].queueFlags & vk::QueueFlagBits::eGraphics) == vk::QueueFlagBits::eGraphics);
+
     float priorities[] = {0.f};
     auto queueInfo = vk::DeviceQueueCreateInfo()
         .setQueueCount(1)
