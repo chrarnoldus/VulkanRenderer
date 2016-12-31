@@ -136,7 +136,6 @@ struct swapchain_info
     vk::SwapchainKHR swapchain;
     vk::CommandPool command_pool;
     std::vector<frame> frames;
-    std::vector<vk::Semaphore> acquired_semaphores;
     vk::Semaphore acquired_semaphore;
     vk::Semaphore rendered_semaphore;
 
