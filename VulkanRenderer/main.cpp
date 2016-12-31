@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     auto app = vulkanapp(physical_device, device, surface);
         while (!glfwWindowShouldClose(window))
     {
-        app.update(device);
+        app.update(device, glfwGetTime());
         glfwPollEvents();
     }
     app.destroy(device);

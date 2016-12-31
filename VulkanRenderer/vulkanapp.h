@@ -18,6 +18,6 @@ struct vulkanapp
     vk::SwapchainKHR swapchain;
 
     vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface);
-    void update(vk::Device device);
+    void update(vk::Device device, double timeInSeconds) const;
     void destroy(vk::Device device) const;
 };
