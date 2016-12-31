@@ -288,7 +288,7 @@ static vk::DescriptorPool create_descriptor_pool(vk::Device device)
     std::vector<vk::DescriptorPoolSize> sizes({vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_ub_count)});
     return device.createDescriptorPool(
         vk::DescriptorPoolCreateInfo()
-        .setPoolSizeCount(sizes.size())
+        .setPoolSizeCount(uint32_t(sizes.size()))
         .setPPoolSizes(sizes.data())
         .setMaxSets(max_ub_count)
     );
