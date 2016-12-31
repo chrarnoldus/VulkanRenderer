@@ -82,8 +82,6 @@ frame::frame(
         .setLayers(1)
     );
 
-    rendered_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
-
     rendered_fence = device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
 
     auto descriptor_sets = device.allocateDescriptorSets(
@@ -103,7 +101,7 @@ frame::frame(
         .setDstSet(descriptor_sets[0])
         .setPBufferInfo(&buffer_info);
 
-    device.updateDescriptorSets({ write_descriptor_set }, {});
+    device.updateDescriptorSets({write_descriptor_set}, {});
 
     command_buffer = create_command_buffer(device, command_pool, descriptor_sets, render_pass, pipeline, framebuffer, vertex_buffer);
 }
@@ -114,6 +112,5 @@ void frame::destroy(vk::Device device) const
     device.destroyFramebuffer(framebuffer);
     device.destroyImageView(image_view);
     device.destroyImage(image);
-    device.destroySemaphore(rendered_semaphore);
     device.destroyFence(rendered_fence);
 }

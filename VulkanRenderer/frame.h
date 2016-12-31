@@ -15,7 +15,6 @@ struct frame
     vk::ImageView image_view;
     vk::Framebuffer framebuffer;
     vk::CommandBuffer command_buffer;
-    vk::Semaphore rendered_semaphore;
     vk::Fence rendered_fence;
     buffer uniform_buffer;
 

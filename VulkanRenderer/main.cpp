@@ -179,6 +179,7 @@ struct swapchain_info
     std::vector<frame> frames;
     std::vector<vk::Semaphore> acquired_semaphores;
     vk::Semaphore acquired_semaphore;
+    vk::Semaphore rendered_semaphore;
 
     void destroy()
     {
@@ -189,6 +190,7 @@ struct swapchain_info
             frame.destroy(device);
         }
 
+        device.destroySemaphore(rendered_semaphore);
         device.destroySemaphore(acquired_semaphore);
         device.destroySwapchainKHR(swapchain);
     }
@@ -227,6 +229,7 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
         swapchain_info.frames.push_back(frame(physical_device, device, swapchain_info.command_pool, descriptor_pool, image, render_pass, pipeline, buffer));
     }
 
+    swapchain_info.rendered_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
     swapchain_info.acquired_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
     return swapchain_info;
 }
@@ -260,7 +263,7 @@ static void update(
                      .setWaitSemaphoreCount(1)
                      .setPWaitSemaphores(&swapchain.acquired_semaphore)
                      .setSignalSemaphoreCount(1)
-                     .setPSignalSemaphores(&frame.rendered_semaphore)
+                     .setPSignalSemaphores(&swapchain.rendered_semaphore)
                  }, frame.rendered_fence);
 
     queue.presentKHR(
@@ -269,7 +272,7 @@ static void update(
         .setPSwapchains(&swapchain.swapchain)
         .setPImageIndices(&current_image)
         .setWaitSemaphoreCount(1)
-        .setPWaitSemaphores(&frame.rendered_semaphore)
+        .setPWaitSemaphores(&swapchain.rendered_semaphore)
     );
 }
 
