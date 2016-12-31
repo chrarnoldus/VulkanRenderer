@@ -111,6 +111,5 @@ void frame::destroy(vk::Device device) const
     uniform_buffer.destroy(device);
     device.destroyFramebuffer(framebuffer);
     device.destroyImageView(image_view);
-    device.destroyImage(image);
     device.destroyFence(rendered_fence);
 }
