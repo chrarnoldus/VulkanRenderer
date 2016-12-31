@@ -206,6 +206,9 @@ static swapchain_info create_swapchain(vk::PhysicalDevice physical_device, vk::D
 
     auto caps = physical_device.getSurfaceCapabilitiesKHR(surface);
 
+    auto formats = physical_device.getSurfaceFormatsKHR(surface);
+    assert(formats[0].format == vk::Format::eB8G8R8A8Unorm);
+
     auto swapchain = device.createSwapchainKHR(
         vk::SwapchainCreateInfoKHR()
         .setSurface(surface)
