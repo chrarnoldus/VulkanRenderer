@@ -134,6 +134,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="vulkanapp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buffer.h" />
@@ -141,6 +142,7 @@
     <ClInclude Include="frame.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="vulkanapp.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
