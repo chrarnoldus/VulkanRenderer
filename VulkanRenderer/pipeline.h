@@ -1,15 +1,13 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include <glm/fwd.hpp>
 #include "buffer.h"
 
 struct vertex
 {
-    float x;
-    float y;
-    float z;
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::u8vec3 color;
 };
 
 struct pipeline

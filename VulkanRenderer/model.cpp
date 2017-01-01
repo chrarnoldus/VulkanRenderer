@@ -41,19 +41,32 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     std::vector<vertex> vertices(mesh->mNumVertices);
     for (uint32_t i = 0; i < mesh->mNumVertices; i++)
     {
-        vertices[i].x = mesh->mVertices[i].x;
-        vertices[i].y = mesh->mVertices[i].y;
-        vertices[i].z = mesh->mVertices[i].z;
+        vertices[i].position = glm::vec3(
+            mesh->mVertices[i].x,
+            mesh->mVertices[i].y,
+            mesh->mVertices[i].z
+        );
+
+        if (mesh->HasNormals())
+        {
+            vertices[i].normal = glm::vec3(
+                mesh->mNormals[i].x,
+                mesh->mNormals[i].y,
+                mesh->mNormals[i].z
+            );
+        }
 
         if (mesh->HasVertexColors(0))
         {
-            vertices[i].r = uint8_t(255 * mesh->mColors[0][i].r);
-            vertices[i].g = uint8_t(255 * mesh->mColors[0][i].g);
-            vertices[i].b = uint8_t(255 * mesh->mColors[0][i].b);
+            vertices[i].color = glm::u8vec3(
+                uint8_t(255 * mesh->mColors[0][i].r),
+                uint8_t(255 * mesh->mColors[0][i].g),
+                uint8_t(255 * mesh->mColors[0][i].b)
+            );
         }
         else
         {
-            vertices[i].r = vertices[i].g = vertices[i].b = 127;
+            vertices[i].color = glm::u8vec3(127);
         }
     }
 

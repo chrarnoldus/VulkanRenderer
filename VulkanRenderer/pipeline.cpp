@@ -56,12 +56,12 @@ pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, const ch
     auto position_attribute = vk::VertexInputAttributeDescription()
         .setFormat(vk::Format::eR32G32B32Sfloat)
         .setLocation(0)
-        .setOffset(offsetof(vertex, x));
+        .setOffset(offsetof(vertex, position));
 
     auto color_attribute = vk::VertexInputAttributeDescription()
         .setFormat(vk::Format::eR8G8B8Unorm)
         .setLocation(1)
-        .setOffset(offsetof(vertex, r));
+        .setOffset(offsetof(vertex, color));
 
     const auto attribute_count = 2u;
     vk::VertexInputAttributeDescription attributes[attribute_count] = {position_attribute, color_attribute};
