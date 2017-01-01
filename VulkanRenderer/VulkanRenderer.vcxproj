@@ -129,6 +129,7 @@
     <ClCompile Include="dimensions.cpp" />
     <ClCompile Include="frame.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="model.cpp" />
     <ClCompile Include="pipeline.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -140,6 +141,7 @@
     <ClInclude Include="buffer.h" />
     <ClInclude Include="dimensions.h" />
     <ClInclude Include="frame.h" />
+    <ClInclude Include="model.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="vulkanapp.h" />

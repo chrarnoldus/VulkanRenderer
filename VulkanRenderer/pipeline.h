@@ -6,6 +6,7 @@ struct vertex
 {
     float x;
     float y;
+    float z;
     uint8_t r;
     uint8_t g;
     uint8_t b;
