@@ -1,13 +1,13 @@
 #include "stdafx.h"
 #include "buffer.h"
 
-buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::BufferUsageFlags usage_flags, vk::DeviceSize allocation_size)
+buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::BufferUsageFlags usage_flags, vk::DeviceSize size)
 {
-    this->allocation_size = allocation_size;
+    this->size = size;
 
     buf = device.createBuffer(
         vk::BufferCreateInfo()
-        .setSize(allocation_size)
+        .setSize(size)
         .setUsage(usage_flags)
     );
 
@@ -38,7 +38,7 @@ buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::Buffer
 void buffer::update(vk::Device device, void* data) const
 {
     auto ptr = device.mapMemory(memory, 0, VK_WHOLE_SIZE);
-    memcpy(ptr, data, allocation_size);
+    memcpy(ptr, data, size);
     device.unmapMemory(memory);
 }
 

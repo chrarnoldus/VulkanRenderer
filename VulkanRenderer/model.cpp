@@ -38,7 +38,8 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     assert(scene->mNumMeshes == 1);
     auto mesh = scene->mMeshes[0];
 
-    std::vector<vertex> vertices(mesh->mNumVertices);
+    buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, mesh->mNumVertices * sizeof(vertex));
+    auto vertices = reinterpret_cast<vertex*>(device.mapMemory(vertex_buffer.memory, 0, vertex_buffer.size));
     for (uint32_t i = 0; i < mesh->mNumVertices; i++)
     {
         vertices[i].position = glm::vec3(
@@ -69,24 +70,22 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
             vertices[i].color = glm::u8vec3(127);
         }
     }
+    device.unmapMemory(vertex_buffer.memory);
 
-    buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, vertices.size() * sizeof(vertex));
-    vertex_buffer.update(device, vertices.data());
-
-    std::vector<uint32_t> indices;
+    assert(mesh->mNumFaces > 0);
+    auto index_count = 3 * mesh->mNumFaces;
+    buffer index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, index_count * sizeof(uint32_t));
+    auto indices = reinterpret_cast<uint32_t*>(device.mapMemory(index_buffer.memory, 0, index_buffer.size));
     for (uint32_t i = 0; i < mesh->mNumFaces; i++)
     {
         auto face = &mesh->mFaces[i];
         assert(face->mNumIndices == 3);
         for (uint32_t j = 0; j < face->mNumIndices; j++)
         {
-            indices.push_back(face->mIndices[j]);
+            indices[3 * i + j] = face->mIndices[j];
         }
     }
+    device.unmapMemory(index_buffer.memory);
 
-    assert(indices.size() >= 3);
-    buffer index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, indices.size() * sizeof(uint32_t));
-    index_buffer.update(device, indices.data());
-
-    return model(uint32_t(indices.size()), vertex_buffer, index_buffer);
+    return model(uint32_t(index_count), vertex_buffer, index_buffer);
 }

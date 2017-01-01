@@ -90,7 +90,7 @@ frame::frame(
 
     auto buffer_info = vk::DescriptorBufferInfo()
         .setBuffer(uniform_buffer.buf)
-        .setRange(uniform_buffer.allocation_size);
+        .setRange(uniform_buffer.size);
 
     auto write_descriptor_set = vk::WriteDescriptorSet()
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
