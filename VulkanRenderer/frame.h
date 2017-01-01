@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.hpp>
 #include "buffer.h"
 #include "pipeline.h"
+#include "model.h"
 
 struct uniform_data
 {
@@ -18,6 +19,6 @@ struct frame
     vk::Fence rendered_fence;
     buffer uniform_buffer;
 
-    frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::DescriptorPool descriptor_pool, vk::Image image, vk::RenderPass render_pass, pipeline pipeline, buffer vertex_buffer);
+    frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::DescriptorPool descriptor_pool, vk::Image image, vk::RenderPass render_pass, pipeline pipeline, model model);
     void destroy(vk::Device device) const;
 };

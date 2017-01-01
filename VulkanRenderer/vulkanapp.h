@@ -7,7 +7,7 @@
 struct vulkanapp
 {
     vk::Queue queue;
-    buffer mesh;
+    model model;
     vk::RenderPass render_pass;
     pipeline pl;
     vk::CommandPool command_pool;

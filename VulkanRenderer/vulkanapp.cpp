@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "vulkanapp.h"
 #include "dimensions.h"
+#include "model.h"
 
 static vk::RenderPass create_render_pass(vk::Device device)
 {
@@ -30,23 +31,6 @@ static vk::RenderPass create_render_pass(vk::Device device)
     );
 }
 
-static buffer create_mesh(vk::PhysicalDevice physical_device, vk::Device device)
-{
-    const uint32_t vertex_count = 6;
-    auto buf = buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, vertex_count * sizeof(vertex));
-
-    vertex data[vertex_count];
-    data[0] = {-1.f, 1.f, 255, 0, 0};
-    data[1] = {1.f, 1.f, 0, 255, 0};
-    data[2] = {1.f, -1.f, 0, 0, 255};
-    data[3] = {1.f, -1.f, 0, 0, 255};
-    data[4] = {-1.f, -1.f, 127, 127, 127};
-    data[5] = {-1.f, 1.f, 255, 0, 0};
-    buf.update(device, data);
-
-    return buf;
-}
-
 static vk::DescriptorPool create_descriptor_pool(vk::Device device)
 {
     auto max_ub_count = uint32_t(10);
@@ -59,8 +43,11 @@ static vk::DescriptorPool create_descriptor_pool(vk::Device device)
     );
 }
 
+static const std::string test_model =
+"C:\\Users\\Christiaan\\OneDrive\\Documenten\\Master\\Advanced computer graphics\\Facial Point Rendering\\Test models\\Armadillo.ply";
+
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface)
-    : mesh(create_mesh(physical_device, device))
+    : model(read_model(physical_device, device, test_model))
       , render_pass(create_render_pass(device))
       , pl(pipeline(device, render_pass, "vert.spv", "frag.spv"))
 {
@@ -95,7 +82,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     auto images = device.getSwapchainImagesKHR(swapchain);
     for (auto image : images)
     {
-        frames.push_back(frame(physical_device, device, command_pool, descriptor_pool, image, render_pass, pl, mesh));
+        frames.push_back(frame(physical_device, device, command_pool, descriptor_pool, image, render_pass, pl, model));
     }
 }
 
@@ -107,7 +94,7 @@ void vulkanapp::update(vk::Device device, double timeInSecords) const
     device.waitForFences({frame.rendered_fence}, true, UINT64_MAX);
     const double seconds_per_rotation = 4.f;
     auto angle = float(std::fmod(timeInSecords, seconds_per_rotation) / seconds_per_rotation) * glm::two_pi<float>();
-    auto camera_distance = 2.5f;
+    auto camera_distance = 1.5f;
     auto transform =
         glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f)
         *
@@ -159,5 +146,5 @@ void vulkanapp::destroy(vk::Device device) const
     device.destroyCommandPool(command_pool);
     pl.destroy(device);
     device.destroyRenderPass(render_pass);
-    mesh.destroy(device);
+    model.destroy(device);
 }

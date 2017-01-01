@@ -2,7 +2,7 @@
 #include "frame.h"
 #include "dimensions.h"
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, const std::vector<vk::DescriptorSet>& descriptor_sets, vk::RenderPass render_pass, pipeline pipeline, vk::Framebuffer framebuffer, buffer buf)
+static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, const std::vector<vk::DescriptorSet>& descriptor_sets, vk::RenderPass render_pass, pipeline pipeline, vk::Framebuffer framebuffer, model model)
 {
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -17,30 +17,21 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
     auto clear_value = vk::ClearValue()
         .setColor(vk::ClearColorValue().setFloat32({0.f, 1.f, 1.f, 1.f}));
 
-    vk::Rect2D render_area;
-    render_area.extent.width = WIDTH;
-    render_area.extent.height = HEIGHT;
-
     command_buffer.beginRenderPass(
         vk::RenderPassBeginInfo()
         .setRenderPass(render_pass)
         .setClearValueCount(1)
         .setPClearValues(&clear_value)
-        .setRenderArea(render_area)
+        .setRenderArea(vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT)))
         .setFramebuffer(framebuffer),
         vk::SubpassContents::eInline
     );
 
     command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.pl);
-
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.layout, 0, descriptor_sets, {});
-
-    command_buffer.bindVertexBuffers(0, {buf.buf}, {0});
-
-    command_buffer.draw(6, 1, 0, 0);
+    model.draw(command_buffer);
 
     command_buffer.endRenderPass();
-
     command_buffer.end();
 
     return command_buffer;
@@ -54,7 +45,7 @@ frame::frame(
     vk::Image image,
     vk::RenderPass render_pass,
     pipeline pipeline,
-    buffer vertex_buffer)
+    model model)
     : uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(uniform_data))
 {
     this->image = image;
@@ -103,7 +94,7 @@ frame::frame(
 
     device.updateDescriptorSets({write_descriptor_set}, {});
 
-    command_buffer = create_command_buffer(device, command_pool, descriptor_sets, render_pass, pipeline, framebuffer, vertex_buffer);
+    command_buffer = create_command_buffer(device, command_pool, descriptor_sets, render_pass, pipeline, framebuffer, model);
 }
 
 void frame::destroy(vk::Device device) const

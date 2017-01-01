@@ -11,6 +11,7 @@ struct model
     buffer index_buffer;
 
     model(uint32_t index_count, buffer vertex_buffer, buffer index_buffer);
+    void draw(vk::CommandBuffer command_buffer) const;
     void destroy(vk::Device device) const;
 };
 

@@ -54,7 +54,7 @@ pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, const ch
         .setStride(sizeof(vertex));
 
     auto position_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR32G32Sfloat)
+        .setFormat(vk::Format::eR32G32B32Sfloat)
         .setLocation(0)
         .setOffset(offsetof(vertex, x));
 
@@ -75,7 +75,7 @@ pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, const ch
     auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleList);
 
-    auto viewport = vk::Viewport().setWidth(WIDTH).setHeight(HEIGHT).setMaxDepth(1.0);
+    auto viewport = vk::Viewport().setWidth(float(WIDTH)).setHeight(float(HEIGHT)).setMaxDepth(1.0);
     auto scissor = vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT));
 
     auto viewport_state = vk::PipelineViewportStateCreateInfo()

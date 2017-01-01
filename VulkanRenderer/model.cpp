@@ -11,6 +11,13 @@ model::model(uint32_t vertex_count, buffer vertex_buffer, buffer index_buffer)
 {
 }
 
+void model::draw(vk::CommandBuffer command_buffer) const
+{
+    command_buffer.bindIndexBuffer(index_buffer.buf, 0, vk::IndexType::eUint32);
+    command_buffer.bindVertexBuffers(0, {vertex_buffer.buf}, {0});
+    command_buffer.drawIndexed(index_count, 1, 0, 0, 0);
+}
+
 void model::destroy(vk::Device device) const
 {
     vertex_buffer.destroy(device);
@@ -32,7 +39,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     auto mesh = scene->mMeshes[0];
 
     std::vector<vertex> vertices(mesh->mNumVertices);
-    for (auto i = 0; i < mesh->mNumVertices; i++)
+    for (uint32_t i = 0; i < mesh->mNumVertices; i++)
     {
         vertices[i].x = mesh->mVertices[i].x;
         vertices[i].y = mesh->mVertices[i].y;
@@ -40,9 +47,9 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
 
         if (mesh->HasVertexColors(0))
         {
-            vertices[i].r = mesh->mColors[0][i].r;
-            vertices[i].g = mesh->mColors[0][i].g;
-            vertices[i].b = mesh->mColors[0][i].b;
+            vertices[i].r = uint8_t(255 * mesh->mColors[0][i].r);
+            vertices[i].g = uint8_t(255 * mesh->mColors[0][i].g);
+            vertices[i].b = uint8_t(255 * mesh->mColors[0][i].b);
         }
         else
         {
@@ -54,11 +61,11 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     vertex_buffer.update(device, vertices.data());
 
     std::vector<uint32_t> indices;
-    for (auto i = 0; i < mesh->mNumFaces; i++)
+    for (uint32_t i = 0; i < mesh->mNumFaces; i++)
     {
         auto face = &mesh->mFaces[i];
         assert(face->mNumIndices == 3);
-        for (auto j = 0; j < face->mNumIndices; j++)
+        for (uint32_t j = 0; j < face->mNumIndices; j++)
         {
             indices.push_back(face->mIndices[j]);
         }
@@ -68,5 +75,5 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     buffer index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, indices.size() * sizeof(uint32_t));
     index_buffer.update(device, indices.data());
 
-    return model(indices.size(), vertex_buffer, index_buffer);
+    return model(uint32_t(indices.size()), vertex_buffer, index_buffer);
 }
