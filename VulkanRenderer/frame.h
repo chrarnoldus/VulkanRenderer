@@ -8,7 +8,8 @@
 
 struct uniform_data
 {
-    glm::mat4 transform;
+    glm::mat4 projection;
+    glm::mat4 model_view;
 };
 
 struct frame

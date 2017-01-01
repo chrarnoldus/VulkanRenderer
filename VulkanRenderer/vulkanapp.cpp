@@ -112,9 +112,9 @@ void vulkanapp::update(vk::Device device, double timeInSecords) const
     const double seconds_per_rotation = 4.f;
     auto angle = float(std::fmod(timeInSecords, seconds_per_rotation) / seconds_per_rotation) * glm::two_pi<float>();
     auto camera_distance = 1.f;
-    auto transform =
-        glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f)
-        *
+    uniform_data data;
+    data.projection = glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f);
+    data.model_view =
         glm::lookAt(
             glm::vec3(0.f, 0.f, camera_distance),
             glm::vec3(0.f, 0.f, 0.f),
@@ -122,7 +122,7 @@ void vulkanapp::update(vk::Device device, double timeInSecords) const
         )
         *
         glm::rotate(glm::mat4(1.f), angle, glm::vec3(0.f, 1.f, 0.f));
-    frame.uniform_buffer.update(device, &transform);
+    frame.uniform_buffer.update(device, &data);
 
     device.resetFences({frame.rendered_fence});
     auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
