@@ -5,13 +5,20 @@ buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::Buffer
 {
     this->allocation_size = allocation_size;
 
+    buf = device.createBuffer(
+        vk::BufferCreateInfo()
+        .setSize(allocation_size)
+        .setUsage(usage_flags)
+    );
+
     auto desired_flags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+    auto reqs = device.getBufferMemoryRequirements(buf);
     auto props = physical_device.getMemoryProperties();
 
     auto memory_type_index = UINT32_MAX;
     for (auto i = uint32_t(0); i < props.memoryTypeCount; i++)
     {
-        if ((props.memoryTypes[i].propertyFlags & desired_flags) == desired_flags)
+        if ((reqs.memoryTypeBits & 1u << i) == 1u << i && (props.memoryTypes[i].propertyFlags & desired_flags) == desired_flags)
         {
             memory_type_index = i;
             break;
@@ -19,25 +26,11 @@ buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::Buffer
     }
     assert(memory_type_index != UINT32_MAX);
 
-    auto queue_familiy_index = uint32_t(0);
-
     memory = device.allocateMemory(
         vk::MemoryAllocateInfo()
-        .setAllocationSize(allocation_size)
+        .setAllocationSize(reqs.size)
         .setMemoryTypeIndex(memory_type_index)
     );
-
-    buf = device.createBuffer(
-        vk::BufferCreateInfo()
-        .setSize(allocation_size)
-        .setUsage(usage_flags)
-        .setQueueFamilyIndexCount(0)
-        .setPQueueFamilyIndices(&queue_familiy_index)
-        .setSharingMode(vk::SharingMode::eExclusive)
-    );
-
-    auto reqs = device.getBufferMemoryRequirements(buf);
-    assert((reqs.memoryTypeBits & 1u << memory_type_index) == 1u << memory_type_index);
 
     device.bindBufferMemory(buf, memory, 0);
 }
