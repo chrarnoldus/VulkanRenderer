@@ -5,27 +5,44 @@
 
 static vk::RenderPass create_render_pass(vk::Device device)
 {
-    auto attachment = vk::AttachmentDescription()
+    auto attachment0 = vk::AttachmentDescription()
         .setFormat(vk::Format::eB8G8R8A8Unorm)
+        .setSamples(vk::SampleCountFlagBits::e1)
+        .setLoadOp(vk::AttachmentLoadOp::eClear)
+        .setStoreOp(vk::AttachmentStoreOp::eStore)
+        .setInitialLayout(vk::ImageLayout::eUndefined)
+        .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+    auto attachment1 = vk::AttachmentDescription()
+        .setFormat(vk::Format::eD24UnormS8Uint)
         .setSamples(vk::SampleCountFlagBits::e1)
         .setLoadOp(vk::AttachmentLoadOp::eClear)
         .setStoreOp(vk::AttachmentStoreOp::eStore)
         .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
         .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
         .setInitialLayout(vk::ImageLayout::eUndefined)
-        .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+        .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
     auto color_attachment = vk::AttachmentReference()
+        .setAttachment(0)
         .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+    auto depth_attachment = vk::AttachmentReference()
+        .setAttachment(1)
+        .setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
     auto subpass = vk::SubpassDescription()
         .setColorAttachmentCount(1)
-        .setPColorAttachments(&color_attachment);
+        .setPColorAttachments(&color_attachment)
+        .setPDepthStencilAttachment(&depth_attachment);
+
+    const uint32_t attachment_count = 2;
+    vk::AttachmentDescription attachments[attachment_count] = {attachment0,attachment1};
 
     return device.createRenderPass(
         vk::RenderPassCreateInfo()
-        .setAttachmentCount(1)
-        .setPAttachments(&attachment)
+        .setAttachmentCount(attachment_count)
+        .setPAttachments(attachments)
         .setSubpassCount(1)
         .setPSubpasses(&subpass)
     );
@@ -94,7 +111,7 @@ void vulkanapp::update(vk::Device device, double timeInSecords) const
     device.waitForFences({frame.rendered_fence}, true, UINT64_MAX);
     const double seconds_per_rotation = 4.f;
     auto angle = float(std::fmod(timeInSecords, seconds_per_rotation) / seconds_per_rotation) * glm::two_pi<float>();
-    auto camera_distance = 1.5f;
+    auto camera_distance = 1.f;
     auto transform =
         glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f)
         *

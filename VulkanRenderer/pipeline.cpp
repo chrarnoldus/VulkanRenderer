@@ -97,9 +97,15 @@ pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, const ch
             vk::ColorComponentFlagBits::eB |
             vk::ColorComponentFlagBits::eA
         );
+
     auto blend_state = vk::PipelineColorBlendStateCreateInfo()
         .setAttachmentCount(1)
         .setPAttachments(&attachment_state);
+
+    auto depth_stencil_state = vk::PipelineDepthStencilStateCreateInfo()
+        .setDepthTestEnable(true)
+        .setDepthWriteEnable(true)
+        .setDepthCompareOp(vk::CompareOp::eLessOrEqual);
 
     auto binding = vk::DescriptorSetLayoutBinding()
         .setDescriptorCount(1)
@@ -128,6 +134,7 @@ pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, const ch
         .setPRasterizationState(&rasterization_state)
         .setPMultisampleState(&multisample_state)
         .setPColorBlendState(&blend_state)
+        .setPDepthStencilState(&depth_stencil_state)
         .setRenderPass(render_pass)
         .setLayout(layout)
     );

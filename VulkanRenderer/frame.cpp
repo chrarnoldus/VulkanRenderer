@@ -14,14 +14,17 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
     command_buffer.begin(vk::CommandBufferBeginInfo()
         .setFlags(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
 
-    auto clear_value = vk::ClearValue()
-        .setColor(vk::ClearColorValue().setFloat32({0.f, 1.f, 1.f, 1.f}));
+    const uint32_t clear_value_count = 2;
+    vk::ClearValue clear_values[clear_value_count] = {
+        vk::ClearValue().setColor(vk::ClearColorValue().setFloat32({0.f, 1.f, 1.f, 1.f})),
+        vk::ClearValue().setDepthStencil(vk::ClearDepthStencilValue().setDepth(1.f))
+    };
 
     command_buffer.beginRenderPass(
         vk::RenderPassBeginInfo()
         .setRenderPass(render_pass)
-        .setClearValueCount(1)
-        .setPClearValues(&clear_value)
+        .setClearValueCount(clear_value_count)
+        .setPClearValues(clear_values)
         .setRenderArea(vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT)))
         .setFramebuffer(framebuffer),
         vk::SubpassContents::eInline
@@ -47,6 +50,7 @@ frame::frame(
     pipeline pipeline,
     model model)
     : uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(uniform_data))
+      , dsb(physical_device, device, WIDTH, HEIGHT)
 {
     this->image = image;
 
@@ -63,11 +67,13 @@ frame::frame(
         )
     );
 
+    const uint32_t attachment_count = 2;
+    vk::ImageView attachments[attachment_count] = {image_view, dsb.image_view};
     framebuffer = device.createFramebuffer(
         vk::FramebufferCreateInfo()
         .setRenderPass(render_pass)
-        .setAttachmentCount(1)
-        .setPAttachments(&image_view)
+        .setAttachmentCount(attachment_count)
+        .setPAttachments(attachments)
         .setWidth(WIDTH)
         .setHeight(HEIGHT)
         .setLayers(1)
@@ -99,6 +105,7 @@ frame::frame(
 
 void frame::destroy(vk::Device device) const
 {
+    dsb.destroy(device);
     uniform_buffer.destroy(device);
     device.destroyFramebuffer(framebuffer);
     device.destroyImageView(image_view);
