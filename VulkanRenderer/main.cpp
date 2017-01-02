@@ -7,8 +7,6 @@
 static PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT = nullptr;
 static PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT = nullptr;
 
-static FILE* file = nullptr;
-
 static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report_callback(
     VkDebugReportFlagsEXT flags,
     VkDebugReportObjectTypeEXT objectType,
@@ -19,8 +17,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report_callback(
     const char* pMessage,
     void* pUserData)
 {
-    fprintf(file, "%s: %s\n", pLayerPrefix, pMessage);
-    fflush(file);
+    fprintf(stderr, "%s: %s\n", pLayerPrefix, pMessage);
     return false;
 }
 
@@ -63,7 +60,7 @@ vk::Instance create_instance()
     const char* layerNames[layerCount] = {"VK_LAYER_LUNARG_standard_validation"};
 #else
     const auto layerCount = 0;
-    const char **layerNames = nullptr;
+    const char** layerNames = nullptr;
 #endif
 
     const auto extensionCount = 3;
@@ -107,7 +104,7 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
     const char* layerNames[layerCount] = {"VK_LAYER_LUNARG_standard_validation"};
 #else
     const auto layerCount = 0;
-    const char **layerNames = nullptr;
+    const char** layerNames = nullptr;
 #endif
 
     const auto extensionCount = 1;
@@ -132,11 +129,6 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
 
 int main(int argc, char** argv)
 {
-#if _DEBUG
-    auto file_ok = fopen_s(&file, "debug_report.log", "w");
-    assert(file_ok == 0);
-#endif
-
     auto instance = create_instance();
     auto callback = create_debug_report_callback(instance);
     auto physical_device = get_physical_device(instance);
@@ -157,7 +149,7 @@ int main(int argc, char** argv)
     assert(result == VK_SUCCESS);
 
     auto app = vulkanapp(physical_device, device, surface);
-        while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window))
     {
         app.update(device, glfwGetTime());
         glfwPollEvents();
@@ -172,6 +164,5 @@ int main(int argc, char** argv)
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
     instance.destroy();
 
-    fclose(file);
     return EXIT_SUCCESS;
 }
