@@ -61,11 +61,8 @@ static vk::DescriptorPool create_descriptor_pool(vk::Device device)
     );
 }
 
-static const std::string test_model =
-"C:\\Users\\Christiaan\\OneDrive\\Documenten\\Master\\Advanced computer graphics\\Facial Point Rendering\\Test models\\Armadillo.ply";
-
-vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface)
-    : model(read_model(physical_device, device, test_model))
+vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, model mdl)
+    : mdl(mdl)
       , render_pass(create_render_pass(device))
       , pl(pipeline(device, render_pass, "vert.spv", "frag.spv"))
 {
@@ -100,7 +97,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     auto images = device.getSwapchainImagesKHR(swapchain);
     for (auto image : images)
     {
-        frames.push_back(frame(physical_device, device, command_pool, descriptor_pool, image, render_pass, pl, model));
+        frames.push_back(frame(physical_device, device, command_pool, descriptor_pool, image, render_pass, pl, mdl));
     }
 }
 
@@ -164,5 +161,5 @@ void vulkanapp::destroy(vk::Device device) const
     device.destroyCommandPool(command_pool);
     pl.destroy(device);
     device.destroyRenderPass(render_pass);
-    model.destroy(device);
+    mdl.destroy(device);
 }

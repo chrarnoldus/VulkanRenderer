@@ -3,11 +3,12 @@
 #include "buffer.h"
 #include "pipeline.h"
 #include "frame.h"
+#include "model.h"
 
 struct vulkanapp
 {
     vk::Queue queue;
-    model model;
+    model mdl;
     vk::RenderPass render_pass;
     pipeline pl;
     vk::CommandPool command_pool;
@@ -17,7 +18,7 @@ struct vulkanapp
     std::vector<frame> frames;
     vk::SwapchainKHR swapchain;
 
-    vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface);
+    vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, model mdl);
     void update(vk::Device device, double timeInSeconds) const;
     void destroy(vk::Device device) const;
 };

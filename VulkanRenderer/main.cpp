@@ -133,6 +133,11 @@ int main(int argc, char** argv)
     auto callback = create_debug_report_callback(instance);
     auto physical_device = get_physical_device(instance);
     auto device = create_device(physical_device);
+    auto mdl = read_model(
+        physical_device,
+        device,
+        "C:\\Users\\Christiaan\\OneDrive\\Documenten\\Master\\Advanced computer graphics\\Facial Point Rendering\\Test models\\Armadillo.ply"
+    );
 
     auto success = glfwInit();
     assert(success);
@@ -148,7 +153,7 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
-    auto app = vulkanapp(physical_device, device, surface);
+    auto app = vulkanapp(physical_device, device, surface, mdl);
     while (!glfwWindowShouldClose(window))
     {
         app.update(device, glfwGetTime());
