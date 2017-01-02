@@ -3,6 +3,7 @@
 #include "pipeline.h"
 #include "dimensions.h"
 #include "vulkanapp.h"
+#include "input_state.h"
 
 static PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT = nullptr;
 static PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT = nullptr;
@@ -153,10 +154,16 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
+    input_state input;
+    glfwSetWindowUserPointer(window, &input);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
     auto app = vulkanapp(physical_device, device, surface, mdl);
     while (!glfwWindowShouldClose(window))
     {
-        app.update(device, glfwGetTime());
+        app.update(device, input.camera_distance, glm::mat4_cast(input.rotation));
         glfwPollEvents();
     }
     app.destroy(device);

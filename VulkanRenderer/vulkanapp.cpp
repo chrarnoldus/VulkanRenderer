@@ -101,15 +101,12 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     }
 }
 
-void vulkanapp::update(vk::Device device, double timeInSecords) const
+void vulkanapp::update(vk::Device device, float camera_distance, const glm::mat4& rotation) const
 {
     auto current_image = device.acquireNextImageKHR(swapchain, UINT64_MAX, acquired_semaphore, nullptr).value;
     auto frame = frames[current_image];
 
     device.waitForFences({frame.rendered_fence}, true, UINT64_MAX);
-    const double seconds_per_rotation = 4.f;
-    auto angle = float(std::fmod(timeInSecords, seconds_per_rotation) / seconds_per_rotation) * glm::two_pi<float>();
-    auto camera_distance = 2.f;
     uniform_data data;
     data.projection = glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f);
     data.model_view =
@@ -119,7 +116,7 @@ void vulkanapp::update(vk::Device device, double timeInSecords) const
             glm::vec3(0.f, -1.f, 0.f)
         )
         *
-        glm::rotate(glm::mat4(1.f), angle, glm::vec3(0.f, 1.f, 0.f));
+        rotation;
     frame.uniform_buffer.update(device, &data);
 
     device.resetFences({frame.rendered_fence});

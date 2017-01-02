@@ -19,6 +19,6 @@ struct vulkanapp
     vk::SwapchainKHR swapchain;
 
     vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, model mdl);
-    void update(vk::Device device, double timeInSeconds) const;
+    void update(vk::Device device, float camera_distance, const glm::mat4& rotation) const;
     void destroy(vk::Device device) const;
 };

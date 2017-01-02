@@ -129,6 +129,7 @@
     <ClCompile Include="data_types.cpp" />
     <ClCompile Include="dimensions.cpp" />
     <ClCompile Include="frame.cpp" />
+    <ClCompile Include="input_state.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="pipeline.cpp" />
@@ -144,6 +145,7 @@
     <ClInclude Include="data_types.h" />
     <ClInclude Include="dimensions.h" />
     <ClInclude Include="frame.h" />
+    <ClInclude Include="input_state.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="depth_stencil_buffer.h" />
