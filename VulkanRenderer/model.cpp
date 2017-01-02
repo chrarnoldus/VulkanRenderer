@@ -43,6 +43,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     Assimp::Importer importer;
     importer.SetPropertyInteger(AI_CONFIG_PP_PTV_NORMALIZE, 1);
 
+    std::printf("Importing model using assimp\n");
     auto scene = importer.ReadFile(
         path,
         aiProcess_JoinIdenticalVertices |
@@ -51,6 +52,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
         aiProcess_ValidateDataStructure
     );
 
+    std::printf("Loading model to buffers\n");
     assert(scene->mNumMeshes == 1);
     auto mesh = scene->mMeshes[0];
 
@@ -99,5 +101,6 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     }
     device.unmapMemory(index_buffer.memory);
 
+    std::printf("Model loaded: %llu kB (vertices) + %llu kB (indices)\n", vertex_buffer.size / 1024, index_buffer.size / 1024);
     return model(uint32_t(index_count), vertex_buffer, index_buffer);
 }
