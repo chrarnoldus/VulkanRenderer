@@ -28,11 +28,13 @@ void model::destroy(vk::Device device) const
 model read_model(vk::PhysicalDevice physical_device, vk::Device device, const std::string& path)
 {
     Assimp::Importer importer;
+    importer.SetPropertyInteger(AI_CONFIG_PP_PTV_NORMALIZE, 1);
 
     auto scene = importer.ReadFile(
         path,
         aiProcess_JoinIdenticalVertices |
         aiProcess_GenSmoothNormals |
+        aiProcess_PreTransformVertices |
         aiProcess_ValidateDataStructure
     );
 

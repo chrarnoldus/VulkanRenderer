@@ -112,7 +112,7 @@ void vulkanapp::update(vk::Device device, double timeInSecords) const
     device.waitForFences({frame.rendered_fence}, true, UINT64_MAX);
     const double seconds_per_rotation = 4.f;
     auto angle = float(std::fmod(timeInSecords, seconds_per_rotation) / seconds_per_rotation) * glm::two_pi<float>();
-    auto camera_distance = 1.f;
+    auto camera_distance = 2.f;
     uniform_data data;
     data.projection = glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f);
     data.model_view =
