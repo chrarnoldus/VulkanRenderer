@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "frame.h"
+#include "data_types.h"
 #include "dimensions.h"
 
 static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, const std::vector<vk::DescriptorSet>& descriptor_sets, vk::RenderPass render_pass, pipeline pipeline, vk::Framebuffer framebuffer, model model)

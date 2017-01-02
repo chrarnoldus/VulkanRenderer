@@ -3,13 +3,6 @@
 #include <glm/fwd.hpp>
 #include "buffer.h"
 
-struct vertex
-{
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::u8vec3 color;
-};
-
 struct pipeline
 {
     vk::ShaderModule vert_shader;

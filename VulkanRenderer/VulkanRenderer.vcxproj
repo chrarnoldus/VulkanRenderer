@@ -126,6 +126,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="buffer.cpp" />
+    <ClCompile Include="data_types.cpp" />
     <ClCompile Include="dimensions.cpp" />
     <ClCompile Include="frame.cpp" />
     <ClCompile Include="main.cpp" />
@@ -140,6 +141,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buffer.h" />
+    <ClInclude Include="data_types.h" />
     <ClInclude Include="dimensions.h" />
     <ClInclude Include="frame.h" />
     <ClInclude Include="model.h" />

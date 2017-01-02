@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "model.h"
+#include "data_types.h"
 #include "pipeline.h"
 
 #include <assimp/Importer.hpp>
@@ -50,24 +51,20 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
 
         if (mesh->HasNormals())
         {
-            vertices[i].normal = glm::vec3(
-                mesh->mNormals[i].x,
-                mesh->mNormals[i].y,
-                mesh->mNormals[i].z
+            vertices[i].normal = a2b10g10r10_snorm_pack32(
+                glm::normalize(glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z))
             );
         }
 
         if (mesh->HasVertexColors(0))
         {
-            vertices[i].color = glm::u8vec3(
-                uint8_t(255 * mesh->mColors[0][i].r),
-                uint8_t(255 * mesh->mColors[0][i].g),
-                uint8_t(255 * mesh->mColors[0][i].b)
+            vertices[i].color = a2b10g10r10_unorm_pack32(
+                glm::vec3(mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b)
             );
         }
         else
         {
-            vertices[i].color = glm::u8vec3(127);
+            vertices[i].color = a2b10g10r10_unorm_pack32(glm::vec3(.5f));
         }
     }
     device.unmapMemory(vertex_buffer.memory);

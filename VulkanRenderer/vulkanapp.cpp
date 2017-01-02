@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "vulkanapp.h"
+#include "data_types.h"
 #include "dimensions.h"
 #include "model.h"
 

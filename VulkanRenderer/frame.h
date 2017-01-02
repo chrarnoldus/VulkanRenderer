@@ -6,12 +6,6 @@
 #include "model.h"
 #include "depth_stencil_buffer.h"
 
-struct uniform_data
-{
-    glm::mat4 projection;
-    glm::mat4 model_view;
-};
-
 struct frame
 {
     vk::Image image;

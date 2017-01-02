@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "data_types.h"
 #include "pipeline.h"
 #include "dimensions.h"
 
@@ -59,12 +60,12 @@ pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, const ch
         .setOffset(offsetof(vertex, position));
 
     auto normal_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR32G32B32Sfloat)
+        .setFormat(vk::Format::eA2B10G10R10SnormPack32)
         .setLocation(1)
         .setOffset(offsetof(vertex, normal));
 
     auto color_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR8G8B8Unorm)
+        .setFormat(vk::Format::eA2B10G10R10UnormPack32)
         .setLocation(2)
         .setOffset(offsetof(vertex, color));
 
