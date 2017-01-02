@@ -173,7 +173,9 @@ int main(int argc, char** argv)
     glfwTerminate();
 
     device.destroy();
+#if _DEBUG
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
+#endif
     instance.destroy();
 
     return EXIT_SUCCESS;
