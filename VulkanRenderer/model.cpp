@@ -25,6 +25,19 @@ void model::destroy(vk::Device device) const
     index_buffer.destroy(device);
 }
 
+static glm::i16vec3 to_r16g16b16_snorm(float x, float y, float z)
+{
+    assert(x >= -1.f && x <= 1.f);
+    assert(y >= -1.f && y <= 1.f);
+    assert(z >= -1.f && z <= 1.f);
+
+    return glm::i16vec3(
+        int16_t(UINT16_MAX * (x + 1) / 2 + INT16_MIN),
+        int16_t(UINT16_MAX * (y + 1) / 2 + INT16_MIN),
+        int16_t(UINT16_MAX * (z + 1) / 2 + INT16_MIN)
+    );
+}
+
 model read_model(vk::PhysicalDevice physical_device, vk::Device device, const std::string& path)
 {
     Assimp::Importer importer;
@@ -45,7 +58,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     auto vertices = reinterpret_cast<vertex*>(device.mapMemory(vertex_buffer.memory, 0, vertex_buffer.size));
     for (uint32_t i = 0; i < mesh->mNumVertices; i++)
     {
-        vertices[i].position = glm::vec3(
+        vertices[i].position = to_r16g16b16_snorm(
             mesh->mVertices[i].x,
             mesh->mVertices[i].y,
             mesh->mVertices[i].z

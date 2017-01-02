@@ -55,7 +55,7 @@ pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, const ch
         .setStride(sizeof(vertex));
 
     auto position_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR32G32B32Sfloat)
+        .setFormat(vk::Format::eR16G16B16Snorm)
         .setLocation(0)
         .setOffset(offsetof(vertex, position));
 

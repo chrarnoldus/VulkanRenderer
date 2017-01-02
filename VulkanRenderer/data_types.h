@@ -23,7 +23,7 @@ struct a2b10g10r10_unorm_pack32
 
 struct vertex
 {
-    glm::vec3 position;
+    glm::i16vec3 position;
     a2b10g10r10_snorm_pack32 normal;
     a2b10g10r10_unorm_pack32 color;
 };
