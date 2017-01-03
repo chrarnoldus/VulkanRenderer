@@ -137,7 +137,7 @@ static void initialize_imgui_io()
 static void update_imgui_io(const input_state& input, double delta_time)
 {
     auto io = ImGui::GetIO();
-    io.DeltaTime = delta_time;
+    io.DeltaTime = float(delta_time);
     io.MousePos = ImVec2(input.last_mouse_position.x, input.last_mouse_position.y);
     io.MouseClicked[0] = input.left_mouse_button_down;
     io.MouseClicked[1] = input.right_mouse_button_down;
