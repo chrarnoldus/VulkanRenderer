@@ -3,15 +3,23 @@
 #include "pipeline.h"
 #include "dimensions.h"
 
-static uint32_t vert_shader_spv[] = {
-#include "shader.vert.num"
+static uint32_t model_vert_shader_spv[] = {
+#include "model.vert.num"
 };
 
-static uint32_t frag_shader_spv[] = {
-#include "shader.frag.num"
+static uint32_t model_frag_shader_spv[] = {
+#include "model.frag.num"
 };
 
-static vk::ShaderModule create_shader_module(vk::Device device, size_t size, const uint32_t *code)
+static uint32_t ui_vert_shader_spv[] = {
+#include "ui.vert.num"
+};
+
+static uint32_t ui_frag_shader_spv[] = {
+#include "ui.frag.num"
+};
+
+static vk::ShaderModule create_shader_module(vk::Device device, size_t size, const uint32_t* code)
 {
     return device.createShaderModule(
         vk::ShaderModuleCreateInfo()
@@ -22,8 +30,8 @@ static vk::ShaderModule create_shader_module(vk::Device device, size_t size, con
 
 pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass)
 {
-    vert_shader = create_shader_module(device, sizeof(vert_shader_spv), vert_shader_spv);
-    frag_shader = create_shader_module(device, sizeof(frag_shader_spv), frag_shader_spv);
+    vert_shader = create_shader_module(device, sizeof(model_vert_shader_spv), model_vert_shader_spv);
+    frag_shader = create_shader_module(device, sizeof(model_frag_shader_spv), model_frag_shader_spv);
 
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
         .setStage(vk::ShaderStageFlagBits::eVertex)

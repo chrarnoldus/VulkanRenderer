@@ -103,7 +103,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="shader.frag" />
-    <CustomBuild Include="shader.vert" />
+    <CustomBuild Include="ui.frag" />
+    <CustomBuild Include="ui.vert" />
+    <CustomBuild Include="model.vert" />
+    <CustomBuild Include="model.frag" />
   </ItemGroup>
 </Project>

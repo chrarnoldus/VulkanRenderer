@@ -138,13 +138,25 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <CustomBuild Include="shader.frag">
+    <CustomBuild Include="model.frag">
       <FileType>Document</FileType>
       <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
       <Message>Compiling %(Identity)</Message>
       <Outputs>%(FullPath).num;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="shader.vert">
+    <CustomBuild Include="model.vert">
+      <FileType>Document</FileType>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Message>Compiling %(Identity)</Message>
+      <Outputs>%(FullPath).num;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="ui.frag">
+      <FileType>Document</FileType>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Message>Compiling %(Identity)</Message>
+      <Outputs>%(FullPath).num;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="ui.vert">
       <FileType>Document</FileType>
       <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
       <Message>Compiling %(Identity)</Message>

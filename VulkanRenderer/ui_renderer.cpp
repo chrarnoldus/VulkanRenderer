@@ -27,6 +27,7 @@ void ui_renderer::update(vk::Device device) const
 {
     ImGui::NewFrame();
     // TODO something useful
+    ImGui::ShowTestWindow();
     ImGui::Render();
     auto draw_data = ImGui::GetDrawData();
 

@@ -1,4 +1,4 @@
-#version 450
+#version 450 core
 
 const vec3 lightPosition = vec3(0.0, 0.0, 0.0);
 const float shininess = 32.0;
@@ -10,7 +10,7 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
 layout(location = 2) in vec3 color;
 
-layout(location = 0) out vec4 fragColor;
+layout(location = 0, index = 0) out vec4 fragColor;
 
 void main()
 {
