@@ -127,6 +127,21 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
     );
 }
 
+static void initialize_imgui_io()
+{
+    auto& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(float(WIDTH), float(HEIGHT));
+    //io.KeyMap // TODO
+}
+
+static void update_imgui_io(const input_state& input, double delta_time)
+{
+    auto io = ImGui::GetIO();
+    io.DeltaTime = delta_time;
+    io.MousePos = ImVec2(input.last_mouse_position.x, input.last_mouse_position.y);
+    io.MouseClicked[0] = input.left_mouse_button_down;
+    io.MouseClicked[1] = input.right_mouse_button_down;
+}
 
 int main(int argc, char** argv)
 {
@@ -139,6 +154,8 @@ int main(int argc, char** argv)
         device,
         "C:\\Users\\Christiaan\\OneDrive\\Documenten\\Master\\Advanced computer graphics\\Facial Point Rendering\\Test models\\Armadillo.ply"
     );
+
+    initialize_imgui_io();
 
     auto success = glfwInit();
     assert(success);
@@ -161,10 +178,16 @@ int main(int argc, char** argv)
     glfwSetScrollCallback(window, scroll_callback);
 
     auto app = vulkanapp(physical_device, device, surface, mdl);
+    auto old_time = glfwGetTime();
+
     while (!glfwWindowShouldClose(window))
     {
-        app.update(device, input.camera_distance, glm::mat4_cast(input.rotation));
         glfwPollEvents();
+        auto new_time = glfwGetTime();
+        update_imgui_io(input, new_time - old_time);
+        old_time = new_time;
+
+        app.update(device, input.camera_distance, glm::mat4_cast(input.rotation));
     }
     app.destroy(device);
 

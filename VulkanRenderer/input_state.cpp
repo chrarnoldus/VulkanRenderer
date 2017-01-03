@@ -3,7 +3,7 @@
 #include "dimensions.h"
 
 input_state::input_state()
-    : camera_distance(2.f), dragging(false)
+    : camera_distance(2.f), left_mouse_button_down(false), right_mouse_button_down(false)
 {
 }
 
@@ -33,7 +33,7 @@ void cursor_position_callback(GLFWwindow* window, double x_position, double y_po
 {
     auto mouse_position = glm::vec2(float(x_position), float(y_position));
     auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
-    if (input->dragging)
+    if (input->left_mouse_button_down)
     {
         auto
             v1 = glm::normalize(get_trackball_position(input->last_mouse_position)),
@@ -50,11 +50,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
         if (action == GLFW_PRESS)
         {
-            input->dragging = true;
+            input->left_mouse_button_down = true;
         }
         else
         {
-            input->dragging = false;
+            input->left_mouse_button_down = false;
         }
     }
 }

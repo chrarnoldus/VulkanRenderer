@@ -7,7 +7,8 @@ struct input_state
     glm::vec2 last_mouse_position;
     glm::quat rotation;
     float camera_distance;
-    bool dragging;
+    bool left_mouse_button_down;
+    bool right_mouse_button_down;
 
     input_state();
 };

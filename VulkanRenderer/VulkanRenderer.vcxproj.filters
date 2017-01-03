@@ -60,6 +60,9 @@
     <ClCompile Include="image2d.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ui_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="image2d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
