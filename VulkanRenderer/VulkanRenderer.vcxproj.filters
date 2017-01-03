@@ -42,9 +42,6 @@
     <ClCompile Include="model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="depth_stencil_buffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="data_types.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -59,6 +56,9 @@
     </ClCompile>
     <ClCompile Include="..\Dependencies\imgui\imgui_draw.cpp">
       <Filter>Source Files\Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="image2d.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,13 +83,13 @@
     <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="depth_stencil_buffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="data_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="input_state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="image2d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

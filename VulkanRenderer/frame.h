@@ -4,7 +4,7 @@
 #include "buffer.h"
 #include "pipeline.h"
 #include "model.h"
-#include "depth_stencil_buffer.h"
+#include "image2d.h"
 
 struct frame
 {
@@ -14,7 +14,7 @@ struct frame
     vk::CommandBuffer command_buffer;
     vk::Fence rendered_fence;
     buffer uniform_buffer;
-    depth_stencil_buffer dsb;
+    image2d dsb;
 
     frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::DescriptorPool descriptor_pool, vk::Image image, vk::RenderPass render_pass, pipeline pipeline, model model);
     void destroy(vk::Device device) const;

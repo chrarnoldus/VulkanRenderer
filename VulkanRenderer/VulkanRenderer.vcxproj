@@ -115,7 +115,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="pipeline.cpp" />
-    <ClCompile Include="depth_stencil_buffer.cpp" />
+    <ClCompile Include="image2d.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -130,7 +130,7 @@
     <ClInclude Include="input_state.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="pipeline.h" />
-    <ClInclude Include="depth_stencil_buffer.h" />
+    <ClInclude Include="image2d.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="vulkanapp.h" />
   </ItemGroup>
