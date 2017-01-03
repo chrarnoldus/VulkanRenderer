@@ -11,7 +11,7 @@ struct pipeline
     vk::DescriptorSetLayout set_layout;
     vk::Pipeline pl;
 
-    pipeline(vk::Device device, vk::RenderPass render_pass, const char* vert_shader_file_name, const char* frag_shader_file_name);
+    pipeline(vk::Device device, vk::RenderPass render_pass);
     void destroy(vk::Device device) const;
 };
 

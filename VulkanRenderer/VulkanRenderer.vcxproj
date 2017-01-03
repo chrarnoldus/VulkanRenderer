@@ -44,9 +44,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -67,22 +69,6 @@
       <Command>copy /y "$(SolutionDir)Dependencies\assimp\build\code\Debug\assimp-vc140-mt.dll" "$(OutDir)"</Command>
       <Message>Copying DLLs</Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)vert.spv" "$(ProjectDir)shader.vert"
-"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)frag.spv" "$(ProjectDir)shader.frag"</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Message>Compiling shaders</Message>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>$(ProjectDir)vert.spv;$(ProjectDir)frag.spv;%(Outputs)</Outputs>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Inputs>$(ProjectDir)shader.vert;$(ProjectDir)shader.frag;%(Inputs)</Inputs>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
-    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -107,22 +93,6 @@
       <Command>copy /y "$(SolutionDir)Dependencies\assimp\build\code\Release\assimp-vc140-mt.dll" "$(OutDir)"</Command>
       <Message>Copying DLLs</Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)vert.spv" "$(ProjectDir)shader.vert"
-"$(VK_SDK_PATH)\Bin\glslc.exe" -o "$(ProjectDir)frag.spv" "$(ProjectDir)shader.frag"</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Message>Compiling shaders</Message>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>$(ProjectDir)vert.spv;$(ProjectDir)frag.spv;%(Outputs)</Outputs>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Inputs>$(ProjectDir)shader.vert;$(ProjectDir)shader.frag;%(Inputs)</Inputs>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
-    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="buffer.cpp" />
@@ -154,8 +124,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="shader.frag" />
-    <None Include="shader.vert" />
+    <CustomBuild Include="shader.frag">
+      <FileType>Document</FileType>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Message>Compiling %(Identity)</Message>
+      <Outputs>%(FullPath).num;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="shader.vert">
+      <FileType>Document</FileType>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Message>Compiling %(Identity)</Message>
+      <Outputs>%(FullPath).num;%(Outputs)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

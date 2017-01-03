@@ -3,40 +3,27 @@
 #include "pipeline.h"
 #include "dimensions.h"
 
-static std::vector<char> read_file(const char* file_name)
-{
-    std::ifstream stream(file_name, std::ifstream::binary | std::ifstream::in);
-    assert(!stream.fail());
+static uint32_t vert_shader_spv[] = {
+#include "shader.vert.num"
+};
 
-    stream.seekg(0, std::ifstream::end);
-    assert(!stream.fail());
+static uint32_t frag_shader_spv[] = {
+#include "shader.frag.num"
+};
 
-    auto size = stream.tellg();
-    assert(!stream.fail());
-
-    stream.seekg(0);
-    assert(!stream.fail());
-
-    std::vector<char> data(size);
-    stream.read(data.data(), size);
-    assert(!stream.fail());
-
-    return data;
-}
-
-static vk::ShaderModule create_shader_module(vk::Device device, const std::vector<char>& data)
+static vk::ShaderModule create_shader_module(vk::Device device, size_t size, const uint32_t *code)
 {
     return device.createShaderModule(
         vk::ShaderModuleCreateInfo()
-        .setCodeSize(data.size())
-        .setPCode(reinterpret_cast<const uint32_t*>(data.data()))
+        .setCodeSize(size)
+        .setPCode(code)
     );
 }
 
-pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass, const char* vert_shader_file_name, const char* frag_shader_file_name)
+pipeline::pipeline(class vk::Device device, vk::RenderPass render_pass)
 {
-    vert_shader = create_shader_module(device, read_file(vert_shader_file_name));
-    frag_shader = create_shader_module(device, read_file(frag_shader_file_name));
+    vert_shader = create_shader_module(device, sizeof(vert_shader_spv), vert_shader_spv);
+    frag_shader = create_shader_module(device, sizeof(frag_shader_spv), frag_shader_spv);
 
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
         .setStage(vk::ShaderStageFlagBits::eVertex)

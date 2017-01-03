@@ -241,4 +241,6 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 
-*.spv
+*.vert.num
+*.frag.num
+
