@@ -33,12 +33,6 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setPCode(model_frag_shader_spv)
     );
 
-    return pipeline(device, render_pass, vert_shader, frag_shader);
-}
-
-pipeline::pipeline(vk::Device device, vk::RenderPass render_pass, vk::ShaderModule vert_shader, vk::ShaderModule frag_shader)
-    : vert_shader(vert_shader), frag_shader(frag_shader)
-{
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
         .setStage(vk::ShaderStageFlagBits::eVertex)
         .setModule(vert_shader)
@@ -119,18 +113,18 @@ pipeline::pipeline(vk::Device device, vk::RenderPass render_pass, vk::ShaderModu
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
         .setStageFlags(vk::ShaderStageFlagBits::eVertex);
 
-    set_layout = device.createDescriptorSetLayout(
+    auto set_layout = device.createDescriptorSetLayout(
         vk::DescriptorSetLayoutCreateInfo()
         .setBindingCount(1)
         .setPBindings(&binding)
     );
-    layout = device.createPipelineLayout(
+    auto layout = device.createPipelineLayout(
         vk::PipelineLayoutCreateInfo()
         .setSetLayoutCount(1)
         .setPSetLayouts(&set_layout)
     );
 
-    pl = device.createGraphicsPipeline(
+    auto pl = device.createGraphicsPipeline(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
         .setStageCount(stage_count)
@@ -145,6 +139,13 @@ pipeline::pipeline(vk::Device device, vk::RenderPass render_pass, vk::ShaderModu
         .setRenderPass(render_pass)
         .setLayout(layout)
     );
+
+    return pipeline(vert_shader, frag_shader, layout, set_layout, pl);
+}
+
+pipeline::pipeline(vk::ShaderModule vert_shader, vk::ShaderModule frag_shader, vk::PipelineLayout layout, vk::DescriptorSetLayout set_layout, vk::Pipeline pl)
+    : vert_shader(vert_shader), frag_shader(frag_shader), layout(layout), set_layout(set_layout), pl(pl)
+{
 }
 
 void pipeline::destroy(vk::Device device) const
