@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Dependencies">
+      <UniqueIdentifier>{bba1b8cc-01d3-49a4-b392-0fc40def650d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -47,6 +50,15 @@
     </ClCompile>
     <ClCompile Include="input_state.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\imgui\imgui.cpp">
+      <Filter>Source Files\Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\imgui\imgui_demo.cpp">
+      <Filter>Source Files\Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\imgui\imgui_draw.cpp">
+      <Filter>Source Files\Dependencies</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,11 +95,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="shader.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="shader.vert">
-      <Filter>Source Files</Filter>
-    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="shader.frag" />
+    <CustomBuild Include="shader.vert" />
   </ItemGroup>
 </Project>
