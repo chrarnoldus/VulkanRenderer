@@ -64,7 +64,7 @@ static vk::DescriptorPool create_descriptor_pool(vk::Device device)
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, model mdl)
     : mdl(mdl)
       , render_pass(create_render_pass(device))
-      , pl(pipeline(device, render_pass))
+      , pl(create_model_pipeline(device, render_pass))
 {
     queue = device.getQueue(0, 0);
     command_pool = device.createCommandPool(vk::CommandPoolCreateInfo());
