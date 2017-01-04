@@ -159,7 +159,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         camera_distance *= float(1 - .1 * input.scroll_amount);
     }
 
-    uniform_data data;
+    model_uniform_data data;
     data.projection = glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f);
     data.model_view =
         glm::lookAt(

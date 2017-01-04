@@ -56,7 +56,7 @@ frame::frame(
     pipeline ui_pipeline,
     model model,
     image2d font_image)
-    : uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(uniform_data))
+    : uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(model_uniform_data))
       , dsb(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)
       , ui(physical_device, device)
 {
@@ -97,27 +97,40 @@ frame::frame(
         .setPSetLayouts(set_layouts.begin())
     );
 
-    auto uniform_buffer_info = vk::DescriptorBufferInfo()
+    auto model_ub_info = vk::DescriptorBufferInfo()
         .setBuffer(uniform_buffer.buf)
         .setRange(uniform_buffer.size);
 
-    auto uniform_write_descriptor_set = vk::WriteDescriptorSet()
+    auto model_ub_write_description = vk::WriteDescriptorSet()
+        .setDstBinding(0)
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
         .setDescriptorCount(1)
         .setDstSet(descriptor_sets[0])
-        .setPBufferInfo(&uniform_buffer_info);
+        .setPBufferInfo(&model_ub_info);
+
+    auto ui_ub_info = vk::DescriptorBufferInfo()
+        .setBuffer(ui.uniform_buffer.buf)
+        .setRange(ui.uniform_buffer.size);
+
+    auto ui_ub_write_description = vk::WriteDescriptorSet()
+        .setDstBinding(0)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setDescriptorCount(1)
+        .setDstSet(descriptor_sets[1])
+        .setPBufferInfo(&ui_ub_info);
 
     auto font_image_view_info = vk::DescriptorImageInfo()
         .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
         .setImageView(font_image.image_view);
 
     auto font_image_write_descriptor_set = vk::WriteDescriptorSet()
+        .setDstBinding(1)
         .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
         .setDescriptorCount(1)
         .setDstSet(descriptor_sets[1])
         .setPImageInfo(&font_image_view_info);
 
-    device.updateDescriptorSets({uniform_write_descriptor_set, font_image_write_descriptor_set}, {});
+    device.updateDescriptorSets({model_ub_write_description, ui_ub_write_description, font_image_write_descriptor_set}, {});
 
     command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()

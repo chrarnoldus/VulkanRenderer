@@ -10,6 +10,8 @@ class ui_renderer
     buffer indirect_buffer;
 
 public:
+    buffer uniform_buffer;
+
     ui_renderer(vk::PhysicalDevice physical_device, vk::Device device);
     void update(vk::Device device) const;
     void draw(vk::CommandBuffer command_buffer) const;

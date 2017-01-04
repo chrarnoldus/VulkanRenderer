@@ -113,6 +113,7 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
 
     auto features = vk::PhysicalDeviceFeatures()
         .setMultiDrawIndirect(true)
+        .setDrawIndirectFirstInstance(true)
         .setShaderClipDistance(true)
         .setShaderCullDistance(true);
 

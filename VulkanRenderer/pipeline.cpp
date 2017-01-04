@@ -120,16 +120,26 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
             .setMipmapMode(vk::SamplerMipmapMode::eLinear)
         )});
 
-    auto binding = vk::DescriptorSetLayoutBinding()
+
+    auto uniform_binding = vk::DescriptorSetLayoutBinding()
+        .setBinding(0)
+        .setDescriptorCount(1)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+
+    auto sampler_binding = vk::DescriptorSetLayoutBinding()
+        .setBinding(1)
         .setDescriptorCount(1)
         .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
         .setStageFlags(vk::ShaderStageFlagBits::eFragment)
         .setPImmutableSamplers(samplers.data());
 
+    auto bindings = {uniform_binding, sampler_binding};
+
     auto set_layout = device.createDescriptorSetLayout(
         vk::DescriptorSetLayoutCreateInfo()
-        .setBindingCount(1)
-        .setPBindings(&binding)
+        .setBindingCount(bindings.size())
+        .setPBindings(bindings.begin())
     );
     auto layout = device.createPipelineLayout(
         vk::PipelineLayoutCreateInfo()
