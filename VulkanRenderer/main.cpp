@@ -152,17 +152,7 @@ static void initialize_imgui()
     io.KeyMap[ImGuiKey_X] = GLFW_KEY_X;
     io.KeyMap[ImGuiKey_Y] = GLFW_KEY_Y;
     io.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
-}
-
-static void update_imgui(input_state& input, double delta_time)
-{
-    auto& io = ImGui::GetIO();
-    io.DeltaTime = float(delta_time);
-    io.MousePos = ImVec2(input.current_mouse_position.x, input.current_mouse_position.y);
-    io.MouseDown[0] = input.left_mouse_button_down;
-    io.MouseDown[1] = input.right_mouse_button_down;
-    ImGui::NewFrame();
-    input.ui_wants_mouse = io.WantCaptureMouse;
+    // TODO clipboard, ime
 }
 
 int main(int argc, char** argv)
@@ -193,23 +183,12 @@ int main(int argc, char** argv)
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
-    input_state input;
-    glfwSetWindowUserPointer(window, &input);
-    glfwSetCursorPosCallback(window, cursor_position_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
+    input_state input(window);
     auto app = vulkanapp(physical_device, device, surface, mdl);
-    auto prev_begin_time = glfwGetTime();
-
     while (!glfwWindowShouldClose(window))
     {
-        auto begin_time = glfwGetTime();
         input.update();
-        update_imgui(input, begin_time - prev_begin_time);
-
         app.update(device, input);
-        prev_begin_time = begin_time;
     }
     app.destroy(device);
 

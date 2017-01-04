@@ -147,7 +147,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
     device.waitForFences({frame.rendered_fence}, true, UINT64_MAX);
     device.resetFences({frame.rendered_fence});
 
-    if (!input.ui_wants_mouse)
+    if (!input.ui_want_capture_mouse)
     {
         if (input.left_mouse_button_down)
         {
