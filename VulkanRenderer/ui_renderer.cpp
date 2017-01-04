@@ -3,11 +3,12 @@
 
 static const uint32_t MAX_VERTEX_COUNT = UINT16_MAX;
 static const uint32_t MAX_INDEX_COUNT = UINT16_MAX;
+static const uint32_t MAX_DRAW_COUNT = 64;
 
 ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device)
     : vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, MAX_VERTEX_COUNT * sizeof(ImDrawVert))
       , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, MAX_INDEX_COUNT * sizeof(uint16_t))
-      , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, sizeof(VkDrawIndexedIndirectCommand))
+      , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, MAX_DRAW_COUNT * sizeof(VkDrawIndexedIndirectCommand))
 {
 }
 
@@ -19,32 +20,46 @@ void ui_renderer::update(vk::Device device) const
     auto draw_data = ImGui::GetDrawData();
 
     // we're assuming that there's only one texture
-    // TODO implement clipping and order draw calls (important because of alpha blending)
+    // TODO implement clipping
 
     assert(draw_data->Valid);
     assert(draw_data->TotalVtxCount < MAX_VERTEX_COUNT);
     assert(draw_data->TotalIdxCount < MAX_INDEX_COUNT);
 
-    auto indirect = reinterpret_cast<VkDrawIndexedIndirectCommand*>(device.mapMemory(indirect_buffer.memory, 0, indirect_buffer.size));
-    indirect->instanceCount = 1;
-    indirect->firstInstance = 0;
-    indirect->indexCount = draw_data->TotalIdxCount;
-    indirect->firstIndex = 0;
-    indirect->vertexOffset = 0;
-    device.unmapMemory(indirect_buffer.memory);
-
     auto indices = reinterpret_cast<uint16_t*>(device.mapMemory(index_buffer.memory, 0, index_buffer.size));
     auto vertices = reinterpret_cast<ImDrawVert*>(device.mapMemory(vertex_buffer.memory, 0, vertex_buffer.size));
+    auto indirect = reinterpret_cast<VkDrawIndexedIndirectCommand*>(device.mapMemory(indirect_buffer.memory, 0, indirect_buffer.size));
+    memset(indirect, 0, indirect_buffer.size);
 
+    size_t indirect_index = 0, list_first_index = 0, list_first_vertex = 0;
     for (auto i = 0; i < draw_data->CmdListsCount; i++)
     {
         auto cmd_list = draw_data->CmdLists[i];
-        std::copy(cmd_list->IdxBuffer.begin(), cmd_list->IdxBuffer.end(), stdext::unchecked_array_iterator<uint16_t*>(indices));
-        std::copy(cmd_list->VtxBuffer.begin(), cmd_list->VtxBuffer.end(), stdext::unchecked_array_iterator<ImDrawVert*>(vertices));
-        indices += cmd_list->IdxBuffer.size();
-        vertices += cmd_list->VtxBuffer.size();
+
+        memcpy(indices + list_first_index, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.size() * sizeof(*cmd_list->IdxBuffer.Data));
+        memcpy(vertices + list_first_vertex, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.size() * sizeof(*cmd_list->VtxBuffer.Data));
+
+        size_t cmd_first_index = 0;
+        for (auto& cmd : cmd_list->CmdBuffer)
+        {
+            assert(indirect_index < MAX_DRAW_COUNT);
+
+            auto indirect_command = &indirect[indirect_index];
+            indirect_command->instanceCount = 1;
+            indirect_command->firstInstance = 0;
+            indirect_command->indexCount = cmd.ElemCount;
+            indirect_command->firstIndex = list_first_index + cmd_first_index;
+            indirect_command->vertexOffset = list_first_vertex * sizeof(ImDrawVert);
+
+            cmd_first_index += cmd.ElemCount;
+            indirect_index++;
+        }
+
+        list_first_index += cmd_list->IdxBuffer.size();
+        list_first_vertex += cmd_list->VtxBuffer.size();
     }
 
+    device.unmapMemory(indirect_buffer.memory);
     device.unmapMemory(vertex_buffer.memory);
     device.unmapMemory(index_buffer.memory);
 }
@@ -53,7 +68,7 @@ void ui_renderer::draw(vk::CommandBuffer command_buffer) const
 {
     command_buffer.bindIndexBuffer(index_buffer.buf, 0, vk::IndexType::eUint16);
     command_buffer.bindVertexBuffers(0, {vertex_buffer.buf}, {0});
-    command_buffer.drawIndexedIndirect(indirect_buffer.buf, 0, 1, sizeof(VkDrawIndexedIndirectCommand));
+    command_buffer.drawIndexedIndirect(indirect_buffer.buf, 0, MAX_DRAW_COUNT, sizeof(VkDrawIndexedIndirectCommand));
 }
 
 void ui_renderer::destroy(vk::Device device) const
