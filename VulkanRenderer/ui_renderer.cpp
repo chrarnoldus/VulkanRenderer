@@ -18,7 +18,8 @@ void ui_renderer::update(vk::Device device) const
     ImGui::Render();
     auto draw_data = ImGui::GetDrawData();
 
-    // we're assuming that there's only one texture and that the cliprects aren't important
+    // we're assuming that there's only one texture
+    // TODO implement clipping and order draw calls (important because of alpha blending)
 
     assert(draw_data->Valid);
     assert(draw_data->TotalVtxCount < MAX_VERTEX_COUNT);

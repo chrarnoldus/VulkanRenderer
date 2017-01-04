@@ -134,14 +134,15 @@ static void initialize_imgui()
     //io.KeyMap // TODO
 }
 
-static void update_imgui(const input_state& input, double delta_time)
+static void update_imgui(input_state& input, double delta_time)
 {
     auto& io = ImGui::GetIO();
     io.DeltaTime = float(delta_time);
-    io.MousePos = ImVec2(input.last_mouse_position.x, input.last_mouse_position.y);
+    io.MousePos = ImVec2(input.current_mouse_position.x, input.current_mouse_position.y);
     io.MouseDown[0] = input.left_mouse_button_down;
     io.MouseDown[1] = input.right_mouse_button_down;
     ImGui::NewFrame();
+    input.ui_wants_mouse = io.WantCaptureMouse;
 }
 
 int main(int argc, char** argv)
@@ -179,16 +180,16 @@ int main(int argc, char** argv)
     glfwSetScrollCallback(window, scroll_callback);
 
     auto app = vulkanapp(physical_device, device, surface, mdl);
-    auto old_time = glfwGetTime();
+    auto prev_begin_time = glfwGetTime();
 
     while (!glfwWindowShouldClose(window))
     {
-        glfwPollEvents();
-        auto new_time = glfwGetTime();
-        update_imgui(input, new_time - old_time);
-        old_time = new_time;
+        auto begin_time = glfwGetTime();
+        input.update();
+        update_imgui(input, begin_time - prev_begin_time);
 
-        app.update(device, input.camera_distance, glm::mat4_cast(input.rotation));
+        app.update(device, input);
+        prev_begin_time = begin_time;
     }
     app.destroy(device);
 

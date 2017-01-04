@@ -1,6 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
-#include "buffer.h"
+#include "input_state.h"
 #include "pipeline.h"
 #include "frame.h"
 #include "model.h"
@@ -19,8 +19,10 @@ struct vulkanapp
     std::vector<frame> frames;
     vk::SwapchainKHR swapchain;
     image2d font_image;
+    glm::quat trackball_rotation;
+    float camera_distance;
 
     vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, model mdl);
-    void update(vk::Device device, float camera_distance, const glm::mat4& rotation) const;
+    void update(vk::Device device, const input_state& input);
     void destroy(vk::Device device) const;
 };

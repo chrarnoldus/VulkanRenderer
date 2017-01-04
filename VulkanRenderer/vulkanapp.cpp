@@ -60,7 +60,7 @@ static vk::DescriptorPool create_descriptor_pool(vk::Device device)
         vk::DescriptorPoolCreateInfo()
         .setPoolSizeCount(uint32_t(sizes.size()))
         .setPPoolSizes(sizes.data())
-        .setMaxSets(max_count_per_type * sizes.size())
+        .setMaxSets(max_count_per_type * uint32_t(sizes.size()))
     );
 }
 
@@ -79,6 +79,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
       , model_pipeline(create_model_pipeline(device, render_pass))
       , ui_pipeline(create_ui_pipeline(device, render_pass))
       , font_image(load_font_image(physical_device, device))
+      , camera_distance(2.f)
 {
     queue = device.getQueue(0, 0);
     command_pool = device.createCommandPool(vk::CommandPoolCreateInfo());
@@ -117,13 +118,46 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     }
 }
 
-void vulkanapp::update(vk::Device device, float camera_distance, const glm::mat4& rotation) const
+static glm::vec3 get_trackball_position(glm::vec2 mouse_position)
+{
+    glm::vec2 origin(WIDTH / 2.f, HEIGHT / 2.f);
+    auto radius = glm::min(WIDTH, HEIGHT) / 2.f;
+
+    auto xy = glm::vec2(mouse_position.x, HEIGHT - mouse_position.y - 1) - origin;
+
+    if (glm::dot(xy, xy) <= radius * radius / 2.f)
+    {
+        // Sphere
+        auto z = glm::sqrt(radius * radius - glm::dot(xy, xy));
+        return glm::vec3(xy, z);
+    }
+    else
+    {
+        // Hyperbola
+        auto z = (radius * radius / 2.f) / glm::length(xy);
+        return glm::vec3(xy, z);
+    }
+}
+
+void vulkanapp::update(vk::Device device, const input_state& input)
 {
     auto current_image = device.acquireNextImageKHR(swapchain, UINT64_MAX, acquired_semaphore, nullptr).value;
     auto& frame = frames[current_image];
 
     device.waitForFences({frame.rendered_fence}, true, UINT64_MAX);
     device.resetFences({frame.rendered_fence});
+
+    if (!input.ui_wants_mouse)
+    {
+        if (input.left_mouse_button_down)
+        {
+            auto
+                v1 = glm::normalize(get_trackball_position(input.previous_mouse_position)),
+                v2 = glm::normalize(get_trackball_position(input.current_mouse_position));
+            trackball_rotation = glm::quat(v1, v2) * trackball_rotation;
+        }
+        camera_distance *= float(1 - .1 * input.scroll_amount);
+    }
 
     uniform_data data;
     data.projection = glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f);
@@ -134,7 +168,7 @@ void vulkanapp::update(vk::Device device, float camera_distance, const glm::mat4
             glm::vec3(0.f, -1.f, 0.f)
         )
         *
-        rotation;
+        glm::mat4_cast(trackball_rotation);
     frame.uniform_buffer.update(device, &data);
 
     frame.ui.update(device);
