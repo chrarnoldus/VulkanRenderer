@@ -34,10 +34,10 @@ void ui_renderer::update(vk::Device device) const
     memset(indirect, 0, indirect_buffer.size);
 
     auto uniform = reinterpret_cast<ui_uniform_data*>(device.mapMemory(uniform_buffer.memory, 0, uniform_buffer.size));
-    uniform->screen_width = WIDTH;
-    uniform->screen_height = HEIGHT;
+    uniform->screen_width = float(WIDTH);
+    uniform->screen_height = float(HEIGHT);
 
-    size_t indirect_index = 0, list_first_index = 0, list_first_vertex = 0;
+    uint32_t indirect_index = 0, list_first_index = 0, list_first_vertex = 0;
     for (auto i = 0; i < draw_data->CmdListsCount; i++)
     {
         auto cmd_list = draw_data->CmdLists[i];
@@ -45,7 +45,7 @@ void ui_renderer::update(vk::Device device) const
         memcpy(indices + list_first_index, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.size() * sizeof(*cmd_list->IdxBuffer.Data));
         memcpy(vertices + list_first_vertex, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.size() * sizeof(*cmd_list->VtxBuffer.Data));
 
-        size_t cmd_first_index = 0;
+        uint32_t cmd_first_index = 0;
         for (auto& cmd : cmd_list->CmdBuffer)
         {
             assert(indirect_index < MAX_UI_DRAW_COUNT);
@@ -55,7 +55,7 @@ void ui_renderer::update(vk::Device device) const
             indirect_command->firstInstance = indirect_index;
             indirect_command->indexCount = cmd.ElemCount;
             indirect_command->firstIndex = list_first_index + cmd_first_index;
-            indirect_command->vertexOffset = list_first_vertex * sizeof(ImDrawVert);
+            indirect_command->vertexOffset = list_first_vertex * uint32_t(sizeof(ImDrawVert));
             uniform->clip_rects[indirect_index] = cmd.ClipRect;
 
             cmd_first_index += cmd.ElemCount;

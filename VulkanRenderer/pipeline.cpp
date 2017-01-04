@@ -138,7 +138,7 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
 
     auto set_layout = device.createDescriptorSetLayout(
         vk::DescriptorSetLayoutCreateInfo()
-        .setBindingCount(bindings.size())
+        .setBindingCount(uint32_t(bindings.size()))
         .setPBindings(bindings.begin())
     );
     auto layout = device.createPipelineLayout(

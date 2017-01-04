@@ -12,10 +12,10 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     {
         io.KeysDown[key] = false;
     }
-    io.KeyCtrl = bool(mods & GLFW_MOD_CONTROL);
-    io.KeyAlt = bool(mods & GLFW_MOD_ALT);
-    io.KeyShift = bool(mods & GLFW_MOD_SHIFT);
-    io.KeySuper = bool(mods & GLFW_MOD_SUPER);
+    io.KeyCtrl = (mods & GLFW_MOD_CONTROL) != 0;
+    io.KeyAlt = (mods & GLFW_MOD_ALT) != 0;
+    io.KeyShift = (mods & GLFW_MOD_SHIFT) != 0;
+    io.KeySuper = (mods & GLFW_MOD_SUPER) != 0;
 }
 
 static void character_callback(GLFWwindow* window, unsigned int codepoint)
@@ -74,7 +74,7 @@ static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset
     auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
     assert(input);
     input->scroll_amount = y_offset;
-    ImGui::GetIO().MouseWheel = y_offset;
+    ImGui::GetIO().MouseWheel = float(y_offset);
 }
 
 input_state::input_state(GLFWwindow* window)
