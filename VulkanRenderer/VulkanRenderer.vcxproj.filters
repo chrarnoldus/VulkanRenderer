@@ -103,9 +103,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="ui.frag" />
-    <CustomBuild Include="ui.vert" />
-    <CustomBuild Include="model.vert" />
-    <CustomBuild Include="model.frag" />
+    <CustomBuild Include="ui.vert">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="ui.frag">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="model.vert">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="model.frag">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
