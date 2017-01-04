@@ -9,7 +9,8 @@ layout(location = 1) out vec2 uv;
 
 void main()
 {
-    gl_Position = vec4(vertexPosition, 0.0, 1.0);
+    // TODO no hardcoding viewport size
+    gl_Position = vec4((vertexPosition.x - 512.0) / 512.0, (vertexPosition.y - 384.0) / 384.0, 0.0, 1.0);
     color = vertexColor;
     uv = vertexUV;
 }

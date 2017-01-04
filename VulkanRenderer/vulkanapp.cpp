@@ -51,23 +51,39 @@ static vk::RenderPass create_render_pass(vk::Device device)
 
 static vk::DescriptorPool create_descriptor_pool(vk::Device device)
 {
-    auto max_ub_count = uint32_t(10);
-    std::vector<vk::DescriptorPoolSize> sizes({vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_ub_count)});
+    auto max_count_per_type = uint32_t(10);
+    std::vector<vk::DescriptorPoolSize> sizes({
+        vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_count_per_type),
+        vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, max_count_per_type),
+    });
     return device.createDescriptorPool(
         vk::DescriptorPoolCreateInfo()
         .setPoolSizeCount(uint32_t(sizes.size()))
         .setPPoolSizes(sizes.data())
-        .setMaxSets(max_ub_count)
+        .setMaxSets(max_count_per_type * sizes.size())
     );
+}
+
+static image2d load_font_image(vk::PhysicalDevice physical_device, vk::Device device)
+{
+    unsigned char* pixels;
+    int width, height, bytes_per_pixel;
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytes_per_pixel);
+    assert(bytes_per_pixel == 4);
+    return load_r8g8b8a8_unorm_texture(physical_device, device, width, height, pixels);
 }
 
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, model mdl)
     : mdl(mdl)
       , render_pass(create_render_pass(device))
-      , pl(create_model_pipeline(device, render_pass))
+      , model_pipeline(create_model_pipeline(device, render_pass))
+      , ui_pipeline(create_ui_pipeline(device, render_pass))
+      , font_image(load_font_image(physical_device, device))
 {
     queue = device.getQueue(0, 0);
     command_pool = device.createCommandPool(vk::CommandPoolCreateInfo());
+    font_image.transition_layout_from_preinitialized_to_shader_read_only(device, command_pool, queue);
+
     descriptor_pool = create_descriptor_pool(device);
     acquired_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
     rendered_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
@@ -97,7 +113,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     auto images = device.getSwapchainImagesKHR(swapchain);
     for (auto image : images)
     {
-        frames.push_back(frame(physical_device, device, command_pool, descriptor_pool, image, render_pass, pl, mdl));
+        frames.push_back(frame(physical_device, device, command_pool, descriptor_pool, image, render_pass, model_pipeline, ui_pipeline, mdl, font_image));
     }
 }
 
@@ -154,12 +170,14 @@ void vulkanapp::destroy(vk::Device device) const
         frame.destroy(device);
     }
 
+    font_image.destroy(device);
     device.destroySwapchainKHR(swapchain);
     device.destroySemaphore(rendered_semaphore);
     device.destroySemaphore(acquired_semaphore);
     device.destroyDescriptorPool(descriptor_pool);
     device.destroyCommandPool(command_pool);
-    pl.destroy(device);
+    ui_pipeline.destroy(device);
+    model_pipeline.destroy(device);
     device.destroyRenderPass(render_pass);
     mdl.destroy(device);
 }

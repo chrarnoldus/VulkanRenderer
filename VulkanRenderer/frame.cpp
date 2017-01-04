@@ -3,17 +3,18 @@
 #include "data_types.h"
 #include "dimensions.h"
 
-static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPool command_pool, const std::vector<vk::DescriptorSet>& descriptor_sets, vk::RenderPass render_pass, pipeline pipeline, vk::Framebuffer framebuffer, model model)
+static void record_command_buffer(
+    vk::CommandBuffer command_buffer,
+    const std::vector<vk::DescriptorSet>& descriptor_sets,
+    vk::RenderPass render_pass,
+    pipeline model_pipeline,
+    pipeline ui_pipeline,
+    model model,
+    ui_renderer ui,
+    vk::Framebuffer framebuffer
+)
 {
-    auto command_buffer = device.allocateCommandBuffers(
-        vk::CommandBufferAllocateInfo()
-        .setCommandPool(command_pool)
-        .setLevel(vk::CommandBufferLevel::ePrimary)
-        .setCommandBufferCount(1)
-    )[0];
-
-    command_buffer.begin(vk::CommandBufferBeginInfo()
-        .setFlags(vk::CommandBufferUsageFlagBits::eSimultaneousUse));
+    command_buffer.begin(vk::CommandBufferBeginInfo());
 
     const uint32_t clear_value_count = 2;
     vk::ClearValue clear_values[clear_value_count] = {
@@ -31,14 +32,17 @@ static vk::CommandBuffer create_command_buffer(vk::Device device, vk::CommandPoo
         vk::SubpassContents::eInline
     );
 
-    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.pl);
-    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.layout, 0, descriptor_sets, {});
+    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, model_pipeline.layout, 0, descriptor_sets[0], {});
+    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, model_pipeline.pl);
     model.draw(command_buffer);
+
+    // TODO no indexing in descriptor_sets
+    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, ui_pipeline.layout, 0, descriptor_sets[1], {});
+    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, ui_pipeline.pl);
+    ui.draw(command_buffer);
 
     command_buffer.endRenderPass();
     command_buffer.end();
-
-    return command_buffer;
 }
 
 frame::frame(
@@ -48,8 +52,10 @@ frame::frame(
     vk::DescriptorPool descriptor_pool,
     vk::Image image,
     vk::RenderPass render_pass,
-    pipeline pipeline,
-    model model)
+    pipeline model_pipeline,
+    pipeline ui_pipeline,
+    model model,
+    image2d font_image)
     : uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(uniform_data))
       , dsb(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)
       , ui(physical_device, device)
@@ -83,26 +89,44 @@ frame::frame(
 
     rendered_fence = device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
 
+    auto set_layouts = {model_pipeline.set_layout , ui_pipeline.set_layout};
     auto descriptor_sets = device.allocateDescriptorSets(
         vk::DescriptorSetAllocateInfo()
         .setDescriptorPool(descriptor_pool)
-        .setDescriptorSetCount(1)
-        .setPSetLayouts(&pipeline.set_layout)
+        .setDescriptorSetCount(uint32_t(set_layouts.size()))
+        .setPSetLayouts(set_layouts.begin())
     );
 
-    auto buffer_info = vk::DescriptorBufferInfo()
+    auto uniform_buffer_info = vk::DescriptorBufferInfo()
         .setBuffer(uniform_buffer.buf)
         .setRange(uniform_buffer.size);
 
-    auto write_descriptor_set = vk::WriteDescriptorSet()
+    auto uniform_write_descriptor_set = vk::WriteDescriptorSet()
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
         .setDescriptorCount(1)
         .setDstSet(descriptor_sets[0])
-        .setPBufferInfo(&buffer_info);
+        .setPBufferInfo(&uniform_buffer_info);
 
-    device.updateDescriptorSets({write_descriptor_set}, {});
+    auto font_image_view_info = vk::DescriptorImageInfo()
+        .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
+        .setImageView(font_image.image_view);
 
-    command_buffer = create_command_buffer(device, command_pool, descriptor_sets, render_pass, pipeline, framebuffer, model);
+    auto font_image_write_descriptor_set = vk::WriteDescriptorSet()
+        .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+        .setDescriptorCount(1)
+        .setDstSet(descriptor_sets[1])
+        .setPImageInfo(&font_image_view_info);
+
+    device.updateDescriptorSets({uniform_write_descriptor_set, font_image_write_descriptor_set}, {});
+
+    command_buffer = device.allocateCommandBuffers(
+        vk::CommandBufferAllocateInfo()
+        .setCommandPool(command_pool)
+        .setLevel(vk::CommandBufferLevel::ePrimary)
+        .setCommandBufferCount(1)
+    )[0];
+
+    record_command_buffer(command_buffer, descriptor_sets, render_pass, model_pipeline, ui_pipeline, model, ui, framebuffer);
 }
 
 void frame::destroy(vk::Device device) const

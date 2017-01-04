@@ -50,18 +50,50 @@ image2d::image2d(
 
     device.bindImageMemory(image, memory, 0);
 
+    sub_resource_range = vk::ImageSubresourceRange()
+        .setAspectMask(aspect_flags)
+        .setLevelCount(VK_REMAINING_MIP_LEVELS)
+        .setLayerCount(1);
+
     image_view = device.createImageView(
         vk::ImageViewCreateInfo()
         .setImage(image)
         .setFormat(format)
         .setViewType(vk::ImageViewType::e2D)
-        .setSubresourceRange(
-            vk::ImageSubresourceRange()
-            .setAspectMask(aspect_flags)
-            .setLevelCount(VK_REMAINING_MIP_LEVELS)
-            .setLayerCount(1)
-        )
+        .setSubresourceRange(sub_resource_range)
     );
+}
+
+void image2d::transition_layout_from_preinitialized_to_shader_read_only(vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+{
+    auto command_buffer = device.allocateCommandBuffers(
+        vk::CommandBufferAllocateInfo()
+        .setCommandPool(command_pool)
+        .setLevel(vk::CommandBufferLevel::ePrimary)
+        .setCommandBufferCount(1)
+    )[0];
+
+    command_buffer.begin(vk::CommandBufferBeginInfo());
+    command_buffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eHost,
+        vk::PipelineStageFlagBits::eFragmentShader,
+        vk::DependencyFlags(),
+        {},
+        {},
+        {vk::ImageMemoryBarrier(
+            vk::AccessFlagBits::eHostWrite,
+            vk::AccessFlagBits::eShaderRead,
+            vk::ImageLayout::ePreinitialized,
+            vk::ImageLayout::eShaderReadOnlyOptimal,
+            0,
+            0,
+            image,
+            sub_resource_range
+        )}
+    );
+    command_buffer.end();
+
+    queue.submit({vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer)}, nullptr);
 }
 
 void image2d::destroy(vk::Device device) const

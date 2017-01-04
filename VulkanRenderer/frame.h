@@ -18,6 +18,6 @@ struct frame
     image2d dsb;
     ui_renderer ui;
 
-    frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::DescriptorPool descriptor_pool, vk::Image image, vk::RenderPass render_pass, pipeline pipeline, model model);
+    frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::DescriptorPool descriptor_pool, vk::Image image, vk::RenderPass render_pass, pipeline model_pipeline, pipeline ui_pipeline, model model, image2d font_image);
     void destroy(vk::Device device) const;
 };

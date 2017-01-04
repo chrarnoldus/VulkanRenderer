@@ -6,20 +6,10 @@ static const uint32_t MAX_INDEX_COUNT = UINT16_MAX;
 static const uint32_t MAX_DRAW_COUNT = 64;
 static const VkDrawIndexedIndirectCommand EMPTY_COMMAND = {0,0,0,0,0};
 
-static image2d load_font_image(vk::PhysicalDevice physical_device, vk::Device device)
-{
-    unsigned char* pixels;
-    int width, height, bytes_per_pixel;
-    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytes_per_pixel);
-    assert(bytes_per_pixel == 4);
-    return load_r8g8b8a8_unorm_texture(physical_device, device, width, height, pixels);
-}
-
 ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device)
     : vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, MAX_VERTEX_COUNT * sizeof(ImDrawVert))
       , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, MAX_INDEX_COUNT * sizeof(uint16_t))
       , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, MAX_DRAW_COUNT * sizeof(VkDrawIndexedIndirectCommand))
-      , font_image(load_font_image(physical_device, device))
 {
 }
 
@@ -31,6 +21,8 @@ void ui_renderer::update(vk::Device device) const
     ImGui::Render();
     auto draw_data = ImGui::GetDrawData();
 
+    // we're assuming that there's only one texture and that the cliprects aren't important
+    // TODO one draw call is probably enough
     assert(draw_data->Valid);
     assert(draw_data->CmdListsCount < MAX_DRAW_COUNT);
     assert(draw_data->TotalIdxCount < MAX_INDEX_COUNT);
@@ -45,7 +37,7 @@ void ui_renderer::update(vk::Device device) const
     auto vertex_offset = uint32_t(0);
     for (auto i = 0; i < draw_data->CmdListsCount; i++)
     {
-        auto& cmd_list = draw_data->CmdLists[i];
+        auto cmd_list = draw_data->CmdLists[i];
         indirect[i].instanceCount = 1;
         indirect[i].firstInstance = 0;
         indirect[i].indexCount = cmd_list->IdxBuffer.size();
@@ -75,7 +67,6 @@ void ui_renderer::draw(vk::CommandBuffer command_buffer) const
 
 void ui_renderer::destroy(vk::Device device) const
 {
-    font_image.destroy(device);
     indirect_buffer.destroy(device);
     index_buffer.destroy(device);
     vertex_buffer.destroy(device);
