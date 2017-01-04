@@ -112,7 +112,6 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
     const char* extensionNames[extensionCount] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
     auto features = vk::PhysicalDeviceFeatures()
-        .setMultiDrawIndirect(true)
         .setShaderClipDistance(true)
         .setShaderCullDistance(true);
 
