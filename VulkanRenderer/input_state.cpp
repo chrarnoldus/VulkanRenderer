@@ -33,6 +33,7 @@ void cursor_position_callback(GLFWwindow* window, double x_position, double y_po
 {
     auto mouse_position = glm::vec2(float(x_position), float(y_position));
     auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
+    assert(input);
     if (input->left_mouse_button_down)
     {
         auto
@@ -45,16 +46,28 @@ void cursor_position_callback(GLFWwindow* window, double x_position, double y_po
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+    auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
+    assert(input);
     if (button == GLFW_MOUSE_BUTTON_LEFT)
     {
-        auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
         if (action == GLFW_PRESS)
         {
             input->left_mouse_button_down = true;
         }
-        else
+        if (action == GLFW_RELEASE)
         {
             input->left_mouse_button_down = false;
+        }
+    }
+    if (button == GLFW_MOUSE_BUTTON_RIGHT)
+    {
+        if (action == GLFW_PRESS)
+        {
+            input->right_mouse_button_down = true;
+        }
+        if (action == GLFW_RELEASE)
+        {
+            input->right_mouse_button_down = false;
         }
     }
 }

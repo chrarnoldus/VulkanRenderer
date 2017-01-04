@@ -127,20 +127,21 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
     );
 }
 
-static void initialize_imgui_io()
+static void initialize_imgui()
 {
     auto& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(float(WIDTH), float(HEIGHT));
     //io.KeyMap // TODO
 }
 
-static void update_imgui_io(const input_state& input, double delta_time)
+static void update_imgui(const input_state& input, double delta_time)
 {
-    auto io = ImGui::GetIO();
+    auto& io = ImGui::GetIO();
     io.DeltaTime = float(delta_time);
     io.MousePos = ImVec2(input.last_mouse_position.x, input.last_mouse_position.y);
-    io.MouseClicked[0] = input.left_mouse_button_down;
-    io.MouseClicked[1] = input.right_mouse_button_down;
+    io.MouseDown[0] = input.left_mouse_button_down;
+    io.MouseDown[1] = input.right_mouse_button_down;
+    ImGui::NewFrame();
 }
 
 int main(int argc, char** argv)
@@ -155,7 +156,7 @@ int main(int argc, char** argv)
         "C:\\Users\\Christiaan\\OneDrive\\Documenten\\Master\\Advanced computer graphics\\Facial Point Rendering\\Test models\\Armadillo.ply"
     );
 
-    initialize_imgui_io();
+    initialize_imgui();
 
     auto success = glfwInit();
     assert(success);
@@ -184,7 +185,7 @@ int main(int argc, char** argv)
     {
         glfwPollEvents();
         auto new_time = glfwGetTime();
-        update_imgui_io(input, new_time - old_time);
+        update_imgui(input, new_time - old_time);
         old_time = new_time;
 
         app.update(device, input.camera_distance, glm::mat4_cast(input.rotation));
@@ -200,6 +201,8 @@ int main(int argc, char** argv)
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
 #endif
     instance.destroy();
+
+    ImGui::Shutdown();
 
     return EXIT_SUCCESS;
 }

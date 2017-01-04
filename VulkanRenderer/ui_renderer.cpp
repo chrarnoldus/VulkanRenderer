@@ -13,7 +13,6 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device)
 
 void ui_renderer::update(vk::Device device) const
 {
-    ImGui::NewFrame();
     // TODO something useful
     ImGui::ShowTestWindow();
     ImGui::Render();
