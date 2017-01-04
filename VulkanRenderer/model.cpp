@@ -81,7 +81,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
         }
         else
         {
-            vertices[i].color = a2b10g10r10_unorm_pack32(glm::vec3(.5f));
+            vertices[i].color = a2b10g10r10_unorm_pack32(glm::vec3(1.f));
         }
     }
     device.unmapMemory(vertex_buffer.memory);
