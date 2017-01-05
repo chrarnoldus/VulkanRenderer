@@ -157,15 +157,18 @@ static void initialize_imgui()
 
 int main(int argc, char** argv)
 {
+    auto pattern = "*.ply";
+    auto model_path = tinyfd_openFileDialog("Open 3D model", nullptr, 1, &pattern, nullptr, 0);
+    if (!model_path)
+    {
+        return EXIT_FAILURE;
+    }
+
     auto instance = create_instance();
     auto callback = create_debug_report_callback(instance);
     auto physical_device = get_physical_device(instance);
     auto device = create_device(physical_device);
-    auto mdl = read_model(
-        physical_device,
-        device,
-        "C:\\Users\\Christiaan\\OneDrive\\Documenten\\Master\\Advanced computer graphics\\Facial Point Rendering\\Test models\\Armadillo.ply"
-    );
+    auto mdl = read_model(physical_device, device, model_path);
 
     initialize_imgui();
 
