@@ -7,3 +7,6 @@
 [submodule "Dependencies/tinyfiledialogs"]
 	path = Dependencies/tinyfiledialogs
 	url = git://git.code.sf.net/p/tinyfiledialogs/code
+[submodule "Dependencies/tinyply"]
+	path = Dependencies/tinyply
+	url = https://github.com/ddiakopoulos/tinyply

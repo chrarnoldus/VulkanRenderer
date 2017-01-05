@@ -21,7 +21,7 @@ void model::destroy(vk::Device device) const
     index_buffer.destroy(device);
 }
 
-static glm::i16vec3 to_r16g16b16_snorm(float x, float y, float z)
+static glm::i16vec3 r16g16b16_snorm(float x, float y, float z)
 {
     assert(x >= -1.f && x <= 1.f);
     assert(y >= -1.f && y <= 1.f);
@@ -36,67 +36,40 @@ static glm::i16vec3 to_r16g16b16_snorm(float x, float y, float z)
 
 model read_model(vk::PhysicalDevice physical_device, vk::Device device, const std::string& path)
 {
-    Assimp::Importer importer;
-    importer.SetPropertyInteger(AI_CONFIG_PP_PTV_NORMALIZE, 1);
+    std::printf("Importing model using tinyply\n");
+    std::ifstream stream(path, std::ios_base::binary);
 
-    std::printf("Importing model using assimp\n");
-    auto scene = importer.ReadFile(
-        path,
-        aiProcess_JoinIdenticalVertices |
-        aiProcess_GenSmoothNormals |
-        aiProcess_PreTransformVertices |
-        aiProcess_ValidateDataStructure
-    );
+    tinyply::PlyFile ply_file(stream);
+
+    std::vector<float> positions;
+    std::vector<float> normals;
+    std::vector<uint8_t> colors;
+    std::vector<uint32_t> indices;
+
+    auto vertex_count = ply_file.request_properties_from_element("vertex", {"x","y","z"}, positions);
+    ply_file.request_properties_from_element("vertex", {"nx","ny","nz"}, normals);
+    ply_file.request_properties_from_element("vertex", {"red","green","blue", "alpha"}, colors);
+    ply_file.request_properties_from_element("face", {"vertex_indices"}, indices, 3);
+    ply_file.read(stream);
 
     std::printf("Loading model to buffers\n");
-    assert(scene->mNumMeshes == 1);
-    auto mesh = scene->mMeshes[0];
 
-    buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, mesh->mNumVertices * sizeof(vertex));
+    buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, vertex_count * sizeof(vertex));
     auto vertices = reinterpret_cast<vertex*>(device.mapMemory(vertex_buffer.memory, 0, vertex_buffer.size));
-    for (uint32_t i = 0; i < mesh->mNumVertices; i++)
+    for (uint32_t i = 0; i < vertex_count; i++)
     {
-        vertices[i].position = to_r16g16b16_snorm(
-            mesh->mVertices[i].x,
-            mesh->mVertices[i].y,
-            mesh->mVertices[i].z
+        vertices[i].position = r16g16b16_snorm(positions[3 * i], positions[3 * i + 1], positions[3 * i + 2]);
+        vertices[i].normal = a2b10g10r10_snorm_pack32(
+            glm::normalize(glm::vec3(normals[3 * i], normals[3 * i + 1], normals[3 * i + 2]))
         );
-
-        if (mesh->HasNormals())
-        {
-            vertices[i].normal = a2b10g10r10_snorm_pack32(
-                glm::normalize(glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z))
-            );
-        }
-
-        if (mesh->HasVertexColors(0))
-        {
-            vertices[i].color = a2b10g10r10_unorm_pack32(
-                glm::vec3(mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b)
-            );
-        }
-        else
-        {
-            vertices[i].color = a2b10g10r10_unorm_pack32(glm::vec3(1.f));
-        }
+        vertices[i].color = glm::u8vec3(colors[4 * i], colors[4 * i + 1], colors[4 * i + 2]);
     }
     device.unmapMemory(vertex_buffer.memory);
 
-    assert(mesh->mNumFaces > 0);
-    auto index_count = 3 * mesh->mNumFaces;
-    buffer index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, index_count * sizeof(uint32_t));
-    auto indices = reinterpret_cast<uint32_t*>(device.mapMemory(index_buffer.memory, 0, index_buffer.size));
-    for (uint32_t i = 0; i < mesh->mNumFaces; i++)
-    {
-        auto face = &mesh->mFaces[i];
-        assert(face->mNumIndices == 3);
-        for (uint32_t j = 0; j < face->mNumIndices; j++)
-        {
-            indices[3 * i + j] = face->mIndices[j];
-        }
-    }
+    buffer index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, indices.size() * sizeof(*indices.data()));
+    memcpy(device.mapMemory(index_buffer.memory, 0, index_buffer.size), indices.data(), indices.size() * sizeof(*indices.data()));
     device.unmapMemory(index_buffer.memory);
 
-    std::printf("Model loaded: %llu kB (vertices) + %llu kB (indices)\n", vertex_buffer.size / 1024, index_buffer.size / 1024);
-    return model(uint32_t(index_count), vertex_buffer, index_buffer);
+    std::printf("Model loaded: %.2lf MB\n", (vertex_buffer.size + index_buffer.size) / (1024. * 1024.));
+    return model(uint32_t(indices.size()), vertex_buffer, index_buffer);
 }

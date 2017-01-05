@@ -66,6 +66,9 @@
     <ClCompile Include="..\Dependencies\tinyfiledialogs\tinyfiledialogs.c">
       <Filter>Source Files\Dependencies</Filter>
     </ClCompile>
+    <ClCompile Include="..\Dependencies\tinyply\source\tinyply.cpp">
+      <Filter>Source Files\Dependencies</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

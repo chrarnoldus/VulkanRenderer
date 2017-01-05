@@ -207,7 +207,7 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setOffset(offsetof(vertex, normal));
 
     auto color_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eA2B10G10R10UnormPack32)
+        .setFormat(vk::Format::eR8G8B8Unorm)
         .setLocation(2)
         .setOffset(offsetof(vertex, color));
 
