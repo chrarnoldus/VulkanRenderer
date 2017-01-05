@@ -42,19 +42,16 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
 {
     auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
     assert(input);
-    auto& io = ImGui::GetIO();
 
     if (button == GLFW_MOUSE_BUTTON_LEFT)
     {
         if (action == GLFW_PRESS)
         {
             input->left_mouse_button_down = true;
-            io.MouseDown[0] = true;
         }
         if (action == GLFW_RELEASE)
         {
             input->left_mouse_button_down = false;
-            io.MouseDown[0] = false;
         }
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT)
@@ -62,12 +59,23 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
         if (action == GLFW_PRESS)
         {
             input->right_mouse_button_down = true;
-            io.MouseDown[1] = true;
         }
         if (action == GLFW_RELEASE)
         {
             input->right_mouse_button_down = false;
-            io.MouseDown[1] = false;
+        }
+    }
+
+    auto& io = ImGui::GetIO();
+    if (button >= 0 && button < 5)
+    {
+        if (action == GLFW_PRESS)
+        {
+            io.MouseDown[button] = true;
+        }
+        if (action == GLFW_RELEASE)
+        {
+            io.MouseDown[button] = false;
         }
     }
 }
