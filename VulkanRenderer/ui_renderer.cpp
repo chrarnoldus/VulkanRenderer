@@ -22,7 +22,6 @@ void ui_renderer::update(vk::Device device) const
     auto draw_data = ImGui::GetDrawData();
 
     // we're assuming that there's only one texture
-    // TODO implement clipping
 
     assert(draw_data->Valid);
     assert(draw_data->TotalVtxCount < MAX_VERTEX_COUNT);
