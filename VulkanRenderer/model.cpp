@@ -3,10 +3,6 @@
 #include "data_types.h"
 #include "pipeline.h"
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 model::model(uint32_t vertex_count, buffer vertex_buffer, buffer index_buffer)
     : index_count(vertex_count), vertex_buffer(vertex_buffer), index_buffer(index_buffer)
 {
