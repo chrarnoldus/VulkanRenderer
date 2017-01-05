@@ -7,3 +7,6 @@
 [submodule "Dependencies/imgui"]
 	path = Dependencies/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "Dependencies/tinyfiledialogs"]
+	path = Dependencies/tinyfiledialogs
+	url = git://git.code.sf.net/p/tinyfiledialogs/code
