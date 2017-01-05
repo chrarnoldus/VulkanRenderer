@@ -4,13 +4,16 @@
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     auto& io = ImGui::GetIO();
-    if (action == GLFW_PRESS)
+    if (key >= 0 && key < 512)
     {
-        io.KeysDown[key] = true;
-    }
-    if (action == GLFW_RELEASE)
-    {
-        io.KeysDown[key] = false;
+        if (action == GLFW_PRESS)
+        {
+            io.KeysDown[key] = true;
+        }
+        if (action == GLFW_RELEASE)
+        {
+            io.KeysDown[key] = false;
+        }
     }
     io.KeyCtrl = (mods & GLFW_MOD_CONTROL) != 0;
     io.KeyAlt = (mods & GLFW_MOD_ALT) != 0;
