@@ -55,7 +55,7 @@ void ui_renderer::update(vk::Device device) const
             indirect_command->firstInstance = indirect_index;
             indirect_command->indexCount = cmd.ElemCount;
             indirect_command->firstIndex = list_first_index + cmd_first_index;
-            indirect_command->vertexOffset = list_first_vertex * uint32_t(sizeof(ImDrawVert));
+            indirect_command->vertexOffset = list_first_vertex;
             uniform->clip_rects[indirect_index] = cmd.ClipRect;
 
             cmd_first_index += cmd.ElemCount;
