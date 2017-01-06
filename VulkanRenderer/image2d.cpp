@@ -13,6 +13,7 @@ image2d::image2d(
     vk::MemoryPropertyFlags memory_flags,
     vk::ImageAspectFlags aspect_flags
 )
+    : width(width), height(height), format(format)
 {
     image = device.createImage(
         vk::ImageCreateInfo()
@@ -64,8 +65,14 @@ image2d::image2d(
     );
 }
 
-void image2d::transition_layout_from_preinitialized_to_shader_read_only(vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+image2d image2d::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
 {
+    image2d result(
+        physical_device, device, width, height, format,
+        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eColor
+    );
+
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
         .setCommandPool(command_pool)
@@ -76,24 +83,67 @@ void image2d::transition_layout_from_preinitialized_to_shader_read_only(vk::Devi
     command_buffer.begin(vk::CommandBufferBeginInfo());
     command_buffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eHost,
-        vk::PipelineStageFlagBits::eFragmentShader,
+        vk::PipelineStageFlagBits::eTransfer,
         vk::DependencyFlags(),
         {},
         {},
         {vk::ImageMemoryBarrier(
             vk::AccessFlagBits::eHostWrite,
-            vk::AccessFlagBits::eShaderRead,
+            vk::AccessFlagBits::eTransferRead,
             vk::ImageLayout::ePreinitialized,
-            vk::ImageLayout::eShaderReadOnlyOptimal,
+            vk::ImageLayout::eTransferSrcOptimal,
             0,
             0,
             image,
             sub_resource_range
         )}
     );
+    command_buffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eTopOfPipe,
+        vk::PipelineStageFlagBits::eTransfer,
+        vk::DependencyFlags(),
+        {},
+        {},
+        {vk::ImageMemoryBarrier(
+            vk::AccessFlags(),
+            vk::AccessFlagBits::eTransferWrite,
+            vk::ImageLayout::eUndefined,
+            vk::ImageLayout::eTransferDstOptimal,
+            0,
+            0,
+            result.image,
+            result.sub_resource_range
+        )}
+    );
+    command_buffer.copyImage(
+        image, vk::ImageLayout::eTransferSrcOptimal, result.image, vk::ImageLayout::eTransferDstOptimal, {
+            vk::ImageCopy()
+            .setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
+            .setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
+            .setExtent(vk::Extent3D(width, height, 1))
+        });
+    command_buffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eTransfer,
+        vk::PipelineStageFlagBits::eFragmentShader,
+        vk::DependencyFlags(),
+        {},
+        {},
+        {vk::ImageMemoryBarrier(
+            vk::AccessFlagBits::eTransferWrite,
+            vk::AccessFlagBits::eShaderRead,
+            vk::ImageLayout::eTransferDstOptimal,
+            vk::ImageLayout::eShaderReadOnlyOptimal,
+            0,
+            0,
+            result.image,
+            result.sub_resource_range
+        )}
+    );
     command_buffer.end();
 
     queue.submit({vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer)}, nullptr);
+
+    return result;
 }
 
 void image2d::destroy(vk::Device device) const
@@ -111,7 +161,7 @@ image2d load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Devi
         width,
         height,
         vk::Format::eR8G8B8A8Unorm,
-        vk::ImageUsageFlagBits::eSampled,
+        vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eSampled,
         vk::ImageTiling::eLinear,
         vk::ImageLayout::ePreinitialized,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,

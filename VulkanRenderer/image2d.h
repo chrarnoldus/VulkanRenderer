@@ -3,6 +3,9 @@
 
 struct image2d
 {
+    uint32_t width;
+    uint32_t height;
+    vk::Format format;
     vk::DeviceMemory memory;
     vk::Image image;
     vk::ImageView image_view;
@@ -20,7 +23,7 @@ struct image2d
         vk::MemoryPropertyFlags memory_flags,
         vk::ImageAspectFlags aspect_flags
     );
-    void transition_layout_from_preinitialized_to_shader_read_only(vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
+    image2d copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
     void destroy(vk::Device device) const;
 };
 

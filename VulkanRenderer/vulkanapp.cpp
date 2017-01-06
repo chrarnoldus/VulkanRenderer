@@ -83,7 +83,10 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
       , font_image(load_font_image(physical_device, device))
       , camera_distance(2.f)
 {
-    font_image.transition_layout_from_preinitialized_to_shader_read_only(device, command_pool, queue);
+    auto old_image = font_image;
+    font_image = font_image.copy_from_host_to_device_for_shader_read(physical_device, device, command_pool, queue);
+    queue.waitIdle();
+    old_image.destroy(device);
 
     descriptor_pool = create_descriptor_pool(device);
     acquired_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
