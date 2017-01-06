@@ -90,7 +90,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
 
     auto vertex_count = ply_file.request_properties_from_element("vertex", {"x","y","z"}, positions);
     ply_file.request_properties_from_element("vertex", {"nx","ny","nz"}, normals);
-    ply_file.request_properties_from_element("vertex", {"red","green","blue", "alpha"}, colors);
+    ply_file.request_properties_from_element("vertex", {"red","green","blue"}, colors);
     auto face_count = ply_file.request_properties_from_element("face", {"vertex_indices"}, indices, 3);
     ply_file.read(stream);
 
@@ -100,7 +100,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
     {
         normals = generate_unnormalized_normals(positions, indices);
     }
-    colors.resize(4 * vertex_count, UINT8_MAX);
+    colors.resize(3 * vertex_count, UINT8_MAX);
     assert(indices.size() > 0);
 
     buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eTransferSrc, HOST_VISIBLE_AND_COHERENT, vertex_count * sizeof(vertex));
@@ -120,7 +120,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
                 : unnormalized_normal
         );
 
-        vertices[i].color = glm::u8vec3(colors[4 * i], colors[4 * i + 1], colors[4 * i + 2]);
+        vertices[i].color = glm::u8vec3(colors[3 * i], colors[3 * i + 1], colors[3 * i + 2]);
     }
     device.unmapMemory(vertex_buffer.memory);
     auto device_vertex_buffer = vertex_buffer.copy_from_host_to_device_for_vertex_input(
