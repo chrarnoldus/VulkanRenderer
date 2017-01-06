@@ -8,11 +8,11 @@
 struct vulkanapp
 {
     vk::Queue queue;
+    vk::CommandPool command_pool;
     model mdl;
     vk::RenderPass render_pass;
     pipeline model_pipeline;
     pipeline ui_pipeline;
-    vk::CommandPool command_pool;
     vk::DescriptorPool descriptor_pool;
     vk::Semaphore acquired_semaphore;
     vk::Semaphore rendered_semaphore;
@@ -22,7 +22,7 @@ struct vulkanapp
     glm::quat trackball_rotation;
     float camera_distance;
 
-    vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, model mdl);
+    vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, const std::string& model_path);
     void update(vk::Device device, const input_state& input);
     void destroy(vk::Device device) const;
 };

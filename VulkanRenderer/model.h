@@ -15,4 +15,4 @@ struct model
     void destroy(vk::Device device) const;
 };
 
-model read_model(vk::PhysicalDevice physical_device, vk::Device device, const std::string& path);
+model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue, const std::string& path);

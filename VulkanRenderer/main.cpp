@@ -168,7 +168,6 @@ int main(int argc, char** argv)
     auto callback = create_debug_report_callback(instance);
     auto physical_device = get_physical_device(instance);
     auto device = create_device(physical_device);
-    auto mdl = read_model(physical_device, device, model_path);
 
     initialize_imgui();
 
@@ -187,7 +186,7 @@ int main(int argc, char** argv)
     assert(result == VK_SUCCESS);
 
     input_state input(window);
-    auto app = vulkanapp(physical_device, device, surface, mdl);
+    auto app = vulkanapp(physical_device, device, surface, model_path);
     while (!glfwWindowShouldClose(window))
     {
         input.update();

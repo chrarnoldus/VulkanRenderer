@@ -78,7 +78,7 @@ static glm::vec4 unitize(const std::vector<float>& positions)
     );
 }
 
-model read_model(vk::PhysicalDevice physical_device, vk::Device device, const std::string& path)
+model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue, const std::string& path)
 {
     std::ifstream stream(path, std::ios_base::binary);
     tinyply::PlyFile ply_file(stream);
@@ -103,7 +103,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     colors.resize(4 * vertex_count, UINT8_MAX);
     assert(indices.size() > 0);
 
-    buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, vertex_count * sizeof(vertex));
+    buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eTransferSrc, HOST_VISIBLE_AND_COHERENT, vertex_count * sizeof(vertex));
     auto vertices = reinterpret_cast<vertex*>(device.mapMemory(vertex_buffer.memory, 0, vertex_buffer.size));
     for (uint32_t i = 0; i < vertex_count; i++)
     {
@@ -123,11 +123,21 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
         vertices[i].color = glm::u8vec3(colors[4 * i], colors[4 * i + 1], colors[4 * i + 2]);
     }
     device.unmapMemory(vertex_buffer.memory);
+    auto device_vertex_buffer = vertex_buffer.copy_from_host_to_device_for_vertex_input(
+        physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst, command_pool, queue
+    );
 
-    buffer index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, indices.size() * sizeof(*indices.data()));
+    buffer index_buffer(physical_device, device, vk::BufferUsageFlagBits::eTransferSrc, HOST_VISIBLE_AND_COHERENT, indices.size() * sizeof(*indices.data()));
     memcpy(device.mapMemory(index_buffer.memory, 0, index_buffer.size), indices.data(), indices.size() * sizeof(*indices.data()));
     device.unmapMemory(index_buffer.memory);
+    auto device_index_buffer = index_buffer.copy_from_host_to_device_for_vertex_input(
+        physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst, command_pool, queue
+    );
+
+    queue.waitIdle();
+    vertex_buffer.destroy(device);
+    index_buffer.destroy(device);
 
     std::printf("Model loaded: %llu triangles, %.2lf MB\n", face_count, (vertex_buffer.size + index_buffer.size) / (1024. * 1024.));
-    return model(uint32_t(indices.size()), vertex_buffer, index_buffer);
+    return model(uint32_t(indices.size()), device_vertex_buffer, device_index_buffer);
 }

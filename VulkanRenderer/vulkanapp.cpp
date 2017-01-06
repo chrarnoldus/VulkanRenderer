@@ -73,16 +73,16 @@ static image2d load_font_image(vk::PhysicalDevice physical_device, vk::Device de
     return load_r8g8b8a8_unorm_texture(physical_device, device, width, height, pixels);
 }
 
-vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, model mdl)
-    : mdl(mdl)
+vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, const std::string& model_path)
+    : queue(device.getQueue(0, 0))
+      , command_pool(device.createCommandPool(vk::CommandPoolCreateInfo()))
+      , mdl(read_model(physical_device, device, command_pool, queue, model_path))
       , render_pass(create_render_pass(device))
       , model_pipeline(create_model_pipeline(device, render_pass))
       , ui_pipeline(create_ui_pipeline(device, render_pass))
       , font_image(load_font_image(physical_device, device))
       , camera_distance(2.f)
 {
-    queue = device.getQueue(0, 0);
-    command_pool = device.createCommandPool(vk::CommandPoolCreateInfo());
     font_image.transition_layout_from_preinitialized_to_shader_read_only(device, command_pool, queue);
 
     descriptor_pool = create_descriptor_pool(device);
