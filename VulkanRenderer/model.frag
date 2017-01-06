@@ -3,8 +3,8 @@
 const vec3 lightPosition = vec3(0.0, 0.0, 0.0);
 const float shininess = 16.0;
 const float specularCoeff = 0.1;
-const float diffuseCoeff = 0.8;
-const float ambientCoeff = 0.2;
+const float diffuseCoeff = 0.9;
+const float ambientCoeff = 0.1;
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
