@@ -91,7 +91,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     auto vertex_count = ply_file.request_properties_from_element("vertex", {"x","y","z"}, positions);
     ply_file.request_properties_from_element("vertex", {"nx","ny","nz"}, normals);
     ply_file.request_properties_from_element("vertex", {"red","green","blue", "alpha"}, colors);
-    ply_file.request_properties_from_element("face", {"vertex_indices"}, indices, 3);
+    auto face_count = ply_file.request_properties_from_element("face", {"vertex_indices"}, indices, 3);
     ply_file.read(stream);
 
     glm::vec4 transformation(unitize(positions));
@@ -126,6 +126,6 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     memcpy(device.mapMemory(index_buffer.memory, 0, index_buffer.size), indices.data(), indices.size() * sizeof(*indices.data()));
     device.unmapMemory(index_buffer.memory);
 
-    std::printf("Model loaded: %.2lf MB\n", (vertex_buffer.size + index_buffer.size) / (1024. * 1024.));
+    std::printf("Model loaded: %llu triangles, %.2lf MB\n", face_count, (vertex_buffer.size + index_buffer.size) / (1024. * 1024.));
     return model(uint32_t(indices.size()), vertex_buffer, index_buffer);
 }
