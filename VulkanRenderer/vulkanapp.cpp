@@ -154,6 +154,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
     {
         if (input.left_mouse_button_down)
         {
+            // Based on https://www.khronos.org/opengl/wiki/Object_Mouse_Trackball
             auto
                 v1 = glm::normalize(get_trackball_position(input.previous_mouse_position)),
                 v2 = glm::normalize(get_trackball_position(input.current_mouse_position));
