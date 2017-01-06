@@ -86,7 +86,7 @@ static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
     assert(devices.size() == 1);
 
     auto props = devices[0].getProperties();
-    std::printf("Using physical device: %s\n", props.deviceName);
+    std::printf("Using physical device %s\n", props.deviceName);
     return devices[0];
 }
 
