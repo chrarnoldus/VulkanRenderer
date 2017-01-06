@@ -94,11 +94,14 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
     auto face_count = ply_file.request_properties_from_element("face", {"vertex_indices"}, indices, 3);
     ply_file.read(stream);
 
+    assert(positions.size() > 0);
     glm::vec4 transformation(unitize(positions));
     if (normals.size() == 0)
     {
         normals = generate_unnormalized_normals(positions, indices);
     }
+    colors.resize(4 * vertex_count, UINT8_MAX);
+    assert(indices.size() > 0);
 
     buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, vertex_count * sizeof(vertex));
     auto vertices = reinterpret_cast<vertex*>(device.mapMemory(vertex_buffer.memory, 0, vertex_buffer.size));
@@ -117,8 +120,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, const st
                 : unnormalized_normal
         );
 
-        if (colors.size() > 4 * i) { vertices[i].color = glm::u8vec3(colors[4 * i], colors[4 * i + 1], colors[4 * i + 2]); }
-        else { vertices[i].color = glm::u8vec3(191); }
+        vertices[i].color = glm::u8vec3(colors[4 * i], colors[4 * i + 1], colors[4 * i + 2]);
     }
     device.unmapMemory(vertex_buffer.memory);
 
