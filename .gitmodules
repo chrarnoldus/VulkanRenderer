@@ -10,3 +10,6 @@
 [submodule "Dependencies/tinyply"]
 	path = Dependencies/tinyply
 	url = https://github.com/ddiakopoulos/tinyply
+[submodule "Dependencies/glfw"]
+	path = Dependencies/glfw
+	url = https://github.com/glfw/glfw

@@ -106,9 +106,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <CustomBuild Include="ui.vert">
       <Filter>Source Files</Filter>
     </CustomBuild>
