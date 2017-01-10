@@ -58,6 +58,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_LEFT_HANDED;GLM_FORCE_DEPTH_ZERO_TO_ONE;GLFW_INCLUDE_NONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(VK_SDK_PATH)\Include;$(SolutionDir)Dependencies\glfw\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\imgui;$(SolutionDir)Dependencies\tinyfiledialogs;$(SolutionDir)Dependencies\tinyply\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -76,6 +77,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;VK_USE_PLATFORM_WIN32_KHR;GLM_FORCE_LEFT_HANDED;GLM_FORCE_DEPTH_ZERO_TO_ONE;GLFW_INCLUDE_NONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(VK_SDK_PATH)\Include;$(SolutionDir)Dependencies\glfw\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\imgui;$(SolutionDir)Dependencies\tinyfiledialogs;$(SolutionDir)Dependencies\tinyply\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
