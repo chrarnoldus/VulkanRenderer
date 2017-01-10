@@ -3,6 +3,11 @@
 #include "data_types.h"
 #include "pipeline.h"
 
+#pragma warning( push )
+#pragma warning( disable: 4267 )
+#include <tinyply.h>
+#pragma warning( pop )
+
 model::model(uint32_t vertex_count, buffer vertex_buffer, buffer index_buffer)
     : index_count(vertex_count), vertex_buffer(vertex_buffer), index_buffer(index_buffer)
 {

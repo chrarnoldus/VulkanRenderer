@@ -10,4 +10,3 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <tinyfiledialogs.h>
-#include <tinyply.h>
