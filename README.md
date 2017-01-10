@@ -8,7 +8,7 @@ Models can be rotated by dragging the mouse, while the distance between camera a
 
 ## Dependencies
 * [LunarG Vulkan SDK](https://vulkan.lunarg.com/) (must be installed)
-* [GLFW](http://www.glfw.org/) (obtained through NuGet)
+* [GLFW](http://www.glfw.org/) (included as submodule)
 * [GLM](http://glm.g-truc.net/) (included as submodule)
 * [ImGui](https://github.com/ocornut/imgui/) (included as submodule)
 * [tiny file dialogs](https://sourceforge.net/projects/tinyfiledialogs/) (included as submodule)
