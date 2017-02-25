@@ -2,20 +2,21 @@
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan.hpp>
 #include "image2d.h"
-#include "model_renderer.h"
-#include "ui_renderer.h"
+#include "renderer.h"
 
-struct frame
+class frame
 {
     vk::Image image;
     vk::ImageView image_view;
     vk::Framebuffer framebuffer;
+    image2d dsb;
+    std::vector<renderer*> renderers;
+
+public:
     vk::CommandBuffer command_buffer;
     vk::Fence rendered_fence;
-    image2d dsb;
-    model_renderer mdl;
-    ui_renderer ui;
 
-    frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::DescriptorPool descriptor_pool, vk::Image image, vk::RenderPass render_pass, pipeline model_pipeline, pipeline ui_pipeline, model model, image2d font_image);
+    frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::DescriptorPool descriptor_pool, vk::Image image, vk::RenderPass render_pass, std::vector<renderer*> renderers);
+    void update(vk::Device device, model_uniform_data model_uniform_data) const;
     void destroy(vk::Device device) const;
 };

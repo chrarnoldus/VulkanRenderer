@@ -2,7 +2,8 @@
 #include "vulkanapp.h"
 #include "data_types.h"
 #include "dimensions.h"
-#include "model.h"
+#include "model_renderer.h"
+#include "ui_renderer.h"
 
 static vk::RenderPass create_render_pass(vk::Device device)
 {
@@ -117,7 +118,18 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     auto images = device.getSwapchainImagesKHR(swapchain);
     for (auto image : images)
     {
-        frames.push_back(frame(physical_device, device, command_pool, descriptor_pool, image, render_pass, model_pipeline, ui_pipeline, mdl, font_image));
+        frames.push_back(frame(
+            physical_device,
+            device,
+            command_pool,
+            descriptor_pool,
+            image,
+            render_pass,
+            {
+                new model_renderer(physical_device, device, descriptor_pool, model_pipeline, mdl),
+                new ui_renderer(physical_device, device, descriptor_pool, ui_pipeline, font_image)
+            }
+        ));
     }
 }
 
@@ -147,9 +159,6 @@ void vulkanapp::update(vk::Device device, const input_state& input)
     auto current_image = device.acquireNextImageKHR(swapchain, UINT64_MAX, acquired_semaphore, nullptr).value;
     auto& frame = frames[current_image];
 
-    device.waitForFences({ frame.rendered_fence }, true, UINT64_MAX);
-    device.resetFences({ frame.rendered_fence });
-
     if (!input.ui_want_capture_mouse)
     {
         if (input.left_mouse_button_down)
@@ -173,20 +182,22 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         )
         *
         glm::mat4_cast(trackball_rotation);
-    frame.mdl.update(device, data);
 
-    frame.ui.update(device);
+    device.waitForFences({ frame.rendered_fence }, true, UINT64_MAX);
+    device.resetFences({ frame.rendered_fence });
+
+    frame.update(device, data);
 
     auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     queue.submit({
-                     vk::SubmitInfo()
-                     .setCommandBufferCount(1)
-                     .setPCommandBuffers(&frame.command_buffer)
-                     .setPWaitDstStageMask(&wait_dst_stage_mask)
-                     .setWaitSemaphoreCount(1)
-                     .setPWaitSemaphores(&acquired_semaphore)
-                     .setSignalSemaphoreCount(1)
-                     .setPSignalSemaphores(&rendered_semaphore)
+        vk::SubmitInfo()
+        .setCommandBufferCount(1)
+        .setPCommandBuffers(&frame.command_buffer)
+        .setPWaitDstStageMask(&wait_dst_stage_mask)
+        .setWaitSemaphoreCount(1)
+        .setPWaitSemaphores(&acquired_semaphore)
+        .setSignalSemaphoreCount(1)
+        .setPSignalSemaphores(&rendered_semaphore)
     }, frame.rendered_fence);
 
     queue.presentKHR(

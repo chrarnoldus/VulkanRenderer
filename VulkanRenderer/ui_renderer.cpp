@@ -48,7 +48,7 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
     device.updateDescriptorSets({ ui_ub_write_description, font_image_write_descriptor_set }, {});
 }
 
-void ui_renderer::update(vk::Device device) const
+void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_data) const
 {
     // TODO something useful
     ImGui::ShowTestWindow();

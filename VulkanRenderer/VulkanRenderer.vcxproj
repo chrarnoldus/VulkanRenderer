@@ -146,6 +146,7 @@
     <ClInclude Include="model_renderer.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="image2d.h" />
+    <ClInclude Include="renderer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="ui_renderer.h" />
     <ClInclude Include="vulkanapp.h" />

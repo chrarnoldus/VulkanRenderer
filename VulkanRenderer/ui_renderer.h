@@ -1,11 +1,12 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 
+#include "renderer.h"
 #include "image2d.h"
 #include "buffer.h"
 #include "pipeline.h"
 
-class ui_renderer
+class ui_renderer : public renderer
 {
     buffer vertex_buffer;
     buffer index_buffer;
@@ -17,7 +18,7 @@ class ui_renderer
 
 public:
     ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool, pipeline ui_pipeline, image2d font_image);
-    void update(vk::Device device) const;
-    void draw(vk::CommandBuffer command_buffer) const;
-    void destroy(vk::Device device) const;
+    void update(vk::Device device, model_uniform_data model_uniform_data) const override;
+    void draw(vk::CommandBuffer command_buffer) const override;
+    void destroy(vk::Device device) const override;
 };

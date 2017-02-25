@@ -29,7 +29,7 @@ model_renderer::model_renderer(vk::PhysicalDevice physical_device, vk::Device de
     device.updateDescriptorSets({ model_ub_write_description }, {});
 }
 
-void model_renderer::update(vk::Device device, model_uniform_data model_uniform_data)
+void model_renderer::update(vk::Device device, model_uniform_data model_uniform_data) const
 {
     uniform_buffer.update(device, &model_uniform_data);
 }

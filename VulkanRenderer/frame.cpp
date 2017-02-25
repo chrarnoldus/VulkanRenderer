@@ -6,8 +6,7 @@
 static void record_command_buffer(
     vk::CommandBuffer command_buffer,
     vk::RenderPass render_pass,
-    model_renderer model,
-    ui_renderer ui,
+    std::vector<renderer*> renderers,
     vk::Framebuffer framebuffer
 )
 {
@@ -29,8 +28,10 @@ static void record_command_buffer(
         vk::SubpassContents::eInline
     );
 
-    model.draw(command_buffer);
-    ui.draw(command_buffer);
+    for (auto renderer : renderers)
+    {
+        renderer->draw(command_buffer);
+    }
 
     command_buffer.endRenderPass();
     command_buffer.end();
@@ -43,13 +44,9 @@ frame::frame(
     vk::DescriptorPool descriptor_pool,
     vk::Image image,
     vk::RenderPass render_pass,
-    pipeline model_pipeline,
-    pipeline ui_pipeline,
-    model model,
-    image2d font_image)
+    std::vector<renderer*> renderers)
     : dsb(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)
-    , mdl(physical_device, device, descriptor_pool, model_pipeline, model)
-    , ui(physical_device, device, descriptor_pool, ui_pipeline, font_image)
+    , renderers(renderers)
 {
     this->image = image;
 
@@ -86,13 +83,24 @@ frame::frame(
         .setCommandBufferCount(1)
     )[0];
 
-    record_command_buffer(command_buffer, render_pass, mdl, ui, framebuffer);
+    record_command_buffer(command_buffer, render_pass, renderers, framebuffer);
+}
+
+void frame::update(vk::Device device, model_uniform_data model_uniform_data) const
+{
+    for (auto renderer : renderers)
+    {
+        renderer->update(device, model_uniform_data);
+    }
 }
 
 void frame::destroy(vk::Device device) const
 {
-    ui.destroy(device);
-    mdl.destroy(device);
+    for (auto renderer : renderers)
+    {
+        renderer->destroy(device);
+        delete renderer;
+    }
     dsb.destroy(device);
     device.destroyFramebuffer(framebuffer);
     device.destroyImageView(image_view);
