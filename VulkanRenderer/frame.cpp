@@ -5,10 +5,8 @@
 
 static void record_command_buffer(
     vk::CommandBuffer command_buffer,
-    vk::DescriptorSet descriptor_set,
     vk::RenderPass render_pass,
-    pipeline model_pipeline,
-    model model,
+    model_renderer model,
     ui_renderer ui,
     vk::Framebuffer framebuffer
 )
@@ -31,10 +29,7 @@ static void record_command_buffer(
         vk::SubpassContents::eInline
     );
 
-    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, model_pipeline.layout, 0, descriptor_set, {});
-    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, model_pipeline.pl);
     model.draw(command_buffer);
-
     ui.draw(command_buffer);
 
     command_buffer.endRenderPass();
@@ -52,8 +47,8 @@ frame::frame(
     pipeline ui_pipeline,
     model model,
     image2d font_image)
-    : uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT, sizeof(model_uniform_data))
-    , dsb(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)
+    : dsb(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)
+    , mdl(physical_device, device, descriptor_pool, model_pipeline, model)
     , ui(physical_device, device, descriptor_pool, ui_pipeline, font_image)
 {
     this->image = image;
@@ -84,28 +79,6 @@ frame::frame(
     );
 
     rendered_fence = device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-
-    auto set_layouts = { model_pipeline.set_layout , ui_pipeline.set_layout };
-    auto descriptor_set = device.allocateDescriptorSets(
-        vk::DescriptorSetAllocateInfo()
-        .setDescriptorPool(descriptor_pool)
-        .setDescriptorSetCount(uint32_t(set_layouts.size()))
-        .setPSetLayouts(set_layouts.begin())
-    )[0];
-
-    auto model_ub_info = vk::DescriptorBufferInfo()
-        .setBuffer(uniform_buffer.buf)
-        .setRange(uniform_buffer.size);
-
-    auto model_ub_write_description = vk::WriteDescriptorSet()
-        .setDstBinding(0)
-        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-        .setDescriptorCount(1)
-        .setDstSet(descriptor_set)
-        .setPBufferInfo(&model_ub_info);
-
-    device.updateDescriptorSets({ model_ub_write_description }, {});
-
     command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
         .setCommandPool(command_pool)
@@ -113,14 +86,14 @@ frame::frame(
         .setCommandBufferCount(1)
     )[0];
 
-    record_command_buffer(command_buffer, descriptor_set, render_pass, model_pipeline, model, ui, framebuffer);
+    record_command_buffer(command_buffer, render_pass, mdl, ui, framebuffer);
 }
 
 void frame::destroy(vk::Device device) const
 {
     ui.destroy(device);
+    mdl.destroy(device);
     dsb.destroy(device);
-    uniform_buffer.destroy(device);
     device.destroyFramebuffer(framebuffer);
     device.destroyImageView(image_view);
     device.destroyFence(rendered_fence);

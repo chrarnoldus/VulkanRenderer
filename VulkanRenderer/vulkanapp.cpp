@@ -173,7 +173,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         )
         *
         glm::mat4_cast(trackball_rotation);
-    frame.uniform_buffer.update(device, &data);
+    frame.mdl.update(device, data);
 
     frame.ui.update(device);
 

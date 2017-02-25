@@ -126,6 +126,7 @@
     <ClCompile Include="input_state.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="model_renderer.cpp" />
     <ClCompile Include="pipeline.cpp" />
     <ClCompile Include="image2d.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -142,6 +143,7 @@
     <ClInclude Include="frame.h" />
     <ClInclude Include="input_state.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="model_renderer.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="image2d.h" />
     <ClInclude Include="stdafx.h" />
