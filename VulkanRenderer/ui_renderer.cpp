@@ -6,12 +6,46 @@
 static const uint32_t MAX_VERTEX_COUNT = UINT16_MAX;
 static const uint32_t MAX_INDEX_COUNT = UINT16_MAX;
 
-ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device)
+ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool, pipeline ui_pipeline, image2d font_image)
     : vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT, MAX_VERTEX_COUNT * sizeof(ImDrawVert))
     , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, HOST_VISIBLE_AND_COHERENT, MAX_INDEX_COUNT * sizeof(uint16_t))
     , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, HOST_VISIBLE_AND_COHERENT, MAX_UI_DRAW_COUNT * sizeof(VkDrawIndexedIndirectCommand))
     , uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT, sizeof(ui_uniform_data))
+    , ui_pipeline(ui_pipeline)
+    , font_image(font_image)
 {
+    auto set_layouts = { ui_pipeline.set_layout };
+    descriptor_set = device.allocateDescriptorSets(
+        vk::DescriptorSetAllocateInfo()
+        .setDescriptorPool(descriptor_pool)
+        .setDescriptorSetCount(uint32_t(set_layouts.size()))
+        .setPSetLayouts(set_layouts.begin())
+    )[0];
+
+
+    auto ui_ub_info = vk::DescriptorBufferInfo()
+        .setBuffer(uniform_buffer.buf)
+        .setRange(uniform_buffer.size);
+
+    auto ui_ub_write_description = vk::WriteDescriptorSet()
+        .setDstBinding(0)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setDescriptorCount(1)
+        .setDstSet(descriptor_set)
+        .setPBufferInfo(&ui_ub_info);
+
+    auto font_image_view_info = vk::DescriptorImageInfo()
+        .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
+        .setImageView(font_image.image_view);
+
+    auto font_image_write_descriptor_set = vk::WriteDescriptorSet()
+        .setDstBinding(1)
+        .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+        .setDescriptorCount(1)
+        .setDstSet(descriptor_set)
+        .setPImageInfo(&font_image_view_info);
+
+    device.updateDescriptorSets({ ui_ub_write_description, font_image_write_descriptor_set }, {});
 }
 
 void ui_renderer::update(vk::Device device) const
@@ -73,6 +107,9 @@ void ui_renderer::update(vk::Device device) const
 
 void ui_renderer::draw(vk::CommandBuffer command_buffer) const
 {
+    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, ui_pipeline.layout, 0, descriptor_set, {});
+    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, ui_pipeline.pl);
+
     command_buffer.bindIndexBuffer(index_buffer.buf, 0, vk::IndexType::eUint16);
     command_buffer.bindVertexBuffers(0, { vertex_buffer.buf }, { 0 });
     command_buffer.drawIndexedIndirect(indirect_buffer.buf, 0, MAX_UI_DRAW_COUNT, sizeof(VkDrawIndexedIndirectCommand));
