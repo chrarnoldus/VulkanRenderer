@@ -8,9 +8,9 @@ static const uint32_t MAX_INDEX_COUNT = UINT16_MAX;
 
 ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device)
     : vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT, MAX_VERTEX_COUNT * sizeof(ImDrawVert))
-      , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, HOST_VISIBLE_AND_COHERENT, MAX_INDEX_COUNT * sizeof(uint16_t))
-      , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, HOST_VISIBLE_AND_COHERENT, MAX_UI_DRAW_COUNT * sizeof(VkDrawIndexedIndirectCommand))
-      , uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT, sizeof(ui_uniform_data))
+    , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, HOST_VISIBLE_AND_COHERENT, MAX_INDEX_COUNT * sizeof(uint16_t))
+    , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, HOST_VISIBLE_AND_COHERENT, MAX_UI_DRAW_COUNT * sizeof(VkDrawIndexedIndirectCommand))
+    , uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT, sizeof(ui_uniform_data))
 {
 }
 
@@ -74,7 +74,7 @@ void ui_renderer::update(vk::Device device) const
 void ui_renderer::draw(vk::CommandBuffer command_buffer) const
 {
     command_buffer.bindIndexBuffer(index_buffer.buf, 0, vk::IndexType::eUint16);
-    command_buffer.bindVertexBuffers(0, {vertex_buffer.buf}, {0});
+    command_buffer.bindVertexBuffers(0, { vertex_buffer.buf }, { 0 });
     command_buffer.drawIndexedIndirect(indirect_buffer.buf, 0, MAX_UI_DRAW_COUNT, sizeof(VkDrawIndexedIndirectCommand));
 }
 

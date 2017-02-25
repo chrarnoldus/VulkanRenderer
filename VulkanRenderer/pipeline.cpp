@@ -44,7 +44,7 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setPName("main");
 
     const auto stage_count = 2u;
-    vk::PipelineShaderStageCreateInfo stages[stage_count] = {vert_stage, frag_stage};
+    vk::PipelineShaderStageCreateInfo stages[stage_count] = { vert_stage, frag_stage };
 
     auto input_binding = vk::VertexInputBindingDescription()
         .setStride(sizeof(ImDrawVert));
@@ -65,7 +65,7 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setOffset(offsetof(ImDrawVert, col));
 
     const uint32_t attribute_count = 3;
-    vk::VertexInputAttributeDescription attributes[attribute_count] = {position_attribute, uv_attribute, color_attribute};
+    vk::VertexInputAttributeDescription attributes[attribute_count] = { position_attribute, uv_attribute, color_attribute };
 
     auto input_state = vk::PipelineVertexInputStateCreateInfo()
         .setVertexBindingDescriptionCount(1)
@@ -118,7 +118,7 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
             .setMagFilter(vk::Filter::eLinear)
             .setMinFilter(vk::Filter::eLinear)
             .setMipmapMode(vk::SamplerMipmapMode::eLinear)
-        )});
+        ) });
 
 
     auto uniform_binding = vk::DescriptorSetLayoutBinding()
@@ -134,7 +134,7 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setStageFlags(vk::ShaderStageFlagBits::eFragment)
         .setPImmutableSamplers(samplers.data());
 
-    auto bindings = {uniform_binding, sampler_binding};
+    auto bindings = { uniform_binding, sampler_binding };
 
     auto set_layout = device.createDescriptorSetLayout(
         vk::DescriptorSetLayoutCreateInfo()
@@ -191,7 +191,7 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setPName("main");
 
     const auto stage_count = 2u;
-    vk::PipelineShaderStageCreateInfo stages[stage_count] = {vert_stage, frag_stage};
+    vk::PipelineShaderStageCreateInfo stages[stage_count] = { vert_stage, frag_stage };
 
     auto input_binding = vk::VertexInputBindingDescription()
         .setStride(sizeof(vertex));
@@ -212,7 +212,7 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setOffset(offsetof(vertex, color));
 
     const uint32_t attribute_count = 3;
-    vk::VertexInputAttributeDescription attributes[attribute_count] = {position_attribute, normal_attribute, color_attribute};
+    vk::VertexInputAttributeDescription attributes[attribute_count] = { position_attribute, normal_attribute, color_attribute };
 
     auto input_state = vk::PipelineVertexInputStateCreateInfo()
         .setVertexBindingDescriptionCount(1)

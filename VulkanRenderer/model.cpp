@@ -16,7 +16,7 @@ model::model(uint32_t vertex_count, buffer vertex_buffer, buffer index_buffer)
 void model::draw(vk::CommandBuffer command_buffer) const
 {
     command_buffer.bindIndexBuffer(index_buffer.buf, 0, vk::IndexType::eUint32);
-    command_buffer.bindVertexBuffers(0, {vertex_buffer.buf}, {0});
+    command_buffer.bindVertexBuffers(0, { vertex_buffer.buf }, { 0 });
     command_buffer.drawIndexed(index_count, 1, 0, 0, 0);
 }
 
@@ -93,10 +93,10 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
     std::vector<uint8_t> colors;
     std::vector<uint32_t> indices;
 
-    auto vertex_count = ply_file.request_properties_from_element("vertex", {"x","y","z"}, positions);
-    ply_file.request_properties_from_element("vertex", {"nx","ny","nz"}, normals);
-    ply_file.request_properties_from_element("vertex", {"red","green","blue"}, colors);
-    auto face_count = ply_file.request_properties_from_element("face", {"vertex_indices"}, indices, 3);
+    auto vertex_count = ply_file.request_properties_from_element("vertex", { "x","y","z" }, positions);
+    ply_file.request_properties_from_element("vertex", { "nx","ny","nz" }, normals);
+    ply_file.request_properties_from_element("vertex", { "red","green","blue" }, colors);
+    auto face_count = ply_file.request_properties_from_element("face", { "vertex_indices" }, indices, 3);
     ply_file.read(stream);
 
     assert(positions.size() > 0);
@@ -121,8 +121,8 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
         auto unnormalized_normal = glm::vec3(normals[3 * i], normals[3 * i + 1], normals[3 * i + 2]);
         vertices[i].normal = a2b10g10r10_snorm_pack32(
             glm::length(unnormalized_normal) > 1.e-10f
-                ? glm::normalize(unnormalized_normal)
-                : unnormalized_normal
+            ? glm::normalize(unnormalized_normal)
+            : unnormalized_normal
         );
 
         vertices[i].color = glm::u8vec3(colors[3 * i], colors[3 * i + 1], colors[3 * i + 2]);

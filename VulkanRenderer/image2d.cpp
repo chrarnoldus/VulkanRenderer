@@ -87,7 +87,7 @@ image2d image2d::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice phy
         vk::DependencyFlags(),
         {},
         {},
-        {vk::ImageMemoryBarrier(
+        { vk::ImageMemoryBarrier(
             vk::AccessFlagBits::eHostWrite,
             vk::AccessFlagBits::eTransferRead,
             vk::ImageLayout::ePreinitialized,
@@ -96,7 +96,7 @@ image2d image2d::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice phy
             0,
             image,
             sub_resource_range
-        )}
+        ) }
     );
     command_buffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTopOfPipe,
@@ -104,7 +104,7 @@ image2d image2d::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice phy
         vk::DependencyFlags(),
         {},
         {},
-        {vk::ImageMemoryBarrier(
+        { vk::ImageMemoryBarrier(
             vk::AccessFlags(),
             vk::AccessFlagBits::eTransferWrite,
             vk::ImageLayout::eUndefined,
@@ -113,7 +113,7 @@ image2d image2d::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice phy
             0,
             result.image,
             result.sub_resource_range
-        )}
+        ) }
     );
     command_buffer.copyImage(
         image, vk::ImageLayout::eTransferSrcOptimal, result.image, vk::ImageLayout::eTransferDstOptimal, {
@@ -128,7 +128,7 @@ image2d image2d::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice phy
         vk::DependencyFlags(),
         {},
         {},
-        {vk::ImageMemoryBarrier(
+        { vk::ImageMemoryBarrier(
             vk::AccessFlagBits::eTransferWrite,
             vk::AccessFlagBits::eShaderRead,
             vk::ImageLayout::eTransferDstOptimal,
@@ -137,11 +137,11 @@ image2d image2d::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice phy
             0,
             result.image,
             result.sub_resource_range
-        )}
+        ) }
     );
     command_buffer.end();
 
-    queue.submit({vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer)}, nullptr);
+    queue.submit({ vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer) }, nullptr);
 
     return result;
 }

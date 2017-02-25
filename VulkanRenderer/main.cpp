@@ -26,10 +26,10 @@ static VkDebugReportCallbackEXT create_debug_report_callback(VkInstance vulkan)
 {
     pfnCreateDebugReportCallbackEXT = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
         vkGetInstanceProcAddr(vulkan, "vkCreateDebugReportCallbackEXT")
-    );
+        );
     pfnDestroyDebugReportCallbackEXT = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
         vkGetInstanceProcAddr(vulkan, "vkDestroyDebugReportCallbackEXT")
-    );
+        );
 
 #if _DEBUG
     VkDebugReportCallbackCreateInfoEXT info = {};
@@ -58,7 +58,7 @@ vk::Instance create_instance()
 {
 #if _DEBUG
     const auto layerCount = 1;
-    const char* layerNames[layerCount] = {"VK_LAYER_LUNARG_standard_validation"};
+    const char* layerNames[layerCount] = { "VK_LAYER_LUNARG_standard_validation" };
 #else
     const auto layerCount = 0;
     const char** layerNames = nullptr;
@@ -95,21 +95,21 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
     auto props = physical_device.getQueueFamilyProperties();
     assert((props[0].queueFlags & vk::QueueFlagBits::eGraphics) == vk::QueueFlagBits::eGraphics);
 
-    float priorities[] = {0.f};
+    float priorities[] = { 0.f };
     auto queueInfo = vk::DeviceQueueCreateInfo()
         .setQueueCount(1)
         .setPQueuePriorities(priorities);
 
 #if _DEBUG
     const auto layerCount = 1;
-    const char* layerNames[layerCount] = {"VK_LAYER_LUNARG_standard_validation"};
+    const char* layerNames[layerCount] = { "VK_LAYER_LUNARG_standard_validation" };
 #else
     const auto layerCount = 0;
     const char** layerNames = nullptr;
 #endif
 
     const auto extensionCount = 1;
-    const char* extensionNames[extensionCount] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    const char* extensionNames[extensionCount] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
     auto features = vk::PhysicalDeviceFeatures()
         .setMultiDrawIndirect(true)

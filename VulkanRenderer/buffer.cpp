@@ -53,24 +53,24 @@ buffer buffer::copy_from_host_to_device_for_vertex_input(vk::PhysicalDevice phys
     )[0];
 
     command_buffer.begin(vk::CommandBufferBeginInfo());
-    command_buffer.copyBuffer(buf, result.buf, {vk::BufferCopy(0, 0, size)});
+    command_buffer.copyBuffer(buf, result.buf, { vk::BufferCopy(0, 0, size) });
 
     command_buffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTransfer,
         vk::PipelineStageFlagBits::eVertexInput,
         vk::DependencyFlags(),
         {},
-        {vk::BufferMemoryBarrier()
+        { vk::BufferMemoryBarrier()
             .setSrcAccessMask(vk::AccessFlagBits::eTransferWrite)
             .setDstAccessMask(vk::AccessFlagBits::eIndexRead | vk::AccessFlagBits::eVertexAttributeRead)
             .setBuffer(result.buf)
-            .setSize(result.size)},
-        {}
+            .setSize(result.size) },
+            {}
     );
 
     command_buffer.end();
 
-    queue.submit({vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer)}, nullptr);
+    queue.submit({ vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer) }, nullptr);
 
     return result;
 }

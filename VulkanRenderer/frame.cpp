@@ -57,8 +57,8 @@ frame::frame(
     model model,
     image2d font_image)
     : uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT, sizeof(model_uniform_data))
-      , dsb(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)
-      , ui(physical_device, device)
+    , dsb(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)
+    , ui(physical_device, device)
 {
     this->image = image;
 
@@ -76,7 +76,7 @@ frame::frame(
     );
 
     const uint32_t attachment_count = 2;
-    vk::ImageView attachments[attachment_count] = {image_view, dsb.image_view};
+    vk::ImageView attachments[attachment_count] = { image_view, dsb.image_view };
     framebuffer = device.createFramebuffer(
         vk::FramebufferCreateInfo()
         .setRenderPass(render_pass)
@@ -89,7 +89,7 @@ frame::frame(
 
     rendered_fence = device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
 
-    auto set_layouts = {model_pipeline.set_layout , ui_pipeline.set_layout};
+    auto set_layouts = { model_pipeline.set_layout , ui_pipeline.set_layout };
     auto descriptor_sets = device.allocateDescriptorSets(
         vk::DescriptorSetAllocateInfo()
         .setDescriptorPool(descriptor_pool)
@@ -130,7 +130,7 @@ frame::frame(
         .setDstSet(descriptor_sets[1])
         .setPImageInfo(&font_image_view_info);
 
-    device.updateDescriptorSets({model_ub_write_description, ui_ub_write_description, font_image_write_descriptor_set}, {});
+    device.updateDescriptorSets({ model_ub_write_description, ui_ub_write_description, font_image_write_descriptor_set }, {});
 
     command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()

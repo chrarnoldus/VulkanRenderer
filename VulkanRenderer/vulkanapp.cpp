@@ -38,7 +38,7 @@ static vk::RenderPass create_render_pass(vk::Device device)
         .setPDepthStencilAttachment(&depth_attachment);
 
     const uint32_t attachment_count = 2;
-    vk::AttachmentDescription attachments[attachment_count] = {attachment0,attachment1};
+    vk::AttachmentDescription attachments[attachment_count] = { attachment0,attachment1 };
 
     return device.createRenderPass(
         vk::RenderPassCreateInfo()
@@ -75,13 +75,13 @@ static image2d load_font_image(vk::PhysicalDevice physical_device, vk::Device de
 
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, const std::string& model_path)
     : queue(device.getQueue(0, 0))
-      , command_pool(device.createCommandPool(vk::CommandPoolCreateInfo()))
-      , mdl(read_model(physical_device, device, command_pool, queue, model_path))
-      , render_pass(create_render_pass(device))
-      , model_pipeline(create_model_pipeline(device, render_pass))
-      , ui_pipeline(create_ui_pipeline(device, render_pass))
-      , font_image(load_font_image(physical_device, device))
-      , camera_distance(2.f)
+    , command_pool(device.createCommandPool(vk::CommandPoolCreateInfo()))
+    , mdl(read_model(physical_device, device, command_pool, queue, model_path))
+    , render_pass(create_render_pass(device))
+    , model_pipeline(create_model_pipeline(device, render_pass))
+    , ui_pipeline(create_ui_pipeline(device, render_pass))
+    , font_image(load_font_image(physical_device, device))
+    , camera_distance(2.f)
 {
     auto old_image = font_image;
     font_image = font_image.copy_from_host_to_device_for_shader_read(physical_device, device, command_pool, queue);
@@ -147,8 +147,8 @@ void vulkanapp::update(vk::Device device, const input_state& input)
     auto current_image = device.acquireNextImageKHR(swapchain, UINT64_MAX, acquired_semaphore, nullptr).value;
     auto& frame = frames[current_image];
 
-    device.waitForFences({frame.rendered_fence}, true, UINT64_MAX);
-    device.resetFences({frame.rendered_fence});
+    device.waitForFences({ frame.rendered_fence }, true, UINT64_MAX);
+    device.resetFences({ frame.rendered_fence });
 
     if (!input.ui_want_capture_mouse)
     {
@@ -187,7 +187,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
                      .setPWaitSemaphores(&acquired_semaphore)
                      .setSignalSemaphoreCount(1)
                      .setPSignalSemaphores(&rendered_semaphore)
-                 }, frame.rendered_fence);
+    }, frame.rendered_fence);
 
     queue.presentKHR(
         vk::PresentInfoKHR()
