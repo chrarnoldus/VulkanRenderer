@@ -7,6 +7,8 @@ Building was only tested using Visual Studio 2017. Running was only tested using
 Models can be rotated by dragging the mouse, while the distance between camera and model can be changed using the mouse wheel. The application has an ImGui-based UI, but it does not do anything useful yet.
 
 ## Dependencies
+* [cxxopts](https://github.com/jarro2783/cxxopts/) (included as submodule)
+* [LodePNG](http://lodev.org/lodepng/) (included as submodule)
 * [LunarG Vulkan SDK](https://vulkan.lunarg.com/) (must be installed)
 * [GLFW](http://www.glfw.org/) (included as submodule)
 * [GLM](http://glm.g-truc.net/) (included as submodule)
