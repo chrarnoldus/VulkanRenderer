@@ -68,7 +68,14 @@ vk::DescriptorPool create_descriptor_pool(vk::Device device)
     );
 }
 
-void render_to_image(vk::PhysicalDevice physical_device, vk::Device device, const std::string& model_path, const std::string& image_path)
+void render_to_image(
+    vk::PhysicalDevice physical_device,
+    vk::Device device,
+    const std::string& model_path,
+    const std::string& image_path,
+    const glm::vec3& camera_position,
+    const glm::vec3& camera_up
+)
 {
     auto queue = device.getQueue(0, 0);
     auto command_pool = device.createCommandPool(vk::CommandPoolCreateInfo());
@@ -96,7 +103,7 @@ void render_to_image(vk::PhysicalDevice physical_device, vk::Device device, cons
 
     model_uniform_data data;
     data.projection = glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f);
-    data.model_view = glm::lookAt(glm::vec3(0.f, 0.f, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, -1.f, 0.f));
+    data.model_view = glm::lookAt(camera_position, glm::vec3(0.f, 0.f, 0.f), camera_up);
     frame.update(device, data);
 
     device.resetFences({ frame.rendered_fence });

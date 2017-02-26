@@ -127,6 +127,8 @@ cxxopts::Options parse_options(int argc, char** argv)
     options.add_options()
         ("model", "PLY model to render. File dialog will be shown if ommitted.", cxxopts::value<std::string>(), "path")
         ("image", "PNG image to save rendering to (overwrites existing). No window will be created if specified.", cxxopts::value<std::string>(), "path")
+        ("camera_position", "When using --image, specifies the camera position.", cxxopts::value<std::vector<float>>(), "x y z")
+        ("camera_up", "When using --image, specifies the camera up vector.", cxxopts::value<std::vector<float>>(), "x y z")
         ("help", "Show help")
         ;
 
@@ -139,6 +141,11 @@ cxxopts::Options parse_options(int argc, char** argv)
         exit(EXIT_SUCCESS);
     }
     return options;
+}
+
+glm::vec3 std_vector_to_glm_vec3(const std::vector<float>& vector)
+{
+    return glm::vec3(vector[0], vector[1], vector[2]);
 }
 
 int main(int argc, char** argv)
@@ -176,8 +183,18 @@ int main(int argc, char** argv)
     auto image_path_option = options["image"];
     if (image_path_option.count() == 1)
     {
+        auto camera_position_option = options["camera_position"];
+        auto camera_position = camera_position_option.count() == 3
+            ? std_vector_to_glm_vec3(camera_position_option.as<std::vector<float>>())
+            : glm::vec3(0.f, 0.f, 2.f);
+
+        auto camera_up_vector = options["camera_up"];
+        auto camera_up = camera_up_vector.count() == 3
+            ? std_vector_to_glm_vec3(camera_up_vector.as<std::vector<float>>())
+            : glm::vec3(0.f, -1.f, 0.f);
+
         std::cout << "Rendering to image..." << std::endl;
-        render_to_image(physical_device, device, model_path, image_path_option.as<std::string>());
+        render_to_image(physical_device, device, model_path, image_path_option.as<std::string>(), camera_position, camera_up);
     }
     else
     {
