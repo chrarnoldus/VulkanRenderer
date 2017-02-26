@@ -78,8 +78,7 @@ void render_to_image(vk::PhysicalDevice physical_device, vk::Device device, cons
     auto pipeline = create_model_pipeline(device, render_pass);
     auto descriptor_pool = create_descriptor_pool(device);
 
-    // TODO no image view
-    auto device_image = image_with_view(
+    auto device_image = image_with_memory(
         physical_device,
         device,
         WIDTH,
@@ -109,7 +108,6 @@ void render_to_image(vk::PhysicalDevice physical_device, vk::Device device, cons
     }, frame.rendered_fence);
     device.waitForFences({ frame.rendered_fence }, true, UINT64_MAX);
 
-    // TODO no image view
     auto host_image = device_image.copy_from_device_to_host(physical_device, device, command_pool, queue);
     queue.waitIdle();
 

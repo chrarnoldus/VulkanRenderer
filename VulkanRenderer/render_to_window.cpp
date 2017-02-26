@@ -32,13 +32,21 @@ public:
     void destroy(vk::Device device) const;
 };
 
-static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::Device device)
+static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue)
 {
     unsigned char* pixels;
     int width, height, bytes_per_pixel;
     ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytes_per_pixel);
     assert(bytes_per_pixel == 4);
-    return load_r8g8b8a8_unorm_texture(physical_device, device, width, height, pixels);
+    auto host_image = load_r8g8b8a8_unorm_texture(physical_device, device, width, height, pixels);
+    auto device_image = image_with_view(
+        device,
+        host_image.copy_from_host_to_device_for_shader_read(physical_device, device, command_pool, queue),
+        vk::Format::eR8G8B8A8Unorm
+    );
+    queue.waitIdle();
+    host_image.destroy(device);
+    return device_image;
 }
 
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, const std::string& model_path)
@@ -48,14 +56,9 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     , render_pass(create_render_pass(device, vk::ImageLayout::ePresentSrcKHR))
     , model_pipeline(create_model_pipeline(device, render_pass))
     , ui_pipeline(create_ui_pipeline(device, render_pass))
-    , font_image(load_font_image(physical_device, device))
+    , font_image(load_font_image(physical_device, device, command_pool, queue))
     , camera_distance(2.f)
 {
-    auto old_image = font_image;
-    font_image = font_image.copy_from_host_to_device_for_shader_read(physical_device, device, command_pool, queue);
-    queue.waitIdle();
-    old_image.destroy(device);
-
     descriptor_pool = create_descriptor_pool(device);
     acquired_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
     rendered_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());

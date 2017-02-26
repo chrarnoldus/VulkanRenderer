@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "image_with_view.h"
 
-image_with_view::image_with_view(
+image_with_memory::image_with_memory(
     vk::PhysicalDevice physical_device,
     vk::Device device,
     uint32_t width,
@@ -55,19 +55,11 @@ image_with_view::image_with_view(
         .setAspectMask(aspect_flags)
         .setLevelCount(VK_REMAINING_MIP_LEVELS)
         .setLayerCount(1);
-
-    image_view = device.createImageView(
-        vk::ImageViewCreateInfo()
-        .setImage(image)
-        .setFormat(format)
-        .setViewType(vk::ImageViewType::e2D)
-        .setSubresourceRange(sub_resource_range)
-    );
 }
 
-image_with_view image_with_view::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+image_with_memory image_with_memory::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
 {
-    image_with_view result(
+    image_with_memory result(
         physical_device, device, width, height, format,
         vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
         vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eColor
@@ -146,9 +138,9 @@ image_with_view image_with_view::copy_from_host_to_device_for_shader_read(vk::Ph
     return result;
 }
 
-image_with_view image_with_view::copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+image_with_memory image_with_memory::copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
 {
-    image_with_view result(
+    image_with_memory result(
         physical_device, device, width, height, format,
         vk::ImageUsageFlagBits::eTransferDst,
         vk::ImageTiling::eLinear, vk::ImageLayout::eUndefined,
@@ -205,6 +197,23 @@ image_with_view image_with_view::copy_from_device_to_host(vk::PhysicalDevice phy
         .setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
         .setExtent(vk::Extent3D(width, height, 1))
         });
+    command_buffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eTransfer,
+        vk::PipelineStageFlagBits::eHost,
+        vk::DependencyFlags(),
+        {},
+        {},
+        { vk::ImageMemoryBarrier(
+            vk::AccessFlagBits::eTransferWrite,
+            vk::AccessFlagBits::eHostRead,
+            vk::ImageLayout::eTransferDstOptimal,
+            vk::ImageLayout::eGeneral,
+            0,
+            0,
+            result.image,
+            result.sub_resource_range
+        ) }
+    );
     command_buffer.end();
 
     queue.submit({ vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer) }, nullptr);
@@ -212,16 +221,15 @@ image_with_view image_with_view::copy_from_device_to_host(vk::PhysicalDevice phy
     return result;
 }
 
-void image_with_view::destroy(vk::Device device) const
+void image_with_memory::destroy(vk::Device device) const
 {
-    device.destroyImageView(image_view);
     device.destroyImage(image);
     device.freeMemory(memory);
 }
 
-image_with_view load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Device device, uint32_t width, uint32_t height, const void* data)
+image_with_memory load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Device device, uint32_t width, uint32_t height, const void* data)
 {
-    image_with_view image(
+    image_with_memory image(
         physical_device,
         device,
         width,
@@ -239,4 +247,22 @@ image_with_view load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, 
     memcpy(ptr, data, size);
     device.unmapMemory(image.memory);
     return image;
+}
+
+image_with_view::image_with_view(vk::Device device, image_with_memory iwm, vk::Format format)
+    :iwm(iwm)
+{
+    image_view = device.createImageView(
+        vk::ImageViewCreateInfo()
+        .setImage(iwm.image)
+        .setFormat(format)
+        .setViewType(vk::ImageViewType::e2D)
+        .setSubresourceRange(iwm.sub_resource_range)
+    );
+}
+
+void image_with_view::destroy(vk::Device device) const
+{
+    device.destroyImageView(image_view);
+    iwm.destroy(device);
 }
