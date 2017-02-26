@@ -9,10 +9,10 @@
 #include "frame.h"
 #include "model_renderer.h"
 
-vk::RenderPass create_render_pass(vk::Device device, vk::ImageLayout final_layout)
+vk::RenderPass create_render_pass(vk::Device device, vk::Format color_format, vk::ImageLayout final_layout)
 {
     auto attachment0 = vk::AttachmentDescription()
-        .setFormat(vk::Format::eB8G8R8A8Unorm)
+        .setFormat(color_format)
         .setSamples(vk::SampleCountFlagBits::e1)
         .setLoadOp(vk::AttachmentLoadOp::eClear)
         .setStoreOp(vk::AttachmentStoreOp::eStore)
@@ -74,7 +74,7 @@ void render_to_image(vk::PhysicalDevice physical_device, vk::Device device, cons
     auto queue = device.getQueue(0, 0);
     auto command_pool = device.createCommandPool(vk::CommandPoolCreateInfo());
     auto model = read_model(physical_device, device, command_pool, queue, model_path);
-    auto render_pass = create_render_pass(device, vk::ImageLayout::eTransferSrcOptimal);
+    auto render_pass = create_render_pass(device, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eTransferSrcOptimal);
     auto pipeline = create_model_pipeline(device, render_pass);
     auto descriptor_pool = create_descriptor_pool(device);
 
@@ -83,7 +83,7 @@ void render_to_image(vk::PhysicalDevice physical_device, vk::Device device, cons
         device,
         WIDTH,
         HEIGHT,
-        vk::Format::eB8G8R8A8Unorm,
+        vk::Format::eR8G8B8A8Unorm,
         vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
         vk::ImageTiling::eOptimal,
         vk::ImageLayout::eUndefined,
@@ -91,7 +91,7 @@ void render_to_image(vk::PhysicalDevice physical_device, vk::Device device, cons
         vk::ImageAspectFlagBits::eColor
     );
 
-    frame frame(physical_device, device, command_pool, descriptor_pool, device_image.image, render_pass, {
+    frame frame(physical_device, device, command_pool, descriptor_pool, device_image.image, vk::Format::eR8G8B8A8Unorm, render_pass, {
         new model_renderer(physical_device, device, descriptor_pool, pipeline, model)
     });
 

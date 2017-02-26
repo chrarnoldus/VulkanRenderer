@@ -32,7 +32,7 @@ struct image_with_view
     image_with_memory iwm;
     vk::ImageView image_view;
 
-    image_with_view(vk::Device device, image_with_memory iwm, vk::Format format);
+    image_with_view(vk::Device device, image_with_memory iwm);
     void destroy(vk::Device device) const;
 };
 

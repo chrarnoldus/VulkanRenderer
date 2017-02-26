@@ -41,8 +41,7 @@ static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::D
     auto host_image = load_r8g8b8a8_unorm_texture(physical_device, device, width, height, pixels);
     auto device_image = image_with_view(
         device,
-        host_image.copy_from_host_to_device_for_shader_read(physical_device, device, command_pool, queue),
-        vk::Format::eR8G8B8A8Unorm
+        host_image.copy_from_host_to_device_for_shader_read(physical_device, device, command_pool, queue)
     );
     queue.waitIdle();
     host_image.destroy(device);
@@ -53,7 +52,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     : queue(device.getQueue(0, 0))
     , command_pool(device.createCommandPool(vk::CommandPoolCreateInfo()))
     , mdl(read_model(physical_device, device, command_pool, queue, model_path))
-    , render_pass(create_render_pass(device, vk::ImageLayout::ePresentSrcKHR))
+    , render_pass(create_render_pass(device, vk::Format::eB8G8R8A8Unorm, vk::ImageLayout::ePresentSrcKHR))
     , model_pipeline(create_model_pipeline(device, render_pass))
     , ui_pipeline(create_ui_pipeline(device, render_pass))
     , font_image(load_font_image(physical_device, device, command_pool, queue))
@@ -94,6 +93,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
             command_pool,
             descriptor_pool,
             image,
+            vk::Format::eB8G8R8A8Unorm,
             render_pass,
             {
                 new model_renderer(physical_device, device, descriptor_pool, model_pipeline, mdl),

@@ -249,13 +249,13 @@ image_with_memory load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device
     return image;
 }
 
-image_with_view::image_with_view(vk::Device device, image_with_memory iwm, vk::Format format)
+image_with_view::image_with_view(vk::Device device, image_with_memory iwm)
     :iwm(iwm)
 {
     image_view = device.createImageView(
         vk::ImageViewCreateInfo()
         .setImage(iwm.image)
-        .setFormat(format)
+        .setFormat(iwm.format)
         .setViewType(vk::ImageViewType::e2D)
         .setSubresourceRange(iwm.sub_resource_range)
     );

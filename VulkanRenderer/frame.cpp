@@ -43,16 +43,17 @@ frame::frame(
     vk::CommandPool command_pool,
     vk::DescriptorPool descriptor_pool,
     vk::Image image,
+    vk::Format format,
     vk::RenderPass render_pass,
     std::vector<renderer*> renderers)
-    : dsb(device, image_with_memory(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil), vk::Format::eD24UnormS8Uint)
+    : dsb(device, image_with_memory(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil))
     , renderers(renderers)
 {
     this->image = image;
 
     image_view = device.createImageView(
         vk::ImageViewCreateInfo()
-        .setFormat(vk::Format::eB8G8R8A8Unorm)
+        .setFormat(format)
         .setViewType(vk::ImageViewType::e2D)
         .setImage(image)
         .setSubresourceRange(
