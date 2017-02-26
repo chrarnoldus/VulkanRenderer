@@ -15,7 +15,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report_callback(
     const char* pMessage,
     void* pUserData)
 {
-    fprintf(stderr, "%s: %s\n", pLayerPrefix, pMessage);
+    std::cerr << pLayerPrefix << ": " << pMessage << std::endl;
     return false;
 }
 
@@ -78,7 +78,7 @@ static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
     assert(devices.size() == 1);
 
     auto props = devices[0].getProperties();
-    std::printf("Using physical device %s\n", props.deviceName);
+    std::cout << "Using physical device " << props.deviceName << std::endl;
     return devices[0];
 }
 
@@ -121,13 +121,51 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
     );
 }
 
+cxxopts::Options parse_options(int argc, char** argv)
+{
+    cxxopts::Options options("VulkanRenderer", "Vulkan renderer");
+    options.add_options()
+        ("model", "PLY model to render. File dialog will be shown if ommitted.", cxxopts::value<std::string>(), "path")
+        ("image", "PNG image to save rendering to (overwrites existing). No window will be created if specified.", cxxopts::value<std::string>(), "path")
+        ("help", "Show help")
+        ;
+
+    try {
+        options.parse(argc, argv);
+    }
+    catch (const cxxopts::OptionException& e) {
+        // TODO prints garbage
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+    return options;
+}
+
 int main(int argc, char** argv)
 {
-    auto pattern = "*.ply";
-    auto model_path = tinyfd_openFileDialog("Open 3D model", nullptr, 1, &pattern, nullptr, 0);
-    if (!model_path)
+    auto options = parse_options(argc, argv);
+
+    if (options["help"].count() > 0) {
+        std::cout << options.help();
+        return EXIT_SUCCESS;
+    }
+
+    std::string model_path;
+    auto model_path_option = options["model"];
+
+    if (model_path_option.count() == 1)
     {
-        return EXIT_FAILURE;
+        model_path = model_path_option.as<std::string>();
+    }
+    else
+    {
+        auto pattern = "*.ply";
+        auto model_path_ptr = tinyfd_openFileDialog("Open 3D model", nullptr, 1, &pattern, nullptr, 0);
+        if (!model_path_ptr)
+        {
+            return EXIT_FAILURE;
+        }
+        model_path = model_path_ptr;
     }
 
     auto instance = create_instance();
@@ -135,14 +173,16 @@ int main(int argc, char** argv)
     auto physical_device = get_physical_device(instance);
     auto device = create_device(physical_device);
 
-    // TODO configure from command line
-    if (true)
+    auto image_path_option = options["image"];
+    if (image_path_option.count() == 1)
     {
-        render_to_window(instance, physical_device, device, model_path);
+        std::cout << "Rendering to image..." << std::endl;
+        render_to_image(physical_device, device, model_path, image_path_option.as<std::string>());
     }
     else
     {
-        render_to_image(physical_device, device, model_path, "result.png");
+        std::cout << "Rendering to window..." << std::endl;
+        render_to_window(instance, physical_device, device, model_path);
     }
 
     device.destroy();

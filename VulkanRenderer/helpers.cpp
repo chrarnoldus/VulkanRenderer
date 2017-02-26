@@ -1,6 +1,5 @@
 #include "stdafx.h"
 
-#include <lodepng.h>
 #include "model.h"
 #include "helpers.h"
 #include "pipeline.h"

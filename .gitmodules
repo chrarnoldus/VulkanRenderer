@@ -16,3 +16,6 @@
 [submodule "Dependencies/lodepng"]
 	path = Dependencies/lodepng
 	url = https://github.com/lvandeve/lodepng
+[submodule "Dependencies/cxxopts"]
+	path = Dependencies/cxxopts
+	url = https://github.com/jarro2783/cxxopts
