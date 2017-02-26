@@ -5,7 +5,7 @@
 #include "helpers.h"
 #include "pipeline.h"
 #include "dimensions.h"
-#include "image2d.h"
+#include "image_with_view.h"
 #include "frame.h"
 #include "model_renderer.h"
 
@@ -79,7 +79,7 @@ void render_to_image(vk::PhysicalDevice physical_device, vk::Device device, cons
     auto descriptor_pool = create_descriptor_pool(device);
 
     // TODO no image view
-    auto device_image = image2d(
+    auto device_image = image_with_view(
         physical_device,
         device,
         WIDTH,

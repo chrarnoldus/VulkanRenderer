@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/fwd.hpp>
 #include <vulkan/vulkan.hpp>
-#include "image2d.h"
+#include "image_with_view.h"
 #include "renderer.h"
 
 class frame
@@ -9,7 +9,7 @@ class frame
     vk::Image image;
     vk::ImageView image_view;
     vk::Framebuffer framebuffer;
-    image2d dsb;
+    image_with_view dsb;
     std::vector<renderer*> renderers;
 
 public:

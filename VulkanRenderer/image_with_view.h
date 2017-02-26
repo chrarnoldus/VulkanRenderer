@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 
-struct image2d
+struct image_with_view
 {
     uint32_t width;
     uint32_t height;
@@ -11,7 +11,7 @@ struct image2d
     vk::ImageView image_view;
     vk::ImageSubresourceRange sub_resource_range;
 
-    image2d(
+    image_with_view(
         vk::PhysicalDevice physical_device,
         vk::Device device,
         uint32_t width,
@@ -23,12 +23,12 @@ struct image2d
         vk::MemoryPropertyFlags memory_flags,
         vk::ImageAspectFlags aspect_flags
     );
-    image2d copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
-    image2d copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
+    image_with_view copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
+    image_with_view copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
     void destroy(vk::Device device) const;
 };
 
-image2d load_r8g8b8a8_unorm_texture(
+image_with_view load_r8g8b8a8_unorm_texture(
     vk::PhysicalDevice physical_device,
     vk::Device device,
     uint32_t width,

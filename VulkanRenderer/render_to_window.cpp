@@ -22,7 +22,7 @@ class vulkanapp
     vk::Semaphore rendered_semaphore;
     std::vector<frame> frames;
     vk::SwapchainKHR swapchain;
-    image2d font_image;
+    image_with_view font_image;
     glm::quat trackball_rotation;
     float camera_distance;
 
@@ -32,7 +32,7 @@ public:
     void destroy(vk::Device device) const;
 };
 
-static image2d load_font_image(vk::PhysicalDevice physical_device, vk::Device device)
+static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::Device device)
 {
     unsigned char* pixels;
     int width, height, bytes_per_pixel;

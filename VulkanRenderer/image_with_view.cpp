@@ -1,7 +1,7 @@
 #include "stdafx.h"
-#include "image2d.h"
+#include "image_with_view.h"
 
-image2d::image2d(
+image_with_view::image_with_view(
     vk::PhysicalDevice physical_device,
     vk::Device device,
     uint32_t width,
@@ -65,9 +65,9 @@ image2d::image2d(
     );
 }
 
-image2d image2d::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+image_with_view image_with_view::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
 {
-    image2d result(
+    image_with_view result(
         physical_device, device, width, height, format,
         vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
         vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eColor
@@ -146,9 +146,9 @@ image2d image2d::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice phy
     return result;
 }
 
-image2d image2d::copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+image_with_view image_with_view::copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
 {
-    image2d result(
+    image_with_view result(
         physical_device, device, width, height, format,
         vk::ImageUsageFlagBits::eTransferDst,
         vk::ImageTiling::eLinear, vk::ImageLayout::eUndefined,
@@ -212,16 +212,16 @@ image2d image2d::copy_from_device_to_host(vk::PhysicalDevice physical_device, vk
     return result;
 }
 
-void image2d::destroy(vk::Device device) const
+void image_with_view::destroy(vk::Device device) const
 {
     device.destroyImageView(image_view);
     device.destroyImage(image);
     device.freeMemory(memory);
 }
 
-image2d load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Device device, uint32_t width, uint32_t height, const void* data)
+image_with_view load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Device device, uint32_t width, uint32_t height, const void* data)
 {
-    image2d image(
+    image_with_view image(
         physical_device,
         device,
         width,

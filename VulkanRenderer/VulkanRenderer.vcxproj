@@ -134,7 +134,7 @@
     <ClCompile Include="model.cpp" />
     <ClCompile Include="model_renderer.cpp" />
     <ClCompile Include="pipeline.cpp" />
-    <ClCompile Include="image2d.cpp" />
+    <ClCompile Include="image_with_view.cpp" />
     <ClCompile Include="helpers.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -152,7 +152,7 @@
     <ClInclude Include="model.h" />
     <ClInclude Include="model_renderer.h" />
     <ClInclude Include="pipeline.h" />
-    <ClInclude Include="image2d.h" />
+    <ClInclude Include="image_with_view.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="stdafx.h" />
