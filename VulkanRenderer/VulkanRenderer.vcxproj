@@ -141,7 +141,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ui_renderer.cpp" />
-    <ClCompile Include="vulkanapp.cpp" />
+    <ClCompile Include="render_to_window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buffer.h" />
@@ -157,7 +157,7 @@
     <ClInclude Include="helpers.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="ui_renderer.h" />
-    <ClInclude Include="vulkanapp.h" />
+    <ClInclude Include="render_to_window.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="model.frag">

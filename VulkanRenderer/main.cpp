@@ -1,10 +1,6 @@
 #include "stdafx.h"
-#include "buffer.h"
-#include "pipeline.h"
-#include "dimensions.h"
-#include "vulkanapp.h"
-#include "input_state.h"
 #include "helpers.h"
+#include "render_to_window.h"
 
 static PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT = nullptr;
 static PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT = nullptr;
@@ -48,11 +44,6 @@ static VkDebugReportCallbackEXT create_debug_report_callback(VkInstance vulkan)
 #else
     return nullptr;
 #endif
-}
-
-static void error_callback(int error, const char* description)
-{
-    throw std::runtime_error(description);
 }
 
 vk::Instance create_instance()
@@ -128,66 +119,6 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
         .setPpEnabledExtensionNames(extensionNames)
         .setPEnabledFeatures(&features)
     );
-}
-
-static void initialize_imgui()
-{
-    auto& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(float(WIDTH), float(HEIGHT));
-    io.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;
-    io.KeyMap[ImGuiKey_LeftArrow] = GLFW_KEY_LEFT;
-    io.KeyMap[ImGuiKey_RightArrow] = GLFW_KEY_RIGHT;
-    io.KeyMap[ImGuiKey_UpArrow] = GLFW_KEY_UP;
-    io.KeyMap[ImGuiKey_DownArrow] = GLFW_KEY_DOWN;
-    io.KeyMap[ImGuiKey_PageUp] = GLFW_KEY_PAGE_UP;
-    io.KeyMap[ImGuiKey_PageDown] = GLFW_KEY_PAGE_DOWN;
-    io.KeyMap[ImGuiKey_Home] = GLFW_KEY_HOME;
-    io.KeyMap[ImGuiKey_End] = GLFW_KEY_END;
-    io.KeyMap[ImGuiKey_Delete] = GLFW_KEY_DELETE;
-    io.KeyMap[ImGuiKey_Backspace] = GLFW_KEY_BACKSPACE;
-    io.KeyMap[ImGuiKey_Enter] = GLFW_KEY_ENTER;
-    io.KeyMap[ImGuiKey_Escape] = GLFW_KEY_ESCAPE;
-    io.KeyMap[ImGuiKey_A] = GLFW_KEY_A;
-    io.KeyMap[ImGuiKey_C] = GLFW_KEY_C;
-    io.KeyMap[ImGuiKey_V] = GLFW_KEY_V;
-    io.KeyMap[ImGuiKey_X] = GLFW_KEY_X;
-    io.KeyMap[ImGuiKey_Y] = GLFW_KEY_Y;
-    io.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
-    // TODO clipboard, ime
-}
-
-static void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device, vk::Device device, const std::string& model_path)
-{
-    initialize_imgui();
-
-    auto success = glfwInit();
-    assert(success);
-
-    glfwSetErrorCallback(error_callback);
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    auto window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan renderer", nullptr, nullptr);
-    assert(window);
-
-    VkSurfaceKHR surface;
-    auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
-    assert(result == VK_SUCCESS);
-
-    input_state input(window);
-    auto app = vulkanapp(physical_device, device, surface, model_path);
-    while (!glfwWindowShouldClose(window))
-    {
-        input.update();
-        app.update(device, input);
-    }
-    app.destroy(device);
-
-    instance.destroySurfaceKHR(surface);
-
-    glfwTerminate();
-
-    ImGui::Shutdown();
 }
 
 int main(int argc, char** argv)
