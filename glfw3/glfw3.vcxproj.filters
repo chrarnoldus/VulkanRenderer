@@ -57,8 +57,5 @@
     <ClCompile Include="..\Dependencies\glfw\src\window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Dependencies\glfw\src\xkb_unicode.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

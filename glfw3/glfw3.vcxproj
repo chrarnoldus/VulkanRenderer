@@ -25,7 +25,6 @@
     <ClCompile Include="..\Dependencies\glfw\src\win32_tls.c" />
     <ClCompile Include="..\Dependencies\glfw\src\win32_window.c" />
     <ClCompile Include="..\Dependencies\glfw\src\window.c" />
-    <ClCompile Include="..\Dependencies\glfw\src\xkb_unicode.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3CBA5296-17EB-4F69-9C4C-2B42E616CC88}</ProjectGuid>
