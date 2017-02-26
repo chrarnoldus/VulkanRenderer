@@ -24,6 +24,7 @@ struct image2d
         vk::ImageAspectFlags aspect_flags
     );
     image2d copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
+    image2d copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
     void destroy(vk::Device device) const;
 };
 

@@ -13,3 +13,6 @@
 [submodule "Dependencies/glfw"]
 	path = Dependencies/glfw
 	url = https://github.com/glfw/glfw
+[submodule "Dependencies/lodepng"]
+	path = Dependencies/lodepng
+	url = https://github.com/lvandeve/lodepng

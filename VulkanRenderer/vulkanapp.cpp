@@ -4,66 +4,7 @@
 #include "dimensions.h"
 #include "model_renderer.h"
 #include "ui_renderer.h"
-
-static vk::RenderPass create_render_pass(vk::Device device)
-{
-    auto attachment0 = vk::AttachmentDescription()
-        .setFormat(vk::Format::eB8G8R8A8Unorm)
-        .setSamples(vk::SampleCountFlagBits::e1)
-        .setLoadOp(vk::AttachmentLoadOp::eClear)
-        .setStoreOp(vk::AttachmentStoreOp::eStore)
-        .setInitialLayout(vk::ImageLayout::eUndefined)
-        .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
-
-    auto attachment1 = vk::AttachmentDescription()
-        .setFormat(vk::Format::eD24UnormS8Uint)
-        .setSamples(vk::SampleCountFlagBits::e1)
-        .setLoadOp(vk::AttachmentLoadOp::eClear)
-        .setStoreOp(vk::AttachmentStoreOp::eStore)
-        .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-        .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
-        .setInitialLayout(vk::ImageLayout::eUndefined)
-        .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
-    auto color_attachment = vk::AttachmentReference()
-        .setAttachment(0)
-        .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
-
-    auto depth_attachment = vk::AttachmentReference()
-        .setAttachment(1)
-        .setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
-
-    auto subpass = vk::SubpassDescription()
-        .setColorAttachmentCount(1)
-        .setPColorAttachments(&color_attachment)
-        .setPDepthStencilAttachment(&depth_attachment);
-
-    const uint32_t attachment_count = 2;
-    vk::AttachmentDescription attachments[attachment_count] = { attachment0,attachment1 };
-
-    return device.createRenderPass(
-        vk::RenderPassCreateInfo()
-        .setAttachmentCount(attachment_count)
-        .setPAttachments(attachments)
-        .setSubpassCount(1)
-        .setPSubpasses(&subpass)
-    );
-}
-
-static vk::DescriptorPool create_descriptor_pool(vk::Device device)
-{
-    auto max_count_per_type = uint32_t(10);
-    std::vector<vk::DescriptorPoolSize> sizes({
-        vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_count_per_type),
-        vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, max_count_per_type),
-    });
-    return device.createDescriptorPool(
-        vk::DescriptorPoolCreateInfo()
-        .setPoolSizeCount(uint32_t(sizes.size()))
-        .setPPoolSizes(sizes.data())
-        .setMaxSets(max_count_per_type * uint32_t(sizes.size()))
-    );
-}
+#include "helpers.h"
 
 static image2d load_font_image(vk::PhysicalDevice physical_device, vk::Device device)
 {
@@ -78,7 +19,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     : queue(device.getQueue(0, 0))
     , command_pool(device.createCommandPool(vk::CommandPoolCreateInfo()))
     , mdl(read_model(physical_device, device, command_pool, queue, model_path))
-    , render_pass(create_render_pass(device))
+    , render_pass(create_render_pass(device, vk::ImageLayout::ePresentSrcKHR))
     , model_pipeline(create_model_pipeline(device, render_pass))
     , ui_pipeline(create_ui_pipeline(device, render_pass))
     , font_image(load_font_image(physical_device, device))

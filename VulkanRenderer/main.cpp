@@ -4,6 +4,7 @@
 #include "dimensions.h"
 #include "vulkanapp.h"
 #include "input_state.h"
+#include "helpers.h"
 
 static PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT = nullptr;
 static PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT = nullptr;
@@ -155,20 +156,8 @@ static void initialize_imgui()
     // TODO clipboard, ime
 }
 
-int main(int argc, char** argv)
+static void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device, vk::Device device, const std::string& model_path)
 {
-    auto pattern = "*.ply";
-    auto model_path = tinyfd_openFileDialog("Open 3D model", nullptr, 1, &pattern, nullptr, 0);
-    if (!model_path)
-    {
-        return EXIT_FAILURE;
-    }
-
-    auto instance = create_instance();
-    auto callback = create_debug_report_callback(instance);
-    auto physical_device = get_physical_device(instance);
-    auto device = create_device(physical_device);
-
     initialize_imgui();
 
     auto success = glfwInit();
@@ -198,13 +187,38 @@ int main(int argc, char** argv)
 
     glfwTerminate();
 
+    ImGui::Shutdown();
+}
+
+int main(int argc, char** argv)
+{
+    auto pattern = "*.ply";
+    auto model_path = tinyfd_openFileDialog("Open 3D model", nullptr, 1, &pattern, nullptr, 0);
+    if (!model_path)
+    {
+        return EXIT_FAILURE;
+    }
+
+    auto instance = create_instance();
+    auto callback = create_debug_report_callback(instance);
+    auto physical_device = get_physical_device(instance);
+    auto device = create_device(physical_device);
+
+    // TODO configure from command line
+    if (true)
+    {
+        render_to_window(instance, physical_device, device, model_path);
+    }
+    else
+    {
+        render_to_image(physical_device, device, model_path, "result.png");
+    }
+
     device.destroy();
 #if _DEBUG
     pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
 #endif
     instance.destroy();
-
-    ImGui::Shutdown();
 
     return EXIT_SUCCESS;
 }
