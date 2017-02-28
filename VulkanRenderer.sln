@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26206.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanRenderer", "VulkanRenderer\VulkanRenderer.vcxproj", "{CF1488BD-9E41-4588-8EBF-27C2E2FFD77B}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanRenderer", "VulkanRen
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glfw3", "glfw3\glfw3.vcxproj", "{3CBA5296-17EB-4F69-9C4C-2B42E616CC88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VulkanRendererApprovals", "VulkanRendererApprovals\VulkanRendererApprovals.csproj", "{9B19EFB5-05A6-4538-9147-83DFFC2A73AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +26,10 @@ Global
 		{3CBA5296-17EB-4F69-9C4C-2B42E616CC88}.Debug|x64.Build.0 = Debug|x64
 		{3CBA5296-17EB-4F69-9C4C-2B42E616CC88}.Release|x64.ActiveCfg = Release|x64
 		{3CBA5296-17EB-4F69-9C4C-2B42E616CC88}.Release|x64.Build.0 = Release|x64
+		{9B19EFB5-05A6-4538-9147-83DFFC2A73AA}.Debug|x64.ActiveCfg = Debug|x64
+		{9B19EFB5-05A6-4538-9147-83DFFC2A73AA}.Debug|x64.Build.0 = Debug|x64
+		{9B19EFB5-05A6-4538-9147-83DFFC2A73AA}.Release|x64.ActiveCfg = Release|x64
+		{9B19EFB5-05A6-4538-9147-83DFFC2A73AA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
