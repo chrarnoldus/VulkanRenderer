@@ -59,7 +59,7 @@ frame::frame(
         .setSubresourceRange(
             vk::ImageSubresourceRange()
             .setAspectMask(vk::ImageAspectFlagBits::eColor)
-            .setLevelCount(VK_REMAINING_MIP_LEVELS)
+            .setLevelCount(1)
             .setLayerCount(1)
         )
     );

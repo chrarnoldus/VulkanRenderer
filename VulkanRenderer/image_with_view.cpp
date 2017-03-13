@@ -53,7 +53,7 @@ image_with_memory::image_with_memory(
 
     sub_resource_range = vk::ImageSubresourceRange()
         .setAspectMask(aspect_flags)
-        .setLevelCount(VK_REMAINING_MIP_LEVELS)
+        .setLevelCount(1)
         .setLayerCount(1);
 }
 
