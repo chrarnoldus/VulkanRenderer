@@ -244,3 +244,4 @@ ModelManifest.xml
 *.vert.num
 *.frag.num
 *.received.*
+imgui.ini
