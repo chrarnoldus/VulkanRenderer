@@ -15,7 +15,18 @@
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
-                "databaseFilename": ""
+                "databaseFilename": "",
+                "path": [
+                    "${ProgramFiles(x86)}/Microsoft Visual Studio/Shared/14.0/VC/include",
+                    "${VK_SDK_PATH}/Include",
+                    "${workspaceRoot}/../Dependencies/glfw/include",
+                    "${workspaceRoot}/../Dependencies/glm",
+                    "${workspaceRoot}/../Dependencies/imgui",
+                    "${workspaceRoot}/../Dependencies/tinyfiledialogs",
+                    "${workspaceRoot}/../Dependencies/tinyply/source",
+                    "${workspaceRoot}/../Dependencies/lodepng",
+                    "${workspaceRoot}/../Dependencies/cxxopts/include"
+                ]
             }
         }
     ]
