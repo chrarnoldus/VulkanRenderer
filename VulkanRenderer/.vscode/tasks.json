@@ -1,0 +1,32 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "0.1.0",
+    "command": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/MSBuild/15.0/Bin/msbuild",
+    "args": [
+        "/t:build",
+        // Ask msbuild to generate full paths for file names.
+        "/property:GenerateFullPaths=true",
+        "/property:Platform=x64",
+        "/property:SolutionDir=${workspaceRoot}/../"
+    ],
+    // Show the output window only if unrecognized errors occur.
+    "showOutput": "silent",
+    // Use the standard MS compiler pattern to detect errors, warnings and infos
+    "problemMatcher": "$msCompile",
+    "suppressTaskName": true,
+    "tasks": [
+        {
+            "taskName": "build",
+            "args": [
+                "/property:Configuration=Debug"
+            ]
+        },
+        {
+            "taskName": "build-release",
+            "args": [
+                "/property:Configuration=Release"
+            ]
+        }
+    ]
+}
