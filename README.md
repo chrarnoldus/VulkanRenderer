@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/jrlywdabvkx9f5n8?svg=true)](https://ci.appveyor.com/project/chrarnoldus/vulkanrenderer)
+
 # Vulkan renderer
 
 This is a small application that uses the Vulkan API to render 3D models stored in PLY format. One place where suitable models can be found is the [Stanford 3D Scanning Repository](https://graphics.stanford.edu/data/3Dscanrep/). The purpose of this application is to try out the Vulkan API; it is probably not a good display of how to design such an application and there are likely violations of the Vulkan specification as well.
