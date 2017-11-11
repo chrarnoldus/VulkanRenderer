@@ -16,7 +16,8 @@ install:
     .\VulkanSDK.exe /S /D=C:\VulkanSDK
 build_script:
 - ps: msbuild /t:Restore,Build /p:Configuration=Release /m /v:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-test: off
+test_script:
+- ps: dotnet test VulkanRendererApprovals\VulkanRendererApprovals.csproj -c Release
 artifacts:
 - path: x64\Release\VulkanRenderer.exe
   name: VulkanRenderer
