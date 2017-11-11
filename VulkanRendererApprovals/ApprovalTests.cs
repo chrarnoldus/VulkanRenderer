@@ -1,5 +1,5 @@
-using ImageSharp;
-using ImageSharp.Formats;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -9,11 +9,6 @@ namespace VulkanRendererApprovals
 {
     public class ApprovalTests
     {
-        static ApprovalTests()
-        {
-            Configuration.Default.AddImageFormat(new PngFormat());
-        }
-
         static void RenderModel(string modelPath, [CallerMemberName] string callerMemberName = null, [CallerFilePath] string callerFilePath = null)
         {
             var directoryName = Path.GetDirectoryName(callerFilePath);
@@ -28,10 +23,10 @@ namespace VulkanRendererApprovals
         static void VerifyImage([CallerMemberName] string callerMemberName = null, [CallerFilePath] string callerFilePath = null)
         {
             var directoryName = Path.GetDirectoryName(callerFilePath);
-            using (var approved = new Image(Path.Combine(directoryName, $"Images\\{callerMemberName}.approved.png")))
-            using (var received = new Image(Path.Combine(directoryName, $"Images\\{callerMemberName}.received.png")))
+            using (var approved = Image.Load(Path.Combine(directoryName, $"Images\\{callerMemberName}.approved.png")))
+            using (var received = Image.Load(Path.Combine(directoryName, $"Images\\{callerMemberName}.received.png")))
             {
-                Assert.Equal(approved.Pixels, received.Pixels);
+                Assert.Equal(approved.SavePixelData(), received.SavePixelData());
             }
         }
 
