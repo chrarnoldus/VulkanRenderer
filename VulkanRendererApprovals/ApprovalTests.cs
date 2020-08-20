@@ -11,12 +11,14 @@ namespace VulkanRendererApprovals
         static void RenderModel(string modelPath, [CallerMemberName] string callerMemberName = null, [CallerFilePath] string callerFilePath = null)
         {
             var directoryName = Path.GetDirectoryName(callerFilePath);
-            Process.Start(new ProcessStartInfo
+            var process = Process.Start(new ProcessStartInfo
             {
                 FileName = Path.Combine(directoryName, "../x64/Release/VulkanRenderer.exe"),
                 WorkingDirectory = directoryName,
                 Arguments = $"--model \"{modelPath}\" --image \"Images\\{callerMemberName}.received.png\""
-            }).WaitForExit();
+            });
+            process.WaitForExit();
+            Assert.Equal(0, process.ExitCode);
         }
 
         static void VerifyImage([CallerMemberName] string callerMemberName = null, [CallerFilePath] string callerFilePath = null)
