@@ -48,13 +48,16 @@
     <ClCompile Include="..\Dependencies\glfw\src\win32_time.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Dependencies\glfw\src\win32_tls.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Dependencies\glfw\src\win32_window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Dependencies\glfw\src\window.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\glfw\src\win32_thread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\glfw\src\osmesa_context.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
