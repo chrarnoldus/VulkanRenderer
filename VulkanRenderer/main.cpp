@@ -122,7 +122,12 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
     );
 }
 
-cxxopts::Options parse_options(int argc, char** argv)
+glm::vec3 std_vector_to_glm_vec3(const std::vector<float>& vector)
+{
+    return glm::vec3(vector[0], vector[1], vector[2]);
+}
+
+int main(int argc, char** argv)
 {
     cxxopts::Options options("VulkanRenderer", "Vulkan renderer");
     options.add_options()
@@ -133,33 +138,15 @@ cxxopts::Options parse_options(int argc, char** argv)
         ("help", "Show help")
         ;
 
-    try {
-        options.parse(argc, argv);
-    }
-    catch (const cxxopts::OptionException& e) {
-        // TODO prints garbage
-        std::cerr << e.what() << std::endl;
-        exit(EXIT_SUCCESS);
-    }
-    return options;
-}
+    cxxopts::ParseResult result = options.parse(argc, argv);
 
-glm::vec3 std_vector_to_glm_vec3(const std::vector<float>& vector)
-{
-    return glm::vec3(vector[0], vector[1], vector[2]);
-}
-
-int main(int argc, char** argv)
-{
-    auto options = parse_options(argc, argv);
-
-    if (options["help"].count() > 0) {
+    if (result["help"].count() > 0) {
         std::cout << options.help();
         return EXIT_SUCCESS;
     }
 
     std::string model_path;
-    auto model_path_option = options["model"];
+    auto model_path_option = result["model"];
 
     if (model_path_option.count() == 1)
     {
@@ -181,15 +168,15 @@ int main(int argc, char** argv)
     auto physical_device = get_physical_device(instance);
     auto device = create_device(physical_device);
 
-    auto image_path_option = options["image"];
+    auto image_path_option = result["image"];
     if (image_path_option.count() == 1)
     {
-        auto camera_position_option = options["camera_position"];
+        auto camera_position_option = result["camera_position"];
         auto camera_position = camera_position_option.count() == 3
             ? std_vector_to_glm_vec3(camera_position_option.as<std::vector<float>>())
             : glm::vec3(0.f, 0.f, 2.f);
 
-        auto camera_up_vector = options["camera_up"];
+        auto camera_up_vector = result["camera_up"];
         auto camera_up = camera_up_vector.count() == 3
             ? std_vector_to_glm_vec3(camera_up_vector.as<std::vector<float>>())
             : glm::vec3(0.f, -1.f, 0.f);
