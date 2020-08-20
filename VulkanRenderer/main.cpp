@@ -77,9 +77,10 @@ static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
     auto devices = vulkan.enumeratePhysicalDevices();
     assert(devices.size() > 0);
 
-    auto props = devices[0].getProperties();
+    auto device = devices[0];
+    auto props = device.getProperties();
     std::cout << "Using physical device " << props.deviceName << std::endl;
-    return devices[0];
+    return device;
 }
 
 static vk::Device create_device(vk::PhysicalDevice physical_device)
