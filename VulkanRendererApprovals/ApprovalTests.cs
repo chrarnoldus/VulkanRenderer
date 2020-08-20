@@ -16,7 +16,7 @@ namespace VulkanRendererApprovals
                 FileName = Path.Combine(directoryName, "../x64/Release/VulkanRenderer.exe"),
                 WorkingDirectory = directoryName,
                 Arguments = $"--model \"{modelPath}\" --image \"Images\\{callerMemberName}.received.png\""
-            });
+            }).WaitForExit();
         }
 
         static void VerifyImage([CallerMemberName] string callerMemberName = null, [CallerFilePath] string callerFilePath = null)
