@@ -96,7 +96,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
             vk::Format::eB8G8R8A8Unorm,
             render_pass,
             {
-                new model_renderer(physical_device, device, descriptor_pool, model_pipeline, mdl),
+                new model_renderer(physical_device, device, descriptor_pool, model_pipeline, &mdl),
                 new ui_renderer(physical_device, device, descriptor_pool, ui_pipeline, font_image)
             }
         ));
@@ -198,7 +198,6 @@ void vulkanapp::destroy(vk::Device device) const
     ui_pipeline.destroy(device);
     model_pipeline.destroy(device);
     device.destroyRenderPass(render_pass);
-    mdl.destroy(device);
 }
 
 static void initialize_imgui()

@@ -99,7 +99,6 @@ void frame::destroy(vk::Device device) const
 {
     for (auto renderer : renderers)
     {
-        renderer->destroy(device);
         delete renderer;
     }
     dsb.destroy(device);

@@ -6,11 +6,10 @@
 struct buffer
 {
     vk::DeviceSize size;
-    vk::DeviceMemory memory;
-    vk::Buffer buf;
+    vk::UniqueDeviceMemory memory;
+    vk::UniqueBuffer buf;
 
     buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::BufferUsageFlags usage_flags, vk::MemoryPropertyFlags memory_flags, vk::DeviceSize size);
     void update(vk::Device device, void* data) const;
-    buffer copy_from_host_to_device_for_vertex_input(vk::PhysicalDevice physical_device, vk::Device device, vk::BufferUsageFlags new_usage_flags, vk::CommandPool command_pool, vk::Queue queue) const;
-    void destroy(vk::Device device) const;
+    std::unique_ptr<buffer> copy_from_host_to_device_for_vertex_input(vk::PhysicalDevice physical_device, vk::Device device, vk::BufferUsageFlags new_usage_flags, vk::CommandPool command_pool, vk::Queue queue) const;
 };

@@ -24,7 +24,7 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
 
 
     auto ui_ub_info = vk::DescriptorBufferInfo()
-        .setBuffer(uniform_buffer.buf)
+        .setBuffer(uniform_buffer.buf.get())
         .setRange(uniform_buffer.size);
 
     auto ui_ub_write_description = vk::WriteDescriptorSet()
@@ -61,12 +61,12 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
     assert(draw_data->TotalVtxCount < MAX_VERTEX_COUNT);
     assert(draw_data->TotalIdxCount < MAX_INDEX_COUNT);
 
-    auto indices = reinterpret_cast<uint16_t*>(device.mapMemory(index_buffer.memory, 0, index_buffer.size));
-    auto vertices = reinterpret_cast<ImDrawVert*>(device.mapMemory(vertex_buffer.memory, 0, vertex_buffer.size));
-    auto indirect = reinterpret_cast<VkDrawIndexedIndirectCommand*>(device.mapMemory(indirect_buffer.memory, 0, indirect_buffer.size));
+    auto indices = reinterpret_cast<uint16_t*>(device.mapMemory(index_buffer.memory.get(), 0, index_buffer.size));
+    auto vertices = reinterpret_cast<ImDrawVert*>(device.mapMemory(vertex_buffer.memory.get(), 0, vertex_buffer.size));
+    auto indirect = reinterpret_cast<VkDrawIndexedIndirectCommand*>(device.mapMemory(indirect_buffer.memory.get(), 0, indirect_buffer.size));
     memset(indirect, 0, indirect_buffer.size);
 
-    auto uniform = reinterpret_cast<ui_uniform_data*>(device.mapMemory(uniform_buffer.memory, 0, uniform_buffer.size));
+    auto uniform = reinterpret_cast<ui_uniform_data*>(device.mapMemory(uniform_buffer.memory.get(), 0, uniform_buffer.size));
     uniform->screen_width = float(WIDTH);
     uniform->screen_height = float(HEIGHT);
 
@@ -99,10 +99,10 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
         list_first_vertex += cmd_list->VtxBuffer.size();
     }
 
-    device.unmapMemory(uniform_buffer.memory);
-    device.unmapMemory(indirect_buffer.memory);
-    device.unmapMemory(vertex_buffer.memory);
-    device.unmapMemory(index_buffer.memory);
+    device.unmapMemory(uniform_buffer.memory.get());
+    device.unmapMemory(indirect_buffer.memory.get());
+    device.unmapMemory(vertex_buffer.memory.get());
+    device.unmapMemory(index_buffer.memory.get());
 }
 
 void ui_renderer::draw(vk::CommandBuffer command_buffer) const
@@ -110,15 +110,7 @@ void ui_renderer::draw(vk::CommandBuffer command_buffer) const
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, ui_pipeline.layout, 0, descriptor_set, {});
     command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, ui_pipeline.pl);
 
-    command_buffer.bindIndexBuffer(index_buffer.buf, 0, vk::IndexType::eUint16);
-    command_buffer.bindVertexBuffers(0, { vertex_buffer.buf }, { 0 });
-    command_buffer.drawIndexedIndirect(indirect_buffer.buf, 0, MAX_UI_DRAW_COUNT, sizeof(VkDrawIndexedIndirectCommand));
-}
-
-void ui_renderer::destroy(vk::Device device) const
-{
-    uniform_buffer.destroy(device);
-    indirect_buffer.destroy(device);
-    index_buffer.destroy(device);
-    vertex_buffer.destroy(device);
+    command_buffer.bindIndexBuffer(index_buffer.buf.get(), 0, vk::IndexType::eUint16);
+    command_buffer.bindVertexBuffers(0, { vertex_buffer.buf.get() }, { 0 });
+    command_buffer.drawIndexedIndirect(indirect_buffer.buf.get(), 0, MAX_UI_DRAW_COUNT, sizeof(VkDrawIndexedIndirectCommand));
 }

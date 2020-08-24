@@ -20,5 +20,4 @@ public:
     ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool, pipeline ui_pipeline, image_with_view font_image);
     void update(vk::Device device, model_uniform_data model_uniform_data) const override;
     void draw(vk::CommandBuffer command_buffer) const override;
-    void destroy(vk::Device device) const override;
 };
