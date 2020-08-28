@@ -93,14 +93,6 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
         .setQueueCount(1)
         .setPQueuePriorities(priorities);
 
-#if _DEBUG
-    const auto layerCount = 1;
-    const char* layerNames[layerCount] = { "VK_LAYER_LUNARG_standard_validation" };
-#else
-    const auto layerCount = 0;
-    const char** layerNames = nullptr;
-#endif
-
     const auto extensionCount = 1;
     const char* extensionNames[extensionCount] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
@@ -114,8 +106,6 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
         vk::DeviceCreateInfo()
         .setQueueCreateInfoCount(1)
         .setPQueueCreateInfos(&queueInfo)
-        .setEnabledLayerCount(layerCount)
-        .setPpEnabledLayerNames(layerNames)
         .setEnabledExtensionCount(1)
         .setPpEnabledExtensionNames(extensionNames)
         .setPEnabledFeatures(&features)
