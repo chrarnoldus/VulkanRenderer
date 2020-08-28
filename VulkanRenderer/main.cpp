@@ -50,7 +50,7 @@ vk::Instance create_instance()
 {
 #if _DEBUG
     const auto layerCount = 1;
-    const char* layerNames[layerCount] = { "VK_LAYER_LUNARG_standard_validation" };
+    const char* layerNames[layerCount] = { "VK_LAYER_KHRONOS_validation" };
 #else
     const auto layerCount = 0;
     const char** layerNames = nullptr;
