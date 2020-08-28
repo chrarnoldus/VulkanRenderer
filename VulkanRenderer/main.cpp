@@ -2,51 +2,38 @@
 #include "helpers.h"
 #include "render_to_window.h"
 
-static PFN_vkCreateDebugReportCallbackEXT pfnCreateDebugReportCallbackEXT = nullptr;
-static PFN_vkDestroyDebugReportCallbackEXT pfnDestroyDebugReportCallbackEXT = nullptr;
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report_callback(
-    VkDebugReportFlagsEXT flags,
-    VkDebugReportObjectTypeEXT objectType,
-    uint64_t object,
-    size_t location,
-    int32_t messageCode,
-    const char* pLayerPrefix,
-    const char* pMessage,
-    void* pUserData)
+static VkBool32 debug_report_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT           messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT                  messageTypes,
+    const VkDebugUtilsMessengerCallbackDataEXT*      pCallbackData,
+    void*                                            pUserData)
 {
-    std::cerr << pLayerPrefix << ": " << pMessage << std::endl;
+    std::cerr << pCallbackData->pMessage << std::endl;
     return false;
 }
 
-static VkDebugReportCallbackEXT create_debug_report_callback(VkInstance vulkan)
+static std::optional<vk::UniqueDebugUtilsMessengerEXT> create_debug_report_callback(vk::Instance instance)
 {
-    pfnCreateDebugReportCallbackEXT = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
-        vkGetInstanceProcAddr(vulkan, "vkCreateDebugReportCallbackEXT")
-        );
-    pfnDestroyDebugReportCallbackEXT = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
-        vkGetInstanceProcAddr(vulkan, "vkDestroyDebugReportCallbackEXT")
-        );
-
 #if _DEBUG
-    VkDebugReportCallbackCreateInfoEXT info = {};
-    info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
-    info.flags =
-        VK_DEBUG_REPORT_ERROR_BIT_EXT |
-        VK_DEBUG_REPORT_WARNING_BIT_EXT |
-        VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-    info.pfnCallback = &debug_report_callback;
+    auto info = vk::DebugUtilsMessengerCreateInfoEXT()
+        .setMessageSeverity(
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError|
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
+        )
+        .setMessageType(
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral|
+            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance|
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
+        )
+    .setPfnUserCallback(debug_report_callback);
 
-    VkDebugReportCallbackEXT callback;
-    auto error = pfnCreateDebugReportCallbackEXT(vulkan, &info, nullptr, &callback);
-    assert(!error);
-    return callback;
+    return std::optional { instance.createDebugUtilsMessengerEXTUnique(info, nullptr) };
 #else
-    return nullptr;
+    return std::nullopt;
 #endif
 }
 
-vk::Instance create_instance()
+static vk::UniqueInstance create_instance()
 {
 #if _DEBUG
     const auto layerCount = 1;
@@ -58,12 +45,12 @@ vk::Instance create_instance()
 
     const auto extensionCount = 3;
     const char* extensionNames[extensionCount] = {
-        VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
         VK_KHR_SURFACE_EXTENSION_NAME,
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
     };
 
-    return vk::createInstance(
+    return vk::createInstanceUnique(
         vk::InstanceCreateInfo()
         .setEnabledLayerCount(layerCount)
         .setPpEnabledLayerNames(layerNames)
@@ -83,7 +70,7 @@ static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
     return device;
 }
 
-static vk::Device create_device(vk::PhysicalDevice physical_device)
+static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
 {
     auto props = physical_device.getQueueFamilyProperties();
     assert((props[0].queueFlags & vk::QueueFlagBits::eGraphics) == vk::QueueFlagBits::eGraphics);
@@ -102,7 +89,7 @@ static vk::Device create_device(vk::PhysicalDevice physical_device)
         .setShaderClipDistance(true)
         .setShaderCullDistance(true);
 
-    return physical_device.createDevice(
+    return physical_device.createDeviceUnique(
         vk::DeviceCreateInfo()
         .setQueueCreateInfoCount(1)
         .setPQueueCreateInfos(&queueInfo)
@@ -116,6 +103,8 @@ glm::vec3 std_vector_to_glm_vec3(const std::vector<float>& vector)
 {
     return glm::vec3(vector[0], vector[1], vector[2]);
 }
+
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 int main(int argc, char** argv)
 {
@@ -153,10 +142,17 @@ int main(int argc, char** argv)
         model_path = model_path_ptr;
     }
 
+    vk::DynamicLoader dl;
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
+
     auto instance = create_instance();
-    auto callback = create_debug_report_callback(instance);
-    auto physical_device = get_physical_device(instance);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(instance.get());
+
+    auto callback = create_debug_report_callback(instance.get());
+    auto physical_device = get_physical_device(instance.get());
+
     auto device = create_device(physical_device);
+    VULKAN_HPP_DEFAULT_DISPATCHER.init(device.get());
 
     auto image_path_option = result["image"];
     if (image_path_option.count() == 1)
@@ -172,19 +168,13 @@ int main(int argc, char** argv)
             : glm::vec3(0.f, -1.f, 0.f);
 
         std::cout << "Rendering to image..." << std::endl;
-        render_to_image(physical_device, device, model_path, image_path_option.as<std::string>(), camera_position, camera_up);
+        render_to_image(physical_device, device.get(), model_path, image_path_option.as<std::string>(), camera_position, camera_up);
     }
     else
     {
         std::cout << "Rendering to window..." << std::endl;
-        render_to_window(instance, physical_device, device, model_path);
+        render_to_window(instance.get(), physical_device, device.get(), model_path);
     }
-
-    device.destroy();
-#if _DEBUG
-    pfnDestroyDebugReportCallbackEXT(instance, callback, nullptr);
-#endif
-    instance.destroy();
 
     return EXIT_SUCCESS;
 }
