@@ -44,7 +44,7 @@ frame::frame(
     vk::Format format,
     vk::RenderPass render_pass,
     std::vector<renderer*> renderers)
-    : dsb(device, image_with_memory(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil))
+    : dsb(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil))
     , renderers(renderers)
 {
     this->image = image;
@@ -62,7 +62,7 @@ frame::frame(
         )
     );
 
-    std::array attachments { image_view, dsb.image_view };
+    std::array attachments { image_view, dsb.image_view.get() };
     framebuffer = device.createFramebuffer(
         vk::FramebufferCreateInfo()
         .setRenderPass(render_pass)
@@ -97,7 +97,6 @@ void frame::destroy(vk::Device device) const
     {
         delete renderer;
     }
-    dsb.destroy(device);
     device.destroyFramebuffer(framebuffer);
     device.destroyImageView(image_view);
     device.destroyFence(rendered_fence);

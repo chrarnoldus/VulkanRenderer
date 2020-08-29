@@ -6,7 +6,7 @@
 static const uint32_t MAX_VERTEX_COUNT = UINT16_MAX;
 static const uint32_t MAX_INDEX_COUNT = UINT16_MAX;
 
-ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool, pipeline ui_pipeline, image_with_view font_image)
+ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool, pipeline ui_pipeline, const image_with_view* font_image)
     : vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT, MAX_VERTEX_COUNT * sizeof(ImDrawVert))
     , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, HOST_VISIBLE_AND_COHERENT, MAX_INDEX_COUNT * sizeof(uint16_t))
     , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, HOST_VISIBLE_AND_COHERENT, MAX_UI_DRAW_COUNT * sizeof(VkDrawIndexedIndirectCommand))
@@ -35,7 +35,7 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
 
     auto font_image_view_info = vk::DescriptorImageInfo()
         .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
-        .setImageView(font_image.image_view);
+        .setImageView(font_image->image_view.get());
 
     auto font_image_write_descriptor_set = vk::WriteDescriptorSet()
         .setDstBinding(1)

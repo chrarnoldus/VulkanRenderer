@@ -15,7 +15,7 @@ image_with_memory::image_with_memory(
 )
     : width(width), height(height), format(format)
 {
-    image = device.createImage(
+    image = device.createImageUnique(
         vk::ImageCreateInfo()
         .setImageType(vk::ImageType::e2D)
         .setFormat(format)
@@ -29,7 +29,7 @@ image_with_memory::image_with_memory(
         .setInitialLayout(initial_layout)
     );
 
-    auto reqs = device.getImageMemoryRequirements(image);
+    auto reqs = device.getImageMemoryRequirements(image.get());
     auto props = physical_device.getMemoryProperties();
 
     auto memory_type_index = UINT32_MAX;
@@ -43,13 +43,13 @@ image_with_memory::image_with_memory(
     }
     assert(memory_type_index != UINT32_MAX);
 
-    memory = device.allocateMemory(
+    memory = device.allocateMemoryUnique(
         vk::MemoryAllocateInfo()
         .setMemoryTypeIndex(memory_type_index)
         .setAllocationSize(reqs.size)
     );
 
-    device.bindImageMemory(image, memory, 0);
+    device.bindImageMemory(image.get(), memory.get(), 0);
 
     sub_resource_range = vk::ImageSubresourceRange()
         .setAspectMask(aspect_flags)
@@ -57,9 +57,9 @@ image_with_memory::image_with_memory(
         .setLayerCount(1);
 }
 
-image_with_memory image_with_memory::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
 {
-    image_with_memory result(
+    auto result = std::make_unique<image_with_memory>(
         physical_device, device, width, height, format,
         vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
         vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eColor
@@ -86,7 +86,7 @@ image_with_memory image_with_memory::copy_from_host_to_device_for_shader_read(vk
             vk::ImageLayout::eTransferSrcOptimal,
             0,
             0,
-            image,
+            image.get(),
             sub_resource_range
         ) }
     );
@@ -103,12 +103,12 @@ image_with_memory image_with_memory::copy_from_host_to_device_for_shader_read(vk
             vk::ImageLayout::eTransferDstOptimal,
             0,
             0,
-            result.image,
-            result.sub_resource_range
+            result->image.get(),
+            result->sub_resource_range
         ) }
     );
     command_buffer.copyImage(
-        image, vk::ImageLayout::eTransferSrcOptimal, result.image, vk::ImageLayout::eTransferDstOptimal, {
+        image.get(), vk::ImageLayout::eTransferSrcOptimal, result->image.get(), vk::ImageLayout::eTransferDstOptimal, {
             vk::ImageCopy()
             .setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
             .setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
@@ -127,8 +127,8 @@ image_with_memory image_with_memory::copy_from_host_to_device_for_shader_read(vk
             vk::ImageLayout::eShaderReadOnlyOptimal,
             0,
             0,
-            result.image,
-            result.sub_resource_range
+            result->image.get(),
+            result->sub_resource_range
         ) }
     );
     command_buffer.end();
@@ -138,9 +138,9 @@ image_with_memory image_with_memory::copy_from_host_to_device_for_shader_read(vk
     return result;
 }
 
-image_with_memory image_with_memory::copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
 {
-    image_with_memory result(
+    auto result = std::make_unique<image_with_memory>(
         physical_device, device, width, height, format,
         vk::ImageUsageFlagBits::eTransferDst,
         vk::ImageTiling::eLinear, vk::ImageLayout::eUndefined,
@@ -169,7 +169,7 @@ image_with_memory image_with_memory::copy_from_device_to_host(vk::PhysicalDevice
             vk::ImageLayout::eTransferSrcOptimal,
             0,
             0,
-            image,
+            image.get(),
             sub_resource_range
         ) }
     );
@@ -186,12 +186,12 @@ image_with_memory image_with_memory::copy_from_device_to_host(vk::PhysicalDevice
             vk::ImageLayout::eTransferDstOptimal,
             0,
             0,
-            result.image,
-            result.sub_resource_range
+            result->image.get(),
+            result->sub_resource_range
         ) }
     );
     command_buffer.copyImage(
-        image, vk::ImageLayout::eTransferSrcOptimal, result.image, vk::ImageLayout::eTransferDstOptimal, {
+        image.get(), vk::ImageLayout::eTransferSrcOptimal, result->image.get(), vk::ImageLayout::eTransferDstOptimal, {
             vk::ImageCopy()
             .setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
         .setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
@@ -210,8 +210,8 @@ image_with_memory image_with_memory::copy_from_device_to_host(vk::PhysicalDevice
             vk::ImageLayout::eGeneral,
             0,
             0,
-            result.image,
-            result.sub_resource_range
+            result->image.get(),
+            result->sub_resource_range
         ) }
     );
     command_buffer.end();
@@ -221,15 +221,9 @@ image_with_memory image_with_memory::copy_from_device_to_host(vk::PhysicalDevice
     return result;
 }
 
-void image_with_memory::destroy(vk::Device device) const
+std::unique_ptr<image_with_memory> load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Device device, uint32_t width, uint32_t height, const void* data)
 {
-    device.destroyImage(image);
-    device.freeMemory(memory);
-}
-
-image_with_memory load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Device device, uint32_t width, uint32_t height, const void* data)
-{
-    image_with_memory image(
+    auto image = std::make_unique<image_with_memory>(
         physical_device,
         device,
         width,
@@ -243,26 +237,20 @@ image_with_memory load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device
     );
 
     auto size = 4 * width * height;
-    auto ptr = device.mapMemory(image.memory, 0, size);
+    auto ptr = device.mapMemory(image->memory.get(), 0, size);
     memcpy(ptr, data, size);
-    device.unmapMemory(image.memory);
+    device.unmapMemory(image->memory.get());
     return image;
 }
 
-image_with_view::image_with_view(vk::Device device, image_with_memory iwm)
-    :iwm(iwm)
+image_with_view::image_with_view(vk::Device device, std::unique_ptr<image_with_memory> iwm)
+    :iwm(std::move(iwm))
 {
-    image_view = device.createImageView(
+    image_view = device.createImageViewUnique(
         vk::ImageViewCreateInfo()
-        .setImage(iwm.image)
-        .setFormat(iwm.format)
+        .setImage(this->iwm->image.get())
+        .setFormat(this->iwm->format)
         .setViewType(vk::ImageViewType::e2D)
-        .setSubresourceRange(iwm.sub_resource_range)
+        .setSubresourceRange(this->iwm->sub_resource_range)
     );
-}
-
-void image_with_view::destroy(vk::Device device) const
-{
-    device.destroyImageView(image_view);
-    iwm.destroy(device);
 }

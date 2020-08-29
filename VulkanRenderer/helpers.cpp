@@ -94,7 +94,7 @@ void render_to_image(
         vk::ImageAspectFlagBits::eColor
     );
 
-    frame frame(physical_device, device, command_pool, descriptor_pool, device_image.image, vk::Format::eR8G8B8A8Unorm, render_pass, {
+    frame frame(physical_device, device, command_pool, descriptor_pool, device_image.image.get(), vk::Format::eR8G8B8A8Unorm, render_pass, {
         new model_renderer(physical_device, device, descriptor_pool, pipeline, &model)
     });
 
@@ -114,14 +114,12 @@ void render_to_image(
     auto host_image = device_image.copy_from_device_to_host(physical_device, device, command_pool, queue);
     queue.waitIdle();
 
-    auto ptr = reinterpret_cast<uint8_t*>(device.mapMemory(host_image.memory, 0, 4 * host_image.width * host_image.height));
+    auto ptr = reinterpret_cast<uint8_t*>(device.mapMemory(host_image->memory.get(), 0, 4 * host_image->width * host_image->height));
     // TODO fix channels
-    lodepng::encode(image_path, ptr, host_image.width, host_image.height);
-    device.unmapMemory(host_image.memory);
+    lodepng::encode(image_path, ptr, host_image->width, host_image->height);
+    device.unmapMemory(host_image->memory.get());
 
     frame.destroy(device);
-    host_image.destroy(device);
-    device_image.destroy(device);
     device.destroyDescriptorPool(descriptor_pool);
     pipeline.destroy(device);
     device.destroyRenderPass(render_pass);

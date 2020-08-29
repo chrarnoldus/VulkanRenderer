@@ -41,10 +41,9 @@ static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::D
     auto host_image = load_r8g8b8a8_unorm_texture(physical_device, device, width, height, pixels);
     auto device_image = image_with_view(
         device,
-        host_image.copy_from_host_to_device_for_shader_read(physical_device, device, command_pool, queue)
+        host_image->copy_from_host_to_device_for_shader_read(physical_device, device, command_pool, queue)
     );
     queue.waitIdle();
-    host_image.destroy(device);
     return device_image;
 }
 
@@ -97,7 +96,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
             render_pass,
             {
                 new model_renderer(physical_device, device, descriptor_pool, model_pipeline, &mdl),
-                new ui_renderer(physical_device, device, descriptor_pool, ui_pipeline, font_image)
+                new ui_renderer(physical_device, device, descriptor_pool, ui_pipeline, &font_image)
             }
         ));
     }
@@ -184,12 +183,11 @@ void vulkanapp::destroy(vk::Device device) const
 {
     queue.waitIdle();
 
-    for (auto frame : frames)
+    for (auto& frame : frames)
     {
         frame.destroy(device);
     }
 
-    font_image.destroy(device);
     device.destroySwapchainKHR(swapchain);
     device.destroySemaphore(rendered_semaphore);
     device.destroySemaphore(acquired_semaphore);
