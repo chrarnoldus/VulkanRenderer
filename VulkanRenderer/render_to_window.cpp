@@ -124,6 +124,7 @@ static glm::vec3 get_trackball_position(glm::vec2 mouse_position)
 
 void vulkanapp::update(vk::Device device, const input_state& input)
 {
+    //suspicious: no reason to believe semaphore is unsignaled
     auto current_image = device.acquireNextImageKHR(swapchain.get(), UINT64_MAX, acquired_semaphore.get(), nullptr).value;
     auto& frame = frames[current_image];
 
