@@ -19,7 +19,6 @@ class vulkanapp
     pipeline ui_pipeline;
     vk::UniqueDescriptorPool descriptor_pool;
     vk::UniqueSemaphore acquired_semaphore;
-    vk::UniqueSemaphore rendered_semaphore;
     std::vector<std::unique_ptr<frame>> frames;
     vk::UniqueSwapchainKHR swapchain;
     image_with_view font_image;
@@ -59,7 +58,6 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
 {
     descriptor_pool = create_descriptor_pool(device);
     acquired_semaphore = device.createSemaphoreUnique(vk::SemaphoreCreateInfo());
-    rendered_semaphore = device.createSemaphoreUnique(vk::SemaphoreCreateInfo());
 
     auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
@@ -166,8 +164,6 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         .setPWaitDstStageMask(&wait_dst_stage_mask)
         .setWaitSemaphoreCount(1)
         .setPWaitSemaphores(&acquired_semaphore.get())
-        .setSignalSemaphoreCount(1)
-        .setPSignalSemaphores(&rendered_semaphore.get())
     }, frame->rendered_fence.get());
 
     queue.presentKHR(
@@ -175,8 +171,6 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         .setSwapchainCount(1)
         .setPSwapchains(&swapchain.get())
         .setPImageIndices(&current_image)
-        .setWaitSemaphoreCount(1)
-        .setPWaitSemaphores(&rendered_semaphore.get())
     );
 }
 
