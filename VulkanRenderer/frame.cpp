@@ -44,12 +44,12 @@ frame::frame(
     vk::Format format,
     vk::RenderPass render_pass,
     std::vector<renderer*> renderers)
-    : dsb(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil))
+    : device(device), dsb(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil))
     , renderers(renderers)
 {
     this->image = image;
 
-    image_view = device.createImageView(
+    image_view = device.createImageViewUnique(
         vk::ImageViewCreateInfo()
         .setFormat(format)
         .setViewType(vk::ImageViewType::e2D)
@@ -62,8 +62,8 @@ frame::frame(
         )
     );
 
-    std::array attachments { image_view, dsb.image_view.get() };
-    framebuffer = device.createFramebuffer(
+    std::array attachments { image_view.get(), dsb.image_view.get() };
+    framebuffer = device.createFramebufferUnique(
         vk::FramebufferCreateInfo()
         .setRenderPass(render_pass)
         .setAttachments(attachments)
@@ -72,7 +72,7 @@ frame::frame(
         .setLayers(1)
     );
 
-    rendered_fence = device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    rendered_fence = device.createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
         .setCommandPool(command_pool)
@@ -80,10 +80,10 @@ frame::frame(
         .setCommandBufferCount(1)
     )[0];
 
-    record_command_buffer(command_buffer, render_pass, renderers, framebuffer);
+    record_command_buffer(command_buffer, render_pass, renderers, framebuffer.get());
 }
 
-void frame::update(vk::Device device, model_uniform_data model_uniform_data) const
+void frame::update( model_uniform_data model_uniform_data) const
 {
     for (auto renderer : renderers)
     {
@@ -91,13 +91,10 @@ void frame::update(vk::Device device, model_uniform_data model_uniform_data) con
     }
 }
 
-void frame::destroy(vk::Device device) const
+frame::~frame()
 {
     for (auto renderer : renderers)
     {
         delete renderer;
     }
-    device.destroyFramebuffer(framebuffer);
-    device.destroyImageView(image_view);
-    device.destroyFence(rendered_fence);
 }

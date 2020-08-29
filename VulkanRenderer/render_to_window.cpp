@@ -20,7 +20,7 @@ class vulkanapp
     vk::DescriptorPool descriptor_pool;
     vk::Semaphore acquired_semaphore;
     vk::Semaphore rendered_semaphore;
-    std::vector<frame> frames;
+    std::vector<std::unique_ptr<frame>> frames;
     vk::SwapchainKHR swapchain;
     image_with_view font_image;
     glm::quat trackball_rotation;
@@ -86,7 +86,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     auto images = device.getSwapchainImagesKHR(swapchain);
     for (auto image : images)
     {
-        frames.push_back(frame(
+        frames.emplace_back(new frame(
             physical_device,
             device,
             command_pool,
@@ -94,7 +94,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
             image,
             vk::Format::eB8G8R8A8Unorm,
             render_pass,
-            {
+            std::vector<renderer*> {
                 new model_renderer(physical_device, device, descriptor_pool, &model_pipeline, &mdl),
                 new ui_renderer(physical_device, device, descriptor_pool, &ui_pipeline, &font_image)
             }
@@ -152,22 +152,22 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         *
         glm::mat4_cast(trackball_rotation);
 
-    device.waitForFences({ frame.rendered_fence }, true, UINT64_MAX);
-    device.resetFences({ frame.rendered_fence });
+    device.waitForFences({ frame->rendered_fence.get() }, true, UINT64_MAX);
+    device.resetFences({ frame->rendered_fence.get() });
 
-    frame.update(device, data);
+    frame->update(data);
 
     auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     queue.submit({
         vk::SubmitInfo()
         .setCommandBufferCount(1)
-        .setPCommandBuffers(&frame.command_buffer)
+        .setPCommandBuffers(&frame->command_buffer)
         .setPWaitDstStageMask(&wait_dst_stage_mask)
         .setWaitSemaphoreCount(1)
         .setPWaitSemaphores(&acquired_semaphore)
         .setSignalSemaphoreCount(1)
         .setPSignalSemaphores(&rendered_semaphore)
-    }, frame.rendered_fence);
+    }, frame->rendered_fence.get());
 
     queue.presentKHR(
         vk::PresentInfoKHR()
@@ -182,11 +182,6 @@ void vulkanapp::update(vk::Device device, const input_state& input)
 void vulkanapp::destroy(vk::Device device) const
 {
     queue.waitIdle();
-
-    for (auto& frame : frames)
-    {
-        frame.destroy(device);
-    }
 
     device.destroySwapchainKHR(swapchain);
     device.destroySemaphore(rendered_semaphore);

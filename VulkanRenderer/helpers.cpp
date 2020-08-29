@@ -101,15 +101,15 @@ void render_to_image(
     model_uniform_data data;
     data.projection = glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f);
     data.model_view = glm::lookAt(camera_position, glm::vec3(0.f, 0.f, 0.f), camera_up);
-    frame.update(device, data);
+    frame.update(data);
 
-    device.resetFences({ frame.rendered_fence });
+    device.resetFences({ frame.rendered_fence.get() });
     queue.submit({
         vk::SubmitInfo()
         .setCommandBufferCount(1)
         .setPCommandBuffers(&frame.command_buffer)
-    }, frame.rendered_fence);
-    device.waitForFences({ frame.rendered_fence }, true, UINT64_MAX);
+    }, frame.rendered_fence.get());
+    device.waitForFences({ frame.rendered_fence.get() }, true, UINT64_MAX);
 
     auto host_image = device_image.copy_from_device_to_host(physical_device, device, command_pool, queue);
     queue.waitIdle();
@@ -119,7 +119,6 @@ void render_to_image(
     lodepng::encode(image_path, ptr, host_image->width, host_image->height);
     device.unmapMemory(host_image->memory.get());
 
-    frame.destroy(device);
     device.destroyDescriptorPool(descriptor_pool);
     device.destroyRenderPass(render_pass);
     device.destroyCommandPool(command_pool);
