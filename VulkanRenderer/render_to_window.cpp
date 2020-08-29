@@ -12,16 +12,16 @@
 class vulkanapp
 {
     vk::Queue queue;
-    vk::CommandPool command_pool;
+    vk::UniqueCommandPool command_pool;
     model mdl;
-    vk::RenderPass render_pass;
+    vk::UniqueRenderPass render_pass;
     pipeline model_pipeline;
     pipeline ui_pipeline;
-    vk::DescriptorPool descriptor_pool;
-    vk::Semaphore acquired_semaphore;
-    vk::Semaphore rendered_semaphore;
+    vk::UniqueDescriptorPool descriptor_pool;
+    vk::UniqueSemaphore acquired_semaphore;
+    vk::UniqueSemaphore rendered_semaphore;
     std::vector<std::unique_ptr<frame>> frames;
-    vk::SwapchainKHR swapchain;
+    vk::UniqueSwapchainKHR swapchain;
     image_with_view font_image;
     glm::quat trackball_rotation;
     float camera_distance;
@@ -29,7 +29,7 @@ class vulkanapp
 public:
     vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, const std::string& model_path);
     void update(vk::Device device, const input_state& input);
-    void destroy(vk::Device device) const;
+    ~vulkanapp();
 };
 
 static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue)
@@ -49,17 +49,17 @@ static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::D
 
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, const std::string& model_path)
     : queue(device.getQueue(0, 0))
-    , command_pool(device.createCommandPool(vk::CommandPoolCreateInfo()))
-    , mdl(read_model(physical_device, device, command_pool, queue, model_path))
+    , command_pool(device.createCommandPoolUnique(vk::CommandPoolCreateInfo()))
+    , mdl(read_model(physical_device, device, command_pool.get(), queue, model_path))
     , render_pass(create_render_pass(device, vk::Format::eB8G8R8A8Unorm, vk::ImageLayout::ePresentSrcKHR))
-    , model_pipeline(create_model_pipeline(device, render_pass))
-    , ui_pipeline(create_ui_pipeline(device, render_pass))
-    , font_image(load_font_image(physical_device, device, command_pool, queue))
+    , model_pipeline(create_model_pipeline(device, render_pass.get()))
+    , ui_pipeline(create_ui_pipeline(device, render_pass.get()))
+    , font_image(load_font_image(physical_device, device, command_pool.get(), queue))
     , camera_distance(2.f)
 {
     descriptor_pool = create_descriptor_pool(device);
-    acquired_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
-    rendered_semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
+    acquired_semaphore = device.createSemaphoreUnique(vk::SemaphoreCreateInfo());
+    rendered_semaphore = device.createSemaphoreUnique(vk::SemaphoreCreateInfo());
 
     auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
@@ -69,7 +69,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     auto formats = physical_device.getSurfaceFormatsKHR(surface);
     assert(formats[0].format == vk::Format::eB8G8R8A8Unorm);
 
-    swapchain = device.createSwapchainKHR(
+    swapchain = device.createSwapchainKHRUnique(
         vk::SwapchainCreateInfoKHR()
         .setSurface(surface)
         .setMinImageCount(2)
@@ -83,21 +83,21 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
         .setPresentMode(vk::PresentModeKHR::eFifo)
     );
 
-    auto images = device.getSwapchainImagesKHR(swapchain);
+    auto images = device.getSwapchainImagesKHR(swapchain.get());
     for (auto image : images)
     {
         std::vector<std::unique_ptr<renderer>> renderers;
-        renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool, &model_pipeline, &mdl));
-        renderers.emplace_back(new ui_renderer(physical_device, device, descriptor_pool, &ui_pipeline, &font_image));
+        renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool.get(), &model_pipeline, &mdl));
+        renderers.emplace_back(new ui_renderer(physical_device, device, descriptor_pool.get(), &ui_pipeline, &font_image));
 
         frames.emplace_back(new frame(
             physical_device,
             device,
-            command_pool,
-            descriptor_pool,
+            command_pool.get(),
+            descriptor_pool.get(),
             image,
             vk::Format::eB8G8R8A8Unorm,
-            render_pass,
+            render_pass.get(),
             std::move(renderers)
         ));
     }
@@ -126,7 +126,7 @@ static glm::vec3 get_trackball_position(glm::vec2 mouse_position)
 
 void vulkanapp::update(vk::Device device, const input_state& input)
 {
-    auto current_image = device.acquireNextImageKHR(swapchain, UINT64_MAX, acquired_semaphore, nullptr).value;
+    auto current_image = device.acquireNextImageKHR(swapchain.get(), UINT64_MAX, acquired_semaphore.get(), nullptr).value;
     auto& frame = frames[current_image];
 
     if (!input.ui_want_capture_mouse)
@@ -165,31 +165,24 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         .setPCommandBuffers(&frame->command_buffer)
         .setPWaitDstStageMask(&wait_dst_stage_mask)
         .setWaitSemaphoreCount(1)
-        .setPWaitSemaphores(&acquired_semaphore)
+        .setPWaitSemaphores(&acquired_semaphore.get())
         .setSignalSemaphoreCount(1)
-        .setPSignalSemaphores(&rendered_semaphore)
+        .setPSignalSemaphores(&rendered_semaphore.get())
     }, frame->rendered_fence.get());
 
     queue.presentKHR(
         vk::PresentInfoKHR()
         .setSwapchainCount(1)
-        .setPSwapchains(&swapchain)
+        .setPSwapchains(&swapchain.get())
         .setPImageIndices(&current_image)
         .setWaitSemaphoreCount(1)
-        .setPWaitSemaphores(&rendered_semaphore)
+        .setPWaitSemaphores(&rendered_semaphore.get())
     );
 }
 
-void vulkanapp::destroy(vk::Device device) const
+vulkanapp::~vulkanapp()
 {
     queue.waitIdle();
-
-    device.destroySwapchainKHR(swapchain);
-    device.destroySemaphore(rendered_semaphore);
-    device.destroySemaphore(acquired_semaphore);
-    device.destroyDescriptorPool(descriptor_pool);
-    device.destroyCommandPool(command_pool);
-    device.destroyRenderPass(render_pass);
 }
 
 static void initialize_imgui()
@@ -241,14 +234,15 @@ void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device,
     auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
 
-    input_state input(window);
-    auto app = vulkanapp(physical_device, device, surface, model_path);
-    while (!glfwWindowShouldClose(window))
     {
-        input.update();
-        app.update(device, input);
+        input_state input(window);
+        auto app = vulkanapp(physical_device, device, surface, model_path);
+        while (!glfwWindowShouldClose(window))
+        {
+            input.update();
+            app.update(device, input);
+        }
     }
-    app.destroy(device);
 
     instance.destroySurfaceKHR(surface);
 

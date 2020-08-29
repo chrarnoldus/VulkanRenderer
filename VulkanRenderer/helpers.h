@@ -3,8 +3,8 @@
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
-vk::RenderPass create_render_pass(vk::Device device, vk::Format color_format, vk::ImageLayout final_layout);
-vk::DescriptorPool create_descriptor_pool(vk::Device device);
+vk::UniqueRenderPass create_render_pass(vk::Device device, vk::Format color_format, vk::ImageLayout final_layout);
+vk::UniqueDescriptorPool create_descriptor_pool(vk::Device device);
 
 void render_to_image(
     vk::PhysicalDevice physical_device,

@@ -8,7 +8,7 @@
 #include "frame.h"
 #include "model_renderer.h"
 
-vk::RenderPass create_render_pass(vk::Device device, vk::Format color_format, vk::ImageLayout final_layout)
+vk::UniqueRenderPass create_render_pass(vk::Device device, vk::Format color_format, vk::ImageLayout final_layout)
 {
     auto attachment0 = vk::AttachmentDescription()
         .setFormat(color_format)
@@ -43,7 +43,7 @@ vk::RenderPass create_render_pass(vk::Device device, vk::Format color_format, vk
 
     std::array attachments { attachment0,attachment1 };
 
-    return device.createRenderPass(
+    return device.createRenderPassUnique(
         vk::RenderPassCreateInfo()
         .setAttachments(attachments)
         .setSubpassCount(1)
@@ -51,14 +51,14 @@ vk::RenderPass create_render_pass(vk::Device device, vk::Format color_format, vk
     );
 }
 
-vk::DescriptorPool create_descriptor_pool(vk::Device device)
+vk::UniqueDescriptorPool create_descriptor_pool(vk::Device device)
 {
     auto max_count_per_type = uint32_t(10);
     std::array sizes {
         vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_count_per_type),
         vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, max_count_per_type),
     };
-    return device.createDescriptorPool(
+    return device.createDescriptorPoolUnique(
         vk::DescriptorPoolCreateInfo()
         .setPoolSizes(sizes)
         .setMaxSets(max_count_per_type * sizes.size())
@@ -75,10 +75,10 @@ void render_to_image(
 )
 {
     auto queue = device.getQueue(0, 0);
-    auto command_pool = device.createCommandPool(vk::CommandPoolCreateInfo());
-    auto model = read_model(physical_device, device, command_pool, queue, model_path);
+    auto command_pool = device.createCommandPoolUnique(vk::CommandPoolCreateInfo());
+    auto model = read_model(physical_device, device, command_pool.get(), queue, model_path);
     auto render_pass = create_render_pass(device, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eTransferSrcOptimal);
-    auto pipeline = create_model_pipeline(device, render_pass);
+    auto pipeline = create_model_pipeline(device, render_pass.get());
     auto descriptor_pool = create_descriptor_pool(device);
 
     auto device_image = image_with_memory(
@@ -95,9 +95,9 @@ void render_to_image(
     );
 
     std::vector<std::unique_ptr<renderer>> renderers;
-    renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool, &pipeline, &model));
+    renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool.get(), &pipeline, &model));
 
-    frame frame(physical_device, device, command_pool, descriptor_pool, device_image.image.get(), vk::Format::eR8G8B8A8Unorm, render_pass,
+    frame frame(physical_device, device, command_pool.get(), descriptor_pool.get(), device_image.image.get(), vk::Format::eR8G8B8A8Unorm, render_pass.get(),
         std::move(renderers));
 
     model_uniform_data data;
@@ -113,15 +113,11 @@ void render_to_image(
     }, frame.rendered_fence.get());
     device.waitForFences({ frame.rendered_fence.get() }, true, UINT64_MAX);
 
-    auto host_image = device_image.copy_from_device_to_host(physical_device, device, command_pool, queue);
+    auto host_image = device_image.copy_from_device_to_host(physical_device, device, command_pool.get(), queue);
     queue.waitIdle();
 
     auto ptr = reinterpret_cast<uint8_t*>(device.mapMemory(host_image->memory.get(), 0, 4 * host_image->width * host_image->height));
     // TODO fix channels
     lodepng::encode(image_path, ptr, host_image->width, host_image->height);
     device.unmapMemory(host_image->memory.get());
-
-    device.destroyDescriptorPool(descriptor_pool);
-    device.destroyRenderPass(render_pass);
-    device.destroyCommandPool(command_pool);
 }
