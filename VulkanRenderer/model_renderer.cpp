@@ -7,12 +7,11 @@ model_renderer::model_renderer(vk::PhysicalDevice physical_device, vk::Device de
     , model_pipeline(model_pipeline)
     , uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT, sizeof(model_uniform_data))
 {
-    auto set_layouts = { model_pipeline.set_layout };
+    std::array set_layouts { model_pipeline.set_layout };
     descriptor_set = device.allocateDescriptorSets(
         vk::DescriptorSetAllocateInfo()
         .setDescriptorPool(descriptor_pool)
-        .setDescriptorSetCount(uint32_t(set_layouts.size()))
-        .setPSetLayouts(set_layouts.begin())
+        .setSetLayouts(set_layouts)
     )[0];
 
     auto model_ub_info = vk::DescriptorBufferInfo()

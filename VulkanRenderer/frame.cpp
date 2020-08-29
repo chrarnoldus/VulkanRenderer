@@ -12,8 +12,7 @@ static void record_command_buffer(
 {
     command_buffer.begin(vk::CommandBufferBeginInfo());
 
-    const uint32_t clear_value_count = 2;
-    vk::ClearValue clear_values[clear_value_count] = {
+    std::array clear_values {
         vk::ClearValue().setColor(vk::ClearColorValue().setFloat32({0.f, 1.f, 1.f, 1.f})),
         vk::ClearValue().setDepthStencil(vk::ClearDepthStencilValue().setDepth(1.f))
     };
@@ -21,8 +20,7 @@ static void record_command_buffer(
     command_buffer.beginRenderPass(
         vk::RenderPassBeginInfo()
         .setRenderPass(render_pass)
-        .setClearValueCount(clear_value_count)
-        .setPClearValues(clear_values)
+        .setClearValues(clear_values)
         .setRenderArea(vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT)))
         .setFramebuffer(framebuffer),
         vk::SubpassContents::eInline
@@ -64,13 +62,11 @@ frame::frame(
         )
     );
 
-    const uint32_t attachment_count = 2;
-    vk::ImageView attachments[attachment_count] = { image_view, dsb.image_view };
+    std::array attachments { image_view, dsb.image_view };
     framebuffer = device.createFramebuffer(
         vk::FramebufferCreateInfo()
         .setRenderPass(render_pass)
-        .setAttachmentCount(attachment_count)
-        .setPAttachments(attachments)
+        .setAttachments(attachments)
         .setWidth(WIDTH)
         .setHeight(HEIGHT)
         .setLayers(1)

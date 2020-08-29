@@ -41,13 +41,11 @@ vk::RenderPass create_render_pass(vk::Device device, vk::Format color_format, vk
         .setPColorAttachments(&color_attachment)
         .setPDepthStencilAttachment(&depth_attachment);
 
-    const uint32_t attachment_count = 2;
-    vk::AttachmentDescription attachments[attachment_count] = { attachment0,attachment1 };
+    std::array attachments { attachment0,attachment1 };
 
     return device.createRenderPass(
         vk::RenderPassCreateInfo()
-        .setAttachmentCount(attachment_count)
-        .setPAttachments(attachments)
+        .setAttachments(attachments)
         .setSubpassCount(1)
         .setPSubpasses(&subpass)
     );
@@ -56,15 +54,14 @@ vk::RenderPass create_render_pass(vk::Device device, vk::Format color_format, vk
 vk::DescriptorPool create_descriptor_pool(vk::Device device)
 {
     auto max_count_per_type = uint32_t(10);
-    std::vector<vk::DescriptorPoolSize> sizes({
+    std::array sizes {
         vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_count_per_type),
         vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, max_count_per_type),
-    });
+    };
     return device.createDescriptorPool(
         vk::DescriptorPoolCreateInfo()
-        .setPoolSizeCount(uint32_t(sizes.size()))
-        .setPPoolSizes(sizes.data())
-        .setMaxSets(max_count_per_type * uint32_t(sizes.size()))
+        .setPoolSizes(sizes)
+        .setMaxSets(max_count_per_type * sizes.size())
     );
 }
 

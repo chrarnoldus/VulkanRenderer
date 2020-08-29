@@ -36,26 +36,23 @@ static std::optional<vk::UniqueDebugUtilsMessengerEXT> create_debug_report_callb
 static vk::UniqueInstance create_instance()
 {
 #if _DEBUG
-    const auto layerCount = 1;
-    const char* layerNames[layerCount] = { "VK_LAYER_KHRONOS_validation" };
+    std::array layerNames { "VK_LAYER_KHRONOS_validation" };
 #else
-    const auto layerCount = 0;
-    const char** layerNames = nullptr;
+    std::array<const char*, 0> layerNames;
 #endif
 
-    const auto extensionCount = 3;
-    const char* extensionNames[extensionCount] = {
+    std::array extensionNames {
+#if _DEBUG
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+#endif
         VK_KHR_SURFACE_EXTENSION_NAME,
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
     };
 
     return vk::createInstanceUnique(
         vk::InstanceCreateInfo()
-        .setEnabledLayerCount(layerCount)
-        .setPpEnabledLayerNames(layerNames)
-        .setEnabledExtensionCount(extensionCount)
-        .setPpEnabledExtensionNames(extensionNames)
+        .setPEnabledLayerNames(layerNames)
+        .setPEnabledExtensionNames(extensionNames)
     );
 }
 
@@ -75,13 +72,11 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
     auto props = physical_device.getQueueFamilyProperties();
     assert((props[0].queueFlags & vk::QueueFlagBits::eGraphics) == vk::QueueFlagBits::eGraphics);
 
-    float priorities[] = { 0.f };
+    std::array priorities { 0.f };
     auto queueInfo = vk::DeviceQueueCreateInfo()
-        .setQueueCount(1)
-        .setPQueuePriorities(priorities);
+        .setQueuePriorities(priorities);
 
-    const auto extensionCount = 1;
-    const char* extensionNames[extensionCount] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+    std::array extensionNames { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
     auto features = vk::PhysicalDeviceFeatures()
         .setMultiDrawIndirect(true)
@@ -93,8 +88,7 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
         vk::DeviceCreateInfo()
         .setQueueCreateInfoCount(1)
         .setPQueueCreateInfos(&queueInfo)
-        .setEnabledExtensionCount(1)
-        .setPpEnabledExtensionNames(extensionNames)
+        .setPEnabledExtensionNames(extensionNames)
         .setPEnabledFeatures(&features)
     );
 }

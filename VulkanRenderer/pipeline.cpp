@@ -43,8 +43,7 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
 
-    const auto stage_count = 2u;
-    vk::PipelineShaderStageCreateInfo stages[stage_count] = { vert_stage, frag_stage };
+    std::array stages { vert_stage, frag_stage };
 
     auto input_binding = vk::VertexInputBindingDescription()
         .setStride(sizeof(ImDrawVert));
@@ -64,14 +63,12 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setLocation(2)
         .setOffset(offsetof(ImDrawVert, col));
 
-    const uint32_t attribute_count = 3;
-    vk::VertexInputAttributeDescription attributes[attribute_count] = { position_attribute, uv_attribute, color_attribute };
+    std::array attributes { position_attribute, uv_attribute, color_attribute };
 
     auto input_state = vk::PipelineVertexInputStateCreateInfo()
         .setVertexBindingDescriptionCount(1)
         .setPVertexBindingDescriptions(&input_binding)
-        .setVertexAttributeDescriptionCount(attribute_count)
-        .setPVertexAttributeDescriptions(attributes);
+        .setVertexAttributeDescriptions(attributes);
 
     auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleList);
@@ -112,14 +109,13 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
 
     auto depth_stencil_state = vk::PipelineDepthStencilStateCreateInfo();
 
-    auto samplers = std::vector<vk::Sampler>({
+    std::vector samplers {
         device.createSampler(
             vk::SamplerCreateInfo()
             .setMagFilter(vk::Filter::eLinear)
             .setMinFilter(vk::Filter::eLinear)
             .setMipmapMode(vk::SamplerMipmapMode::eLinear)
-        ) });
-
+        ) };
 
     auto uniform_binding = vk::DescriptorSetLayoutBinding()
         .setBinding(0)
@@ -129,17 +125,15 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
 
     auto sampler_binding = vk::DescriptorSetLayoutBinding()
         .setBinding(1)
-        .setDescriptorCount(1)
         .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
         .setStageFlags(vk::ShaderStageFlagBits::eFragment)
-        .setPImmutableSamplers(samplers.data());
+        .setImmutableSamplers(samplers);
 
-    auto bindings = { uniform_binding, sampler_binding };
+    std::array bindings = { uniform_binding, sampler_binding };
 
     auto set_layout = device.createDescriptorSetLayout(
         vk::DescriptorSetLayoutCreateInfo()
-        .setBindingCount(uint32_t(bindings.size()))
-        .setPBindings(bindings.begin())
+        .setBindings(bindings)
     );
     auto layout = device.createPipelineLayout(
         vk::PipelineLayoutCreateInfo()
@@ -150,8 +144,7 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
     auto pl = device.createGraphicsPipeline(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
-        .setStageCount(stage_count)
-        .setPStages(stages)
+        .setStages(stages)
         .setPVertexInputState(&input_state)
         .setPInputAssemblyState(&assembly_state)
         .setPViewportState(&viewport_state)
@@ -190,8 +183,7 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
 
-    const auto stage_count = 2u;
-    vk::PipelineShaderStageCreateInfo stages[stage_count] = { vert_stage, frag_stage };
+    std::array stages { vert_stage, frag_stage };
 
     auto input_binding = vk::VertexInputBindingDescription()
         .setStride(sizeof(vertex));
@@ -211,14 +203,12 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setLocation(2)
         .setOffset(offsetof(vertex, color));
 
-    const uint32_t attribute_count = 3;
-    vk::VertexInputAttributeDescription attributes[attribute_count] = { position_attribute, normal_attribute, color_attribute };
+    std::array attributes { position_attribute, normal_attribute, color_attribute };
 
     auto input_state = vk::PipelineVertexInputStateCreateInfo()
         .setVertexBindingDescriptionCount(1)
         .setPVertexBindingDescriptions(&input_binding)
-        .setVertexAttributeDescriptionCount(attribute_count)
-        .setPVertexAttributeDescriptions(attributes);
+        .setVertexAttributeDescriptions(attributes);
 
     auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleList);
@@ -274,8 +264,7 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
     auto pl = device.createGraphicsPipeline(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
-        .setStageCount(stage_count)
-        .setPStages(stages)
+        .setStages(stages)
         .setPVertexInputState(&input_state)
         .setPInputAssemblyState(&assembly_state)
         .setPViewportState(&viewport_state)

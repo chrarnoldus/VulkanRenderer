@@ -14,12 +14,11 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
     , ui_pipeline(ui_pipeline)
     , font_image(font_image)
 {
-    auto set_layouts = { ui_pipeline.set_layout };
+    std::array set_layouts { ui_pipeline.set_layout };
     descriptor_set = device.allocateDescriptorSets(
         vk::DescriptorSetAllocateInfo()
         .setDescriptorPool(descriptor_pool)
-        .setDescriptorSetCount(uint32_t(set_layouts.size()))
-        .setPSetLayouts(set_layouts.begin())
+        .setSetLayouts(set_layouts)
     )[0];
 
 
