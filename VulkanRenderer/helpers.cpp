@@ -95,7 +95,7 @@ void render_to_image(
     );
 
     frame frame(physical_device, device, command_pool, descriptor_pool, device_image.image.get(), vk::Format::eR8G8B8A8Unorm, render_pass, {
-        new model_renderer(physical_device, device, descriptor_pool, pipeline, &model)
+        new model_renderer(physical_device, device, descriptor_pool, &pipeline, &model)
     });
 
     model_uniform_data data;
@@ -121,7 +121,6 @@ void render_to_image(
 
     frame.destroy(device);
     device.destroyDescriptorPool(descriptor_pool);
-    pipeline.destroy(device);
     device.destroyRenderPass(render_pass);
     device.destroyCommandPool(command_pool);
 }

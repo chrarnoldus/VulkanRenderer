@@ -21,13 +21,13 @@ static uint32_t ui_frag_shader_spv[] = {
 
 pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
 {
-    auto vert_shader = device.createShaderModule(
+    auto vert_shader = device.createShaderModuleUnique(
         vk::ShaderModuleCreateInfo()
         .setCodeSize(sizeof(ui_vert_shader_spv))
         .setPCode(ui_vert_shader_spv)
     );
 
-    auto frag_shader = device.createShaderModule(
+    auto frag_shader = device.createShaderModuleUnique(
         vk::ShaderModuleCreateInfo()
         .setCodeSize(sizeof(ui_frag_shader_spv))
         .setPCode(ui_frag_shader_spv)
@@ -35,11 +35,11 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
 
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
         .setStage(vk::ShaderStageFlagBits::eVertex)
-        .setModule(vert_shader)
+        .setModule(vert_shader.get())
         .setPName("main");
 
     auto frag_stage = vk::PipelineShaderStageCreateInfo()
-        .setModule(frag_shader)
+        .setModule(frag_shader.get())
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
 
@@ -131,17 +131,17 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
 
     std::array bindings = { uniform_binding, sampler_binding };
 
-    auto set_layout = device.createDescriptorSetLayout(
+    auto set_layout = device.createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo()
         .setBindings(bindings)
     );
-    auto layout = device.createPipelineLayout(
+    auto layout = device.createPipelineLayoutUnique(
         vk::PipelineLayoutCreateInfo()
         .setSetLayoutCount(1)
-        .setPSetLayouts(&set_layout)
+        .setPSetLayouts(&set_layout.get())
     );
 
-    auto pl = device.createGraphicsPipeline(
+    auto pl = device.createGraphicsPipelineUnique(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
         .setStages(stages)
@@ -153,21 +153,21 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setPColorBlendState(&blend_state)
         .setPDepthStencilState(&depth_stencil_state)
         .setRenderPass(render_pass)
-        .setLayout(layout)
+        .setLayout(layout.get())
     );
 
-    return pipeline(vert_shader, frag_shader, samplers, layout, set_layout, pl);
+    return pipeline(device, std::move(vert_shader), std::move(frag_shader), samplers, std::move(layout), std::move(set_layout), std::move(pl));
 }
 
 pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
 {
-    auto vert_shader = device.createShaderModule(
+    auto vert_shader = device.createShaderModuleUnique(
         vk::ShaderModuleCreateInfo()
         .setCodeSize(sizeof(model_vert_shader_spv))
         .setPCode(model_vert_shader_spv)
     );
 
-    auto frag_shader = device.createShaderModule(
+    auto frag_shader = device.createShaderModuleUnique(
         vk::ShaderModuleCreateInfo()
         .setCodeSize(sizeof(model_frag_shader_spv))
         .setPCode(model_frag_shader_spv)
@@ -175,11 +175,11 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
 
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
         .setStage(vk::ShaderStageFlagBits::eVertex)
-        .setModule(vert_shader)
+        .setModule(vert_shader.get())
         .setPName("main");
 
     auto frag_stage = vk::PipelineShaderStageCreateInfo()
-        .setModule(frag_shader)
+        .setModule(frag_shader.get())
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
 
@@ -250,18 +250,18 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
         .setStageFlags(vk::ShaderStageFlagBits::eVertex);
 
-    auto set_layout = device.createDescriptorSetLayout(
+    auto set_layout = device.createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo()
         .setBindingCount(1)
         .setPBindings(&binding)
     );
-    auto layout = device.createPipelineLayout(
+    auto layout = device.createPipelineLayoutUnique(
         vk::PipelineLayoutCreateInfo()
         .setSetLayoutCount(1)
-        .setPSetLayouts(&set_layout)
+        .setPSetLayouts(&set_layout.get())
     );
 
-    auto pl = device.createGraphicsPipeline(
+    auto pl = device.createGraphicsPipelineUnique(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
         .setStages(stages)
@@ -273,26 +273,21 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setPColorBlendState(&blend_state)
         .setPDepthStencilState(&depth_stencil_state)
         .setRenderPass(render_pass)
-        .setLayout(layout)
+        .setLayout(layout.get())
     );
 
-    return pipeline(vert_shader, frag_shader, std::vector<vk::Sampler>(), layout, set_layout, pl);
+    return pipeline(device, std::move(vert_shader), std::move(frag_shader), std::vector<vk::Sampler>(), std::move(layout), std::move(set_layout), std::move(pl));
 }
 
-pipeline::pipeline(vk::ShaderModule vert_shader, vk::ShaderModule frag_shader, std::vector<vk::Sampler> samplers, vk::PipelineLayout layout, vk::DescriptorSetLayout set_layout, vk::Pipeline pl)
-    : vert_shader(vert_shader), frag_shader(frag_shader), samplers(samplers), layout(layout), set_layout(set_layout), pl(pl)
+pipeline::pipeline(vk::Device device, vk::UniqueShaderModule vert_shader, vk::UniqueShaderModule frag_shader, std::vector<vk::Sampler> samplers, vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl)
+    : device(device), vert_shader(std::move(vert_shader)), frag_shader(std::move(frag_shader)), samplers(samplers), layout(std::move(layout)), set_layout(std::move(set_layout)), pl(std::move(pl))
 {
 }
 
-void pipeline::destroy(vk::Device device) const
+pipeline::~pipeline()
 {
-    device.destroyPipeline(pl);
-    device.destroyPipelineLayout(layout);
-    device.destroyDescriptorSetLayout(set_layout);
-    for (auto sampler : samplers)
+    for (auto sampler: samplers)
     {
         device.destroySampler(sampler);
     }
-    device.destroyShaderModule(frag_shader);
-    device.destroyShaderModule(vert_shader);
 }

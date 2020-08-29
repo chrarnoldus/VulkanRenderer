@@ -4,15 +4,16 @@
 
 struct pipeline
 {
-    vk::ShaderModule vert_shader;
-    vk::ShaderModule frag_shader;
-    std::vector<vk::Sampler> samplers;
-    vk::PipelineLayout layout;
-    vk::DescriptorSetLayout set_layout;
-    vk::Pipeline pl;
+    vk::Device device;
+    vk::UniqueShaderModule vert_shader;
+    vk::UniqueShaderModule frag_shader;
+    std::vector<vk::Sampler> samplers; //owner
+    vk::UniquePipelineLayout layout;
+    vk::UniqueDescriptorSetLayout set_layout;
+    vk::UniquePipeline pl;
 
-    pipeline(vk::ShaderModule vert_shader, vk::ShaderModule frag_shader, std::vector<vk::Sampler> samplers, vk::PipelineLayout layout, vk::DescriptorSetLayout set_layout, vk::Pipeline pl);
-    void destroy(vk::Device device) const;
+    pipeline(vk::Device device, vk::UniqueShaderModule vert_shader, vk::UniqueShaderModule frag_shader, std::vector<vk::Sampler> samplers, vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl);
+    ~pipeline();
 };
 
 pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass);

@@ -6,7 +6,7 @@
 static const uint32_t MAX_VERTEX_COUNT = UINT16_MAX;
 static const uint32_t MAX_INDEX_COUNT = UINT16_MAX;
 
-ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool, pipeline ui_pipeline, const image_with_view* font_image)
+ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool, const pipeline* ui_pipeline, const image_with_view* font_image)
     : vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT, MAX_VERTEX_COUNT * sizeof(ImDrawVert))
     , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, HOST_VISIBLE_AND_COHERENT, MAX_INDEX_COUNT * sizeof(uint16_t))
     , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, HOST_VISIBLE_AND_COHERENT, MAX_UI_DRAW_COUNT * sizeof(VkDrawIndexedIndirectCommand))
@@ -14,7 +14,7 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
     , ui_pipeline(ui_pipeline)
     , font_image(font_image)
 {
-    std::array set_layouts { ui_pipeline.set_layout };
+    std::array set_layouts { ui_pipeline->set_layout.get() };
     descriptor_set = device.allocateDescriptorSets(
         vk::DescriptorSetAllocateInfo()
         .setDescriptorPool(descriptor_pool)
@@ -106,8 +106,8 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
 
 void ui_renderer::draw(vk::CommandBuffer command_buffer) const
 {
-    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, ui_pipeline.layout, 0, descriptor_set, {});
-    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, ui_pipeline.pl);
+    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, ui_pipeline->layout.get(), 0, descriptor_set, {});
+    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, ui_pipeline->pl.get());
 
     command_buffer.bindIndexBuffer(index_buffer.buf.get(), 0, vk::IndexType::eUint16);
     command_buffer.bindVertexBuffers(0, { vertex_buffer.buf.get() }, { 0 });
