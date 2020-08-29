@@ -216,6 +216,14 @@ static void error_callback(int error, const char* description)
     throw std::runtime_error(description);
 }
 
+static vk::UniqueSurfaceKHR create_window_surface(vk::Instance instance, GLFWwindow* window)
+{
+    VkSurfaceKHR surface;
+    auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+    assert(result == VK_SUCCESS);
+    return vk::UniqueSurfaceKHR(surface, instance);
+}
+
 void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device, vk::Device device, const std::string& model_path)
 {
     initialize_imgui();
@@ -230,21 +238,15 @@ void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device,
     auto window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan renderer", nullptr, nullptr);
     assert(window);
 
-    VkSurfaceKHR surface;
-    auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
-    assert(result == VK_SUCCESS);
+    auto surface = create_window_surface(instance, window);
 
+    input_state input(window);
+    auto app = vulkanapp(physical_device, device, surface.get(), model_path);
+    while (!glfwWindowShouldClose(window))
     {
-        input_state input(window);
-        auto app = vulkanapp(physical_device, device, surface, model_path);
-        while (!glfwWindowShouldClose(window))
-        {
-            input.update();
-            app.update(device, input);
-        }
+        input.update();
+        app.update(device, input);
     }
-
-    instance.destroySurfaceKHR(surface);
 
     glfwTerminate();
 
