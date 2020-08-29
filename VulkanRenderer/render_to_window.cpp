@@ -86,6 +86,10 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     auto images = device.getSwapchainImagesKHR(swapchain);
     for (auto image : images)
     {
+        std::vector<std::unique_ptr<renderer>> renderers;
+        renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool, &model_pipeline, &mdl));
+        renderers.emplace_back(new ui_renderer(physical_device, device, descriptor_pool, &ui_pipeline, &font_image));
+
         frames.emplace_back(new frame(
             physical_device,
             device,
@@ -94,10 +98,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
             image,
             vk::Format::eB8G8R8A8Unorm,
             render_pass,
-            std::vector<renderer*> {
-                new model_renderer(physical_device, device, descriptor_pool, &model_pipeline, &mdl),
-                new ui_renderer(physical_device, device, descriptor_pool, &ui_pipeline, &font_image)
-            }
+            std::move(renderers)
         ));
     }
 }

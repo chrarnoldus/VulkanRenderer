@@ -94,9 +94,11 @@ void render_to_image(
         vk::ImageAspectFlagBits::eColor
     );
 
-    frame frame(physical_device, device, command_pool, descriptor_pool, device_image.image.get(), vk::Format::eR8G8B8A8Unorm, render_pass, {
-        new model_renderer(physical_device, device, descriptor_pool, &pipeline, &model)
-    });
+    std::vector<std::unique_ptr<renderer>> renderers;
+    renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool, &pipeline, &model));
+
+    frame frame(physical_device, device, command_pool, descriptor_pool, device_image.image.get(), vk::Format::eR8G8B8A8Unorm, render_pass,
+        std::move(renderers));
 
     model_uniform_data data;
     data.projection = glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f);

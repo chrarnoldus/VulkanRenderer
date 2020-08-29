@@ -6,7 +6,7 @@
 static void record_command_buffer(
     vk::CommandBuffer command_buffer,
     vk::RenderPass render_pass,
-    std::vector<renderer*> renderers,
+    const std::vector<std::unique_ptr<renderer>>& renderers,
     vk::Framebuffer framebuffer
 )
 {
@@ -26,7 +26,7 @@ static void record_command_buffer(
         vk::SubpassContents::eInline
     );
 
-    for (auto renderer : renderers)
+    for (auto& renderer : renderers)
     {
         renderer->draw(command_buffer);
     }
@@ -43,9 +43,9 @@ frame::frame(
     vk::Image image,
     vk::Format format,
     vk::RenderPass render_pass,
-    std::vector<renderer*> renderers)
+    std::vector<std::unique_ptr<renderer>> renderers)
     : device(device), dsb(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT, vk::Format::eD24UnormS8Uint, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil))
-    , renderers(renderers)
+    , renderers(std::move(renderers))
 {
     this->image = image;
 
@@ -80,21 +80,14 @@ frame::frame(
         .setCommandBufferCount(1)
     )[0];
 
-    record_command_buffer(command_buffer, render_pass, renderers, framebuffer.get());
+    record_command_buffer(command_buffer, render_pass, this->renderers, framebuffer.get());
 }
 
 void frame::update( model_uniform_data model_uniform_data) const
 {
-    for (auto renderer : renderers)
+    for (auto& renderer : renderers)
     {
         renderer->update(device, model_uniform_data);
     }
 }
 
-frame::~frame()
-{
-    for (auto renderer : renderers)
-    {
-        delete renderer;
-    }
-}
