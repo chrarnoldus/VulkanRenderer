@@ -8,8 +8,8 @@
 #include <tinyply.h>
 #pragma warning( pop )
 
-model::model(uint32_t vertex_count, std::unique_ptr<buffer> vertex_buffer, std::unique_ptr<buffer> index_buffer)
-    : index_count(vertex_count), vertex_buffer(std::move(vertex_buffer)), index_buffer(std::move(index_buffer))
+model::model(uint32_t vertex_count, uint32_t index_count, std::unique_ptr<buffer> vertex_buffer, std::unique_ptr<buffer> index_buffer)
+    : vertex_count(vertex_count), index_count(index_count), vertex_buffer(std::move(vertex_buffer)), index_buffer(std::move(index_buffer))
 {
 }
 
@@ -136,5 +136,5 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
     queue.waitIdle();
 
     std::printf("Model loaded: %llu triangles, %.2lf MB\n", face_count, (vertex_buffer.size + index_buffer.size) / (1024. * 1024.));
-    return model(uint32_t(indices.size()), std::move(device_vertex_buffer), std::move(device_index_buffer));
+    return model(vertex_count, uint32_t(indices.size()), std::move(device_vertex_buffer), std::move(device_index_buffer));
 }
