@@ -78,6 +78,9 @@
     <ClCompile Include="image_with_view.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="acceleration_structure.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -120,6 +123,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="image_with_view.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acceleration_structure.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

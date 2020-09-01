@@ -3,6 +3,8 @@
 
 #define HOST_VISIBLE_AND_COHERENT (vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)
 
+uint32_t get_memory_index(vk::PhysicalDevice physical_device, vk::MemoryPropertyFlags memory_flags, vk::MemoryRequirements reqs);
+
 struct buffer
 {
     vk::DeviceSize size;

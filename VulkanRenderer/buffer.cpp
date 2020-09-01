@@ -1,17 +1,8 @@
 #include "stdafx.h"
 #include "buffer.h"
 
-buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::BufferUsageFlags usage_flags, vk::MemoryPropertyFlags memory_flags, vk::DeviceSize size)
+uint32_t get_memory_index(vk::PhysicalDevice physical_device, vk::MemoryPropertyFlags memory_flags, vk::MemoryRequirements reqs)
 {
-    this->size = size;
-
-    buf = device.createBufferUnique(
-        vk::BufferCreateInfo()
-        .setSize(size)
-        .setUsage(usage_flags)
-    );
-
-    auto reqs = device.getBufferMemoryRequirements(buf.get());
     auto props = physical_device.getMemoryProperties();
 
     auto memory_type_index = UINT32_MAX;
@@ -24,6 +15,22 @@ buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::Buffer
         }
     }
     assert(memory_type_index != UINT32_MAX);
+
+    return memory_type_index;
+}
+
+buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::BufferUsageFlags usage_flags, vk::MemoryPropertyFlags memory_flags, vk::DeviceSize size)
+{
+    this->size = size;
+
+    buf = device.createBufferUnique(
+        vk::BufferCreateInfo()
+        .setSize(size)
+        .setUsage(usage_flags)
+    );
+
+    auto reqs = device.getBufferMemoryRequirements(buf.get());
+    uint32_t memory_type_index = get_memory_index(physical_device, memory_flags, reqs);
 
     memory = device.allocateMemoryUnique(
         vk::MemoryAllocateInfo()
