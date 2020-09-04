@@ -5,7 +5,8 @@
 
 acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_device,
                                                vk::Device device, vk::CommandPool command_pool, vk::Queue queue,
-                                               vk::AccelerationStructureInfoNV info)
+                                               vk::AccelerationStructureInfoNV info,
+                                               vk::Buffer instance_data)
 {
     ac = device.createAccelerationStructureNVUnique(vk::AccelerationStructureCreateInfoNV().setInfo(info));
 
@@ -44,7 +45,7 @@ acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_devic
     )[0]);
 
     command_buffer->begin(vk::CommandBufferBeginInfo());
-    command_buffer->buildAccelerationStructureNV(info, nullptr, 0, false, ac.get(), nullptr, scratch.buf.get(), 0);
+    command_buffer->buildAccelerationStructureNV(info, instance_data, 0, false, ac.get(), nullptr, scratch.buf.get(), 0);
     command_buffer->end();
 
     std::array command_buffers{command_buffer.get()};
