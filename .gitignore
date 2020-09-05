@@ -5,5 +5,8 @@ x64
 *.user
 *.vert.num
 *.frag.num
+*.rgen.num
+*.rchit.num
+*.rmiss.num
 *.received.*
 imgui.ini

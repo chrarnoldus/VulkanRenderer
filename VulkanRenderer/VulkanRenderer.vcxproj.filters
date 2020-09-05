@@ -16,6 +16,9 @@
     <Filter Include="Source Files\Dependencies">
       <UniqueIdentifier>{bba1b8cc-01d3-49a4-b392-0fc40def650d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{6e6729b9-4f04-45b9-bc7f-e3e75132fb77}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -136,17 +139,26 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="ui.vert">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="ui.frag">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="model.vert">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Shaders</Filter>
     </CustomBuild>
     <CustomBuild Include="model.frag">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="model.rchit">
+      <Filter>Source Files\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="model.rgen">
+      <Filter>Source Files\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="model.rmiss">
+      <Filter>Source Files\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="ui.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="ui.vert">
+      <Filter>Source Files\Shaders</Filter>
     </CustomBuild>
   </ItemGroup>
 </Project>

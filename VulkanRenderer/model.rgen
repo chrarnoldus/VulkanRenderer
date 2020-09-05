@@ -1,0 +1,27 @@
+#version 460
+#extension GL_NV_ray_tracing : enable
+
+layout(set = 0, binding = 0, std140) uniform ub
+{
+    mat4 projection;
+    mat4 modelView;
+};
+
+layout(set = 0, binding = 1) uniform accelerationStructureNV topLevelAS;
+layout(set = 0, binding = 1, rgba8) uniform image2D image;
+
+layout(location = 0) rayPayloadNV vec3 color;
+
+void main()
+{
+    vec2 pixelCenter = vec2(gl_LaunchIDNV.xy) + vec2(0.5);
+    vec2 normalizedPixelCenter = 2.0 * (pixelCenter / vec2(gl_LaunchSizeNV.xy)) - 1.0;
+
+    vec4 origin = inverse(modelView) * vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 target = inverse(projection) * vec4(normalizedPixelCenter, 1.0, 1.0);
+    vec4 direction = inverse(modelView) * normalize(vec4(target.xyz, 0.0));
+
+    traceNV(topLevelAS, 0, 0, 0, 0, 0, origin.xyz, 0.001, direction.xyz, 1000.0, 0);
+
+    imageStore(image, ivec2(gl_LaunchIDNV.xy), vec4(color, 1.0));
+}

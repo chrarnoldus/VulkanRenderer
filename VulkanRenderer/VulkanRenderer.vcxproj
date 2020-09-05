@@ -191,5 +191,25 @@
       <Outputs>%(FullPath).num;%(Outputs)</Outputs>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="model.rchit">
+      <FileType>Document</FileType>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Message>Compiling %(Identity)</Message>
+      <Outputs>%(FullPath).num;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="model.rgen">
+      <FileType>Document</FileType>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Message>Compiling %(Identity)</Message>
+      <Outputs>%(FullPath).num;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="model.rmiss">
+      <FileType>Document</FileType>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Message>Compiling %(Identity)</Message>
+      <Outputs>%(FullPath).num;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
