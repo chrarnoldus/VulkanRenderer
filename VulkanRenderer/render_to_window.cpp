@@ -147,7 +147,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         glm::lookAt(
             glm::vec3(0.f, 0.f, camera_distance),
             glm::vec3(0.f, 0.f, 0.f),
-            glm::vec3(0.f, -1.f, 0.f)
+            glm::vec3(0.f, 1.f, 0.f)
         )
         *
         glm::mat4_cast(trackball_rotation);

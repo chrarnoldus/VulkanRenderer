@@ -213,7 +213,11 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
     auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleList);
 
-    auto viewport = vk::Viewport().setWidth(float(WIDTH)).setHeight(float(HEIGHT)).setMaxDepth(1.0);
+    auto viewport = vk::Viewport()
+        .setWidth(float(WIDTH))
+        .setY(float(HEIGHT))
+        .setHeight(-float(HEIGHT))
+        .setMaxDepth(1.0);
     auto scissor = vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT));
 
     auto viewport_state = vk::PipelineViewportStateCreateInfo()
