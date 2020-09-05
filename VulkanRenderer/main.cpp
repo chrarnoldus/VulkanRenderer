@@ -47,6 +47,7 @@ static vk::UniqueInstance create_instance()
 #endif
         VK_KHR_SURFACE_EXTENSION_NAME,
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
     };
 
     return vk::createInstanceUnique(
@@ -76,7 +77,11 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
     auto queueInfo = vk::DeviceQueueCreateInfo()
         .setQueuePriorities(priorities);
 
-    std::array extensionNames { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+    std::array extensionNames {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+        VK_NV_RAY_TRACING_EXTENSION_NAME,
+    };
 
     auto features = vk::PhysicalDeviceFeatures()
         .setMultiDrawIndirect(true)
