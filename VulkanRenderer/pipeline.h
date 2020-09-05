@@ -7,12 +7,13 @@ struct pipeline
     vk::Device device;
     vk::UniqueShaderModule vert_shader;
     vk::UniqueShaderModule frag_shader;
+    std::vector<vk::ShaderModule> shader_modules; //owner
     std::vector<vk::Sampler> samplers; //owner
     vk::UniquePipelineLayout layout;
     vk::UniqueDescriptorSetLayout set_layout;
     vk::UniquePipeline pl;
 
-    pipeline(vk::Device device, vk::UniqueShaderModule vert_shader, vk::UniqueShaderModule frag_shader, std::vector<vk::Sampler> samplers, vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl);
+    pipeline(vk::Device device, std::vector<vk::ShaderModule> shader_modules, std::vector<vk::Sampler> samplers, vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl);
     ~pipeline();
 };
 

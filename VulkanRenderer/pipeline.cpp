@@ -21,13 +21,13 @@ static uint32_t ui_frag_shader_spv[] = {
 
 pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
 {
-    auto vert_shader = device.createShaderModuleUnique(
+    auto vert_shader = device.createShaderModule(
         vk::ShaderModuleCreateInfo()
         .setCodeSize(sizeof(ui_vert_shader_spv))
         .setPCode(ui_vert_shader_spv)
     );
 
-    auto frag_shader = device.createShaderModuleUnique(
+    auto frag_shader = device.createShaderModule(
         vk::ShaderModuleCreateInfo()
         .setCodeSize(sizeof(ui_frag_shader_spv))
         .setPCode(ui_frag_shader_spv)
@@ -35,11 +35,11 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
 
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
         .setStage(vk::ShaderStageFlagBits::eVertex)
-        .setModule(vert_shader.get())
+        .setModule(vert_shader)
         .setPName("main");
 
     auto frag_stage = vk::PipelineShaderStageCreateInfo()
-        .setModule(frag_shader.get())
+        .setModule(frag_shader)
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
 
@@ -156,18 +156,18 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setLayout(layout.get())
     );
 
-    return pipeline(device, std::move(vert_shader), std::move(frag_shader), samplers, std::move(layout), std::move(set_layout), std::move(pl));
+    return pipeline(device,  {vert_shader, frag_shader }, samplers, std::move(layout), std::move(set_layout), std::move(pl));
 }
 
 pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
 {
-    auto vert_shader = device.createShaderModuleUnique(
+    auto vert_shader = device.createShaderModule(
         vk::ShaderModuleCreateInfo()
         .setCodeSize(sizeof(model_vert_shader_spv))
         .setPCode(model_vert_shader_spv)
     );
 
-    auto frag_shader = device.createShaderModuleUnique(
+    auto frag_shader = device.createShaderModule(
         vk::ShaderModuleCreateInfo()
         .setCodeSize(sizeof(model_frag_shader_spv))
         .setPCode(model_frag_shader_spv)
@@ -175,11 +175,11 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
 
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
         .setStage(vk::ShaderStageFlagBits::eVertex)
-        .setModule(vert_shader.get())
+        .setModule(vert_shader)
         .setPName("main");
 
     auto frag_stage = vk::PipelineShaderStageCreateInfo()
-        .setModule(frag_shader.get())
+        .setModule(frag_shader)
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
 
@@ -280,11 +280,11 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setLayout(layout.get())
     );
 
-    return pipeline(device, std::move(vert_shader), std::move(frag_shader), std::vector<vk::Sampler>(), std::move(layout), std::move(set_layout), std::move(pl));
+    return pipeline(device, { vert_shader, frag_shader }, std::vector<vk::Sampler>(), std::move(layout), std::move(set_layout), std::move(pl));
 }
 
-pipeline::pipeline(vk::Device device, vk::UniqueShaderModule vert_shader, vk::UniqueShaderModule frag_shader, std::vector<vk::Sampler> samplers, vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl)
-    : device(device), vert_shader(std::move(vert_shader)), frag_shader(std::move(frag_shader)), samplers(samplers), layout(std::move(layout)), set_layout(std::move(set_layout)), pl(std::move(pl))
+pipeline::pipeline(vk::Device device, std::vector<vk::ShaderModule> shader_modules, std::vector<vk::Sampler> samplers, vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl)
+    : device(device), shader_modules(shader_modules), samplers(samplers), layout(std::move(layout)), set_layout(std::move(set_layout)), pl(std::move(pl))
 {
 }
 
@@ -293,5 +293,9 @@ pipeline::~pipeline()
     for (auto sampler: samplers)
     {
         device.destroySampler(sampler);
+    }
+    for (auto shader_module: shader_modules)
+    {
+        device.destroyShaderModule(shader_module);
     }
 }
