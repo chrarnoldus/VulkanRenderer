@@ -115,73 +115,80 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 int main(int argc, char** argv)
 {
-    cxxopts::Options options("VulkanRenderer", "Vulkan renderer");
-    options.add_options()
-        ("model", "PLY model to render. File dialog will be shown if ommitted.", cxxopts::value<std::string>(), "path")
-        ("image", "PNG image to save rendering to (overwrites existing). No window will be created if specified.", cxxopts::value<std::string>(), "path")
-        ("camera_position", "When using --image, specifies the camera position.", cxxopts::value<std::vector<float>>(), "x y z")
-        ("camera_up", "When using --image, specifies the camera up vector.", cxxopts::value<std::vector<float>>(), "x y z")
-        ("help", "Show help")
-        ;
+    try {
+        cxxopts::Options options("VulkanRenderer", "Vulkan renderer");
+        options.add_options()
+            ("model", "PLY model to render. File dialog will be shown if ommitted.", cxxopts::value<std::string>(), "path")
+            ("image", "PNG image to save rendering to (overwrites existing). No window will be created if specified.", cxxopts::value<std::string>(), "path")
+            ("camera_position", "When using --image, specifies the camera position.", cxxopts::value<std::vector<float>>(), "x y z")
+            ("camera_up", "When using --image, specifies the camera up vector.", cxxopts::value<std::vector<float>>(), "x y z")
+            ("help", "Show help")
+            ;
 
-    cxxopts::ParseResult result = options.parse(argc, argv);
+        cxxopts::ParseResult result = options.parse(argc, argv);
 
-    if (result["help"].count() > 0) {
-        std::cout << options.help();
+        if (result["help"].count() > 0) {
+            std::cout << options.help();
+            return EXIT_SUCCESS;
+        }
+
+        std::string model_path;
+        auto model_path_option = result["model"];
+
+        if (model_path_option.count() == 1)
+        {
+            model_path = model_path_option.as<std::string>();
+        }
+        else
+        {
+            auto pattern = "*.ply";
+            auto model_path_ptr = tinyfd_openFileDialog("Open 3D model", nullptr, 1, &pattern, nullptr, 0);
+            if (!model_path_ptr)
+            {
+                return EXIT_FAILURE;
+            }
+            model_path = model_path_ptr;
+        }
+
+        vk::DynamicLoader dl;
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
+
+        auto instance = create_instance();
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(instance.get());
+
+        auto callback = create_debug_report_callback(instance.get());
+        auto physical_device = get_physical_device(instance.get());
+
+        auto device = create_device(physical_device);
+        VULKAN_HPP_DEFAULT_DISPATCHER.init(device.get());
+
+        auto image_path_option = result["image"];
+        if (image_path_option.count() == 1)
+        {
+            auto camera_position_option = result["camera_position"];
+            auto camera_position = camera_position_option.count() == 3
+                ? std_vector_to_glm_vec3(camera_position_option.as<std::vector<float>>())
+                : glm::vec3(0.f, 0.f, 2.f);
+
+            auto camera_up_vector = result["camera_up"];
+            auto camera_up = camera_up_vector.count() == 3
+                ? std_vector_to_glm_vec3(camera_up_vector.as<std::vector<float>>())
+                : glm::vec3(0.f, -1.f, 0.f);
+
+            std::cout << "Rendering to image..." << std::endl;
+            render_to_image(physical_device, device.get(), model_path, image_path_option.as<std::string>(), camera_position, camera_up);
+        }
+        else
+        {
+            std::cout << "Rendering to window..." << std::endl;
+            render_to_window(instance.get(), physical_device, device.get(), model_path);
+        }
+
         return EXIT_SUCCESS;
     }
-
-    std::string model_path;
-    auto model_path_option = result["model"];
-
-    if (model_path_option.count() == 1)
+    catch (const std::exception& e)
     {
-        model_path = model_path_option.as<std::string>();
+        std::cout << e.what() << std::endl;
+        throw;
     }
-    else
-    {
-        auto pattern = "*.ply";
-        auto model_path_ptr = tinyfd_openFileDialog("Open 3D model", nullptr, 1, &pattern, nullptr, 0);
-        if (!model_path_ptr)
-        {
-            return EXIT_FAILURE;
-        }
-        model_path = model_path_ptr;
-    }
-
-    vk::DynamicLoader dl;
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr"));
-
-    auto instance = create_instance();
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(instance.get());
-
-    auto callback = create_debug_report_callback(instance.get());
-    auto physical_device = get_physical_device(instance.get());
-
-    auto device = create_device(physical_device);
-    VULKAN_HPP_DEFAULT_DISPATCHER.init(device.get());
-
-    auto image_path_option = result["image"];
-    if (image_path_option.count() == 1)
-    {
-        auto camera_position_option = result["camera_position"];
-        auto camera_position = camera_position_option.count() == 3
-            ? std_vector_to_glm_vec3(camera_position_option.as<std::vector<float>>())
-            : glm::vec3(0.f, 0.f, 2.f);
-
-        auto camera_up_vector = result["camera_up"];
-        auto camera_up = camera_up_vector.count() == 3
-            ? std_vector_to_glm_vec3(camera_up_vector.as<std::vector<float>>())
-            : glm::vec3(0.f, -1.f, 0.f);
-
-        std::cout << "Rendering to image..." << std::endl;
-        render_to_image(physical_device, device.get(), model_path, image_path_option.as<std::string>(), camera_position, camera_up);
-    }
-    else
-    {
-        std::cout << "Rendering to window..." << std::endl;
-        render_to_window(instance.get(), physical_device, device.get(), model_path);
-    }
-
-    return EXIT_SUCCESS;
 }
