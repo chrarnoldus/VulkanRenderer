@@ -65,7 +65,12 @@ static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
     auto devices = vulkan.enumeratePhysicalDevices();
     assert(devices.size() > 0);
 
-    auto device = devices[0];
+    auto device_it = std::find_if(std::begin(devices), std::end(devices), [](auto d)
+    {
+        return d.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu;
+    });
+
+    auto device = device_it != std::end(devices) ? *device_it : devices[0];
     auto props = device.getProperties();
     std::cout << "Using physical device " << props.deviceName << std::endl;
     return device;
