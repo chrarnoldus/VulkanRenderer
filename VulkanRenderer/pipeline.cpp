@@ -11,6 +11,18 @@ static uint32_t model_frag_shader_spv[] = {
 #include "model.frag.num"
 };
 
+static uint32_t model_rgen_shader_spv[] {
+#include "model.rgen.num"
+};
+
+static uint32_t model_rchit_shader_spv[] = {
+#include "model.rchit.num"
+};
+
+static uint32_t model_rmiss_shader_spv[] = {
+#include "model.rmiss.num"
+};
+
 static uint32_t ui_vert_shader_spv[] = {
 #include "ui.vert.num"
 };
@@ -281,6 +293,106 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
     );
 
     return pipeline(device, { vert_shader, frag_shader }, std::vector<vk::Sampler>(), std::move(layout), std::move(set_layout), std::move(pl));
+}
+
+pipeline create_ray_tracing_pipeline(vk::Device device)
+{
+    auto raygen_shader = device.createShaderModule(
+        vk::ShaderModuleCreateInfo()
+        .setCodeSize(sizeof(model_rgen_shader_spv))
+        .setPCode(model_rgen_shader_spv)
+    );
+
+    auto closest_hit_shader = device.createShaderModule(
+        vk::ShaderModuleCreateInfo()
+        .setCodeSize(sizeof(model_rchit_shader_spv))
+        .setPCode(model_rchit_shader_spv)
+    );
+
+    auto miss_shader = device.createShaderModule(
+        vk::ShaderModuleCreateInfo()
+        .setCodeSize(sizeof(model_rmiss_shader_spv))
+        .setPCode(model_rmiss_shader_spv)
+    );
+
+    auto raygen_stage = vk::PipelineShaderStageCreateInfo()
+        .setStage(vk::ShaderStageFlagBits::eRaygenKHR)
+        .setModule(raygen_shader)
+        .setPName("main");
+
+    auto closest_hit_stage = vk::PipelineShaderStageCreateInfo()
+        .setModule(closest_hit_shader)
+        .setStage(vk::ShaderStageFlagBits::eClosestHitKHR)
+        .setPName("main");
+
+    auto miss_stage = vk::PipelineShaderStageCreateInfo()
+        .setModule(miss_shader)
+        .setStage(vk::ShaderStageFlagBits::eMissKHR)
+        .setPName("main");
+
+    auto uniform_buffer_binding = vk::DescriptorSetLayoutBinding()
+        .setBinding(0)
+        .setDescriptorCount(1)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
+
+    auto tlas_binding = vk::DescriptorSetLayoutBinding()
+        .setBinding(1)
+        .setDescriptorCount(1)
+        .setDescriptorType(vk::DescriptorType::eAccelerationStructureKHR)
+        .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
+
+    auto image_binding = vk::DescriptorSetLayoutBinding()
+        .setBinding(2)
+        .setDescriptorCount(1)
+        .setDescriptorType(vk::DescriptorType::eStorageImage)
+        .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
+
+    std::array bindings { uniform_buffer_binding, tlas_binding, image_binding };
+
+    auto set_layout = device.createDescriptorSetLayoutUnique(
+        vk::DescriptorSetLayoutCreateInfo()
+        .setBindings(bindings)
+    );
+    auto layout = device.createPipelineLayoutUnique(
+        vk::PipelineLayoutCreateInfo()
+        .setSetLayoutCount(1)
+        .setPSetLayouts(&set_layout.get())
+    );
+
+    std::array stages { raygen_stage, closest_hit_stage, miss_stage };
+
+    std::array groups{
+        vk::RayTracingShaderGroupCreateInfoNV()
+            .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
+            .setGeneralShader(0)
+            .setClosestHitShader(VK_SHADER_UNUSED_KHR)
+            .setAnyHitShader(VK_SHADER_UNUSED_KHR)
+            .setIntersectionShader(VK_SHADER_UNUSED_KHR),
+        vk::RayTracingShaderGroupCreateInfoNV()
+            .setType(vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup)
+            .setGeneralShader(VK_SHADER_UNUSED_KHR)
+            .setClosestHitShader(1)
+            .setAnyHitShader(VK_SHADER_UNUSED_KHR)
+            .setIntersectionShader(VK_SHADER_UNUSED_KHR),
+        vk::RayTracingShaderGroupCreateInfoNV()
+            .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
+            .setGeneralShader(2)
+            .setClosestHitShader(VK_SHADER_UNUSED_KHR)
+            .setAnyHitShader(VK_SHADER_UNUSED_KHR)
+            .setIntersectionShader(VK_SHADER_UNUSED_KHR),
+    };
+
+    auto pl = device.createRayTracingPipelineNVUnique(
+        nullptr,
+        vk::RayTracingPipelineCreateInfoNV()
+            .setMaxRecursionDepth(1)
+            .setLayout(layout.get())
+            .setStages(stages)
+            .setGroups(groups)
+    );
+
+    return pipeline(device, {raygen_shader, closest_hit_shader, miss_shader}, {}, std::move(layout), std::move(set_layout), std::move(pl));
 }
 
 pipeline::pipeline(vk::Device device, std::vector<vk::ShaderModule> shader_modules, std::vector<vk::Sampler> samplers, vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl)

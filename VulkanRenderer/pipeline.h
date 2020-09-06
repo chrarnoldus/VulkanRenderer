@@ -19,3 +19,4 @@ struct pipeline
 
 pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass);
 pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass);
+pipeline create_ray_tracing_pipeline(vk::Device device);
