@@ -8,7 +8,7 @@ static VkBool32 debug_report_callback(
     const VkDebugUtilsMessengerCallbackDataEXT*      pCallbackData,
     void*                                            pUserData)
 {
-    std::cerr << pCallbackData->pMessage << std::endl;
+    std::cerr << pCallbackData->pMessage << std::endl << std::endl;
     return false;
 }
 
