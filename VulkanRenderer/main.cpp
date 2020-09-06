@@ -50,10 +50,13 @@ static vk::UniqueInstance create_instance()
         VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
     };
 
+    auto app_info = vk::ApplicationInfo().setApiVersion(VK_API_VERSION_1_1);
+
     return vk::createInstanceUnique(
         vk::InstanceCreateInfo()
         .setPEnabledLayerNames(layerNames)
         .setPEnabledExtensionNames(extensionNames)
+        .setPApplicationInfo(&app_info)
     );
 }
 
