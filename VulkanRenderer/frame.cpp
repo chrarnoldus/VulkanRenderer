@@ -12,6 +12,11 @@ static void record_command_buffer(
 {
     command_buffer.begin(vk::CommandBufferBeginInfo());
 
+    for (auto& renderer : renderers)
+    {
+        renderer->draw_outside_renderpass(command_buffer);
+    }
+
     std::array clear_values {
         vk::ClearValue().setColor(vk::ClearColorValue().setFloat32({0.f, 1.f, 1.f, 1.f})),
         vk::ClearValue().setDepthStencil(vk::ClearDepthStencilValue().setDepth(1.f))
