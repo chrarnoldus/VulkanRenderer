@@ -4,8 +4,8 @@
 #include "data_types.h"
 
 ray_tracing_model::ray_tracing_model(vk::PhysicalDevice physical_device, vk::Device device,
-                                     vk::CommandPool command_pool, vk::Queue queue, const std::string& path)
-    : model(read_model(physical_device, device, command_pool, queue, path))
+                                     vk::CommandPool command_pool, vk::Queue queue, const model* mdl)
+    : mdl(mdl)
 {
     std::array blas_geometries = {
         vk::GeometryNV()
@@ -14,11 +14,11 @@ ray_tracing_model::ray_tracing_model(vk::PhysicalDevice physical_device, vk::Dev
             vk::GeometryDataNV()
             .setTriangles(
                 vk::GeometryTrianglesNV()
-                .setIndexCount(model.index_count)
-                .setIndexData(model.index_buffer->buf.get()) // TODO buffer usage flags?
-                .setVertexData(model.vertex_buffer->buf.get())
+                .setIndexCount(mdl->index_count)
+                .setIndexData(mdl->index_buffer->buf.get()) // TODO buffer usage flags?
+                .setVertexData(mdl->vertex_buffer->buf.get())
                 .setIndexType(vk::IndexType::eUint32)
-                .setVertexCount(model.vertex_count)
+                .setVertexCount(mdl->vertex_count)
                 .setVertexFormat(vk::Format::eR16G16B16Snorm)
                 .setVertexStride(sizeof(vertex))
                 .setVertexOffset(offsetof(vertex, position))
