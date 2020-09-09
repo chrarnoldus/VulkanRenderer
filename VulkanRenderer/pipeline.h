@@ -2,6 +2,11 @@
 #include <vulkan/vulkan.h>
 #include "buffer.h"
 
+#define GROUP_COUNT 3u
+#define RAYGEN_SHADER_INDEX 0u
+#define CLOSEST_HIT_SHADER_INDEX 1u
+#define MISS_SHADER_INDEX 2u
+
 struct pipeline
 {
     vk::Device device;

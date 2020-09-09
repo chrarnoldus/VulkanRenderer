@@ -365,19 +365,19 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
     std::array groups{
         vk::RayTracingShaderGroupCreateInfoNV()
             .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
-            .setGeneralShader(0)
+            .setGeneralShader(RAYGEN_SHADER_INDEX)
             .setClosestHitShader(VK_SHADER_UNUSED_KHR)
             .setAnyHitShader(VK_SHADER_UNUSED_KHR)
             .setIntersectionShader(VK_SHADER_UNUSED_KHR),
         vk::RayTracingShaderGroupCreateInfoNV()
             .setType(vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup)
             .setGeneralShader(VK_SHADER_UNUSED_KHR)
-            .setClosestHitShader(1)
+            .setClosestHitShader(CLOSEST_HIT_SHADER_INDEX)
             .setAnyHitShader(VK_SHADER_UNUSED_KHR)
             .setIntersectionShader(VK_SHADER_UNUSED_KHR),
         vk::RayTracingShaderGroupCreateInfoNV()
             .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
-            .setGeneralShader(2)
+            .setGeneralShader(MISS_SHADER_INDEX)
             .setClosestHitShader(VK_SHADER_UNUSED_KHR)
             .setAnyHitShader(VK_SHADER_UNUSED_KHR)
             .setIntersectionShader(VK_SHADER_UNUSED_KHR),
