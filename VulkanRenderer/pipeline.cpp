@@ -395,6 +395,32 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
     return pipeline(device, {raygen_shader, closest_hit_shader, miss_shader}, {}, std::move(layout), std::move(set_layout), std::move(pl));
 }
 
+std::unique_ptr<buffer> create_shader_binding_table(vk::PhysicalDevice physical_device, vk::Device device,
+                                                    vk::Pipeline pipeline)
+{
+    auto props = physical_device.getProperties2<vk::PhysicalDeviceProperties2, vk::PhysicalDeviceRayTracingPropertiesNV
+    >();
+    auto alignment = props.get<vk::PhysicalDeviceRayTracingPropertiesNV>().shaderGroupBaseAlignment;
+    auto bufferSize = GROUP_COUNT * alignment;
+    auto sbt = std::make_unique<buffer>(physical_device, device, vk::BufferUsageFlagBits::eRayTracingKHR,
+                                        vk::MemoryPropertyFlagBits::eHostVisible |
+                                        vk::MemoryPropertyFlagBits::eHostCoherent, bufferSize);
+
+    auto handleSize = props.get<vk::PhysicalDeviceRayTracingPropertiesNV>().shaderGroupHandleSize;
+    auto tempBufferSize = GROUP_COUNT * handleSize;
+    auto data = std::make_unique<uint8_t[]>(tempBufferSize);
+    device.getRayTracingShaderGroupHandlesNV(pipeline, 0, GROUP_COUNT, tempBufferSize, data.get());
+
+    auto ptr = static_cast<uint8_t*>(device.mapMemory(sbt->memory.get(), 0, VK_WHOLE_SIZE));
+    memset(ptr, 0xCA, bufferSize);
+    memcpy(&ptr[RAYGEN_SHADER_INDEX * alignment], &data[RAYGEN_SHADER_INDEX * handleSize], handleSize);
+    memcpy(&ptr[MISS_SHADER_INDEX * alignment], &data[MISS_SHADER_INDEX * handleSize], handleSize);
+    memcpy(&ptr[CLOSEST_HIT_SHADER_INDEX * alignment], &data[CLOSEST_HIT_SHADER_INDEX * handleSize], handleSize);
+    device.unmapMemory(sbt->memory.get());
+
+    return sbt;
+}
+
 pipeline::pipeline(vk::Device device, std::vector<vk::ShaderModule> shader_modules, std::vector<vk::Sampler> samplers, vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl)
     : device(device), shader_modules(shader_modules), samplers(samplers), layout(std::move(layout)), set_layout(std::move(set_layout)), pl(std::move(pl))
 {
