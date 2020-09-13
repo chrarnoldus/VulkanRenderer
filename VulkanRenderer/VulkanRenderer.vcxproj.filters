@@ -166,5 +166,11 @@
     <CustomBuild Include="ui.vert">
       <Filter>Source Files\Shaders</Filter>
     </CustomBuild>
+    <CustomBuild Include="textured_quad.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="textured_quad.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

@@ -192,8 +192,18 @@
       <Message>Compiling %(Identity)</Message>
       <Outputs>%(FullPath).num;%(Outputs)</Outputs>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
+    <CustomBuild Include="textured_quad.frag">
+      <FileType>Document</FileType>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Message>Compiling %(Identity)</Message>
+      <Outputs>%(FullPath).num;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="textured_quad.vert">
+      <FileType>Document</FileType>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Message>Compiling %(Identity)</Message>
+      <Outputs>%(FullPath).num;%(Outputs)</Outputs>
+    </CustomBuild>
     <CustomBuild Include="model.rchit">
       <FileType>Document</FileType>
       <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
