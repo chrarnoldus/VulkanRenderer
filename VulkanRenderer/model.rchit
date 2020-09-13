@@ -1,7 +1,7 @@
 #version 460
 #extension GL_NV_ray_tracing : enable
 
-layout(location = 0) rayPayloadNV vec3 color;
+layout(location = 0) rayPayloadInNV vec3 color;
 
 void main()
 {
