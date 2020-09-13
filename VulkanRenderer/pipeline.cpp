@@ -11,7 +11,7 @@ static uint32_t model_frag_shader_spv[] = {
 #include "model.frag.num"
 };
 
-static uint32_t model_rgen_shader_spv[] {
+static uint32_t model_rgen_shader_spv[]{
 #include "model.rgen.num"
 };
 
@@ -46,53 +46,54 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
     );
 
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
-        .setStage(vk::ShaderStageFlagBits::eVertex)
-        .setModule(vert_shader)
-        .setPName("main");
+                      .setStage(vk::ShaderStageFlagBits::eVertex)
+                      .setModule(vert_shader)
+                      .setPName("main");
 
     auto frag_stage = vk::PipelineShaderStageCreateInfo()
-        .setModule(frag_shader)
-        .setStage(vk::ShaderStageFlagBits::eFragment)
-        .setPName("main");
+                      .setModule(frag_shader)
+                      .setStage(vk::ShaderStageFlagBits::eFragment)
+                      .setPName("main");
 
-    std::array stages { vert_stage, frag_stage };
+    std::array stages{vert_stage, frag_stage};
 
     auto input_binding = vk::VertexInputBindingDescription()
         .setStride(sizeof(ImDrawVert));
 
     auto position_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR32G32Sfloat)
-        .setLocation(0)
-        .setOffset(offsetof(ImDrawVert, pos));
+                              .setFormat(vk::Format::eR32G32Sfloat)
+                              .setLocation(0)
+                              .setOffset(offsetof(ImDrawVert, pos));
 
     auto uv_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR32G32Sfloat)
-        .setLocation(1)
-        .setOffset(offsetof(ImDrawVert, uv));
+                        .setFormat(vk::Format::eR32G32Sfloat)
+                        .setLocation(1)
+                        .setOffset(offsetof(ImDrawVert, uv));
 
     auto color_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR8G8B8A8Unorm)
-        .setLocation(2)
-        .setOffset(offsetof(ImDrawVert, col));
+                           .setFormat(vk::Format::eR8G8B8A8Unorm)
+                           .setLocation(2)
+                           .setOffset(offsetof(ImDrawVert, col));
 
-    std::array attributes { position_attribute, uv_attribute, color_attribute };
+    std::array attributes{position_attribute, uv_attribute, color_attribute};
 
     auto input_state = vk::PipelineVertexInputStateCreateInfo()
-        .setVertexBindingDescriptionCount(1)
-        .setPVertexBindingDescriptions(&input_binding)
-        .setVertexAttributeDescriptions(attributes);
+                       .setVertexBindingDescriptionCount(1)
+                       .setPVertexBindingDescriptions(&input_binding)
+                       .setVertexAttributeDescriptions(attributes);
 
     auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleList);
 
-    auto viewport = vk::Viewport().setWidth(float(WIDTH)).setHeight(float(HEIGHT)).setMaxDepth(1.0);
+    auto viewport = vk::Viewport().setWidth(static_cast<float>(WIDTH)).setHeight(static_cast<float>(HEIGHT)).
+                                   setMaxDepth(1.0);
     auto scissor = vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT));
 
     auto viewport_state = vk::PipelineViewportStateCreateInfo()
-        .setViewportCount(1)
-        .setPViewports(&viewport)
-        .setScissorCount(1)
-        .setPScissors(&scissor);
+                          .setViewportCount(1)
+                          .setPViewports(&viewport)
+                          .setScissorCount(1)
+                          .setPScissors(&scissor);
 
     auto rasterization_state = vk::PipelineRasterizationStateCreateInfo()
         .setLineWidth(1.f);
@@ -101,47 +102,48 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setRasterizationSamples(vk::SampleCountFlagBits::e1);
 
     auto attachment_state = vk::PipelineColorBlendAttachmentState()
-        .setColorWriteMask(
-            vk::ColorComponentFlagBits::eR |
-            vk::ColorComponentFlagBits::eG |
-            vk::ColorComponentFlagBits::eB |
-            vk::ColorComponentFlagBits::eA
-        )
-        .setBlendEnable(true)
-        .setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha)
-        .setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha)
-        .setSrcAlphaBlendFactor(vk::BlendFactor::eZero)
-        .setDstAlphaBlendFactor(vk::BlendFactor::eZero)
-        .setColorBlendOp(vk::BlendOp::eAdd)
-        .setAlphaBlendOp(vk::BlendOp::eAdd);
+                            .setColorWriteMask(
+                                vk::ColorComponentFlagBits::eR |
+                                vk::ColorComponentFlagBits::eG |
+                                vk::ColorComponentFlagBits::eB |
+                                vk::ColorComponentFlagBits::eA
+                            )
+                            .setBlendEnable(true)
+                            .setSrcColorBlendFactor(vk::BlendFactor::eSrcAlpha)
+                            .setDstColorBlendFactor(vk::BlendFactor::eOneMinusSrcAlpha)
+                            .setSrcAlphaBlendFactor(vk::BlendFactor::eZero)
+                            .setDstAlphaBlendFactor(vk::BlendFactor::eZero)
+                            .setColorBlendOp(vk::BlendOp::eAdd)
+                            .setAlphaBlendOp(vk::BlendOp::eAdd);
 
     auto blend_state = vk::PipelineColorBlendStateCreateInfo()
-        .setAttachmentCount(1)
-        .setPAttachments(&attachment_state);
+                       .setAttachmentCount(1)
+                       .setPAttachments(&attachment_state);
 
     auto depth_stencil_state = vk::PipelineDepthStencilStateCreateInfo();
 
-    std::vector samplers {
+    std::vector samplers{
         device.createSampler(
             vk::SamplerCreateInfo()
             .setMagFilter(vk::Filter::eLinear)
             .setMinFilter(vk::Filter::eLinear)
             .setMipmapMode(vk::SamplerMipmapMode::eLinear)
-        ) };
+        )
+    };
 
     auto uniform_binding = vk::DescriptorSetLayoutBinding()
-        .setBinding(0)
-        .setDescriptorCount(1)
-        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-        .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+                           .setBinding(0)
+                           .setDescriptorCount(1)
+                           .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                           .setStageFlags(vk::ShaderStageFlagBits::eVertex);
 
     auto sampler_binding = vk::DescriptorSetLayoutBinding()
-        .setBinding(1)
-        .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-        .setStageFlags(vk::ShaderStageFlagBits::eFragment)
-        .setImmutableSamplers(samplers);
+                           .setBinding(1)
+                           .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+                           .setStageFlags(vk::ShaderStageFlagBits::eFragment)
+                           .setImmutableSamplers(samplers);
 
-    std::array bindings = { uniform_binding, sampler_binding };
+    std::array bindings = {uniform_binding, sampler_binding};
 
     auto set_layout = device.createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo()
@@ -168,7 +170,8 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setLayout(layout.get())
     );
 
-    return pipeline(device,  {vert_shader, frag_shader }, samplers, std::move(layout), std::move(set_layout), std::move(pl));
+    return pipeline(device, {vert_shader, frag_shader}, samplers, std::move(layout), std::move(set_layout),
+                    std::move(pl));
 }
 
 pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
@@ -186,57 +189,57 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
     );
 
     auto vert_stage = vk::PipelineShaderStageCreateInfo()
-        .setStage(vk::ShaderStageFlagBits::eVertex)
-        .setModule(vert_shader)
-        .setPName("main");
+                      .setStage(vk::ShaderStageFlagBits::eVertex)
+                      .setModule(vert_shader)
+                      .setPName("main");
 
     auto frag_stage = vk::PipelineShaderStageCreateInfo()
-        .setModule(frag_shader)
-        .setStage(vk::ShaderStageFlagBits::eFragment)
-        .setPName("main");
+                      .setModule(frag_shader)
+                      .setStage(vk::ShaderStageFlagBits::eFragment)
+                      .setPName("main");
 
-    std::array stages { vert_stage, frag_stage };
+    std::array stages{vert_stage, frag_stage};
 
     auto input_binding = vk::VertexInputBindingDescription()
         .setStride(sizeof(vertex));
 
     auto position_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR16G16B16Snorm)
-        .setLocation(0)
-        .setOffset(offsetof(vertex, position));
+                              .setFormat(vk::Format::eR16G16B16Snorm)
+                              .setLocation(0)
+                              .setOffset(offsetof(vertex, position));
 
     auto normal_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eA2B10G10R10SnormPack32)
-        .setLocation(1)
-        .setOffset(offsetof(vertex, normal));
+                            .setFormat(vk::Format::eA2B10G10R10SnormPack32)
+                            .setLocation(1)
+                            .setOffset(offsetof(vertex, normal));
 
     auto color_attribute = vk::VertexInputAttributeDescription()
-        .setFormat(vk::Format::eR8G8B8Unorm)
-        .setLocation(2)
-        .setOffset(offsetof(vertex, color));
+                           .setFormat(vk::Format::eR8G8B8Unorm)
+                           .setLocation(2)
+                           .setOffset(offsetof(vertex, color));
 
-    std::array attributes { position_attribute, normal_attribute, color_attribute };
+    std::array attributes{position_attribute, normal_attribute, color_attribute};
 
     auto input_state = vk::PipelineVertexInputStateCreateInfo()
-        .setVertexBindingDescriptionCount(1)
-        .setPVertexBindingDescriptions(&input_binding)
-        .setVertexAttributeDescriptions(attributes);
+                       .setVertexBindingDescriptionCount(1)
+                       .setPVertexBindingDescriptions(&input_binding)
+                       .setVertexAttributeDescriptions(attributes);
 
     auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleList);
 
     auto viewport = vk::Viewport()
-        .setWidth(float(WIDTH))
-        .setY(float(HEIGHT))
-        .setHeight(-float(HEIGHT))
-        .setMaxDepth(1.0);
+                    .setWidth(static_cast<float>(WIDTH))
+                    .setY(static_cast<float>(HEIGHT))
+                    .setHeight(-static_cast<float>(HEIGHT))
+                    .setMaxDepth(1.0);
     auto scissor = vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT));
 
     auto viewport_state = vk::PipelineViewportStateCreateInfo()
-        .setViewportCount(1)
-        .setPViewports(&viewport)
-        .setScissorCount(1)
-        .setPScissors(&scissor);
+                          .setViewportCount(1)
+                          .setPViewports(&viewport)
+                          .setScissorCount(1)
+                          .setPScissors(&scissor);
 
     auto rasterization_state = vk::PipelineRasterizationStateCreateInfo()
         .setLineWidth(1.f);
@@ -253,18 +256,18 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         );
 
     auto blend_state = vk::PipelineColorBlendStateCreateInfo()
-        .setAttachmentCount(1)
-        .setPAttachments(&attachment_state);
+                       .setAttachmentCount(1)
+                       .setPAttachments(&attachment_state);
 
     auto depth_stencil_state = vk::PipelineDepthStencilStateCreateInfo()
-        .setDepthTestEnable(true)
-        .setDepthWriteEnable(true)
-        .setDepthCompareOp(vk::CompareOp::eLessOrEqual);
+                               .setDepthTestEnable(true)
+                               .setDepthWriteEnable(true)
+                               .setDepthCompareOp(vk::CompareOp::eLessOrEqual);
 
     auto binding = vk::DescriptorSetLayoutBinding()
-        .setDescriptorCount(1)
-        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-        .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+                   .setDescriptorCount(1)
+                   .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                   .setStageFlags(vk::ShaderStageFlagBits::eVertex);
 
     auto set_layout = device.createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo()
@@ -292,7 +295,8 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setLayout(layout.get())
     );
 
-    return pipeline(device, { vert_shader, frag_shader }, std::vector<vk::Sampler>(), std::move(layout), std::move(set_layout), std::move(pl));
+    return pipeline(device, {vert_shader, frag_shader}, std::vector<vk::Sampler>(), std::move(layout),
+                    std::move(set_layout), std::move(pl));
 }
 
 pipeline create_ray_tracing_pipeline(vk::Device device)
@@ -316,39 +320,39 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
     );
 
     auto raygen_stage = vk::PipelineShaderStageCreateInfo()
-        .setStage(vk::ShaderStageFlagBits::eRaygenKHR)
-        .setModule(raygen_shader)
-        .setPName("main");
+                        .setStage(vk::ShaderStageFlagBits::eRaygenKHR)
+                        .setModule(raygen_shader)
+                        .setPName("main");
 
     auto closest_hit_stage = vk::PipelineShaderStageCreateInfo()
-        .setModule(closest_hit_shader)
-        .setStage(vk::ShaderStageFlagBits::eClosestHitKHR)
-        .setPName("main");
+                             .setModule(closest_hit_shader)
+                             .setStage(vk::ShaderStageFlagBits::eClosestHitKHR)
+                             .setPName("main");
 
     auto miss_stage = vk::PipelineShaderStageCreateInfo()
-        .setModule(miss_shader)
-        .setStage(vk::ShaderStageFlagBits::eMissKHR)
-        .setPName("main");
+                      .setModule(miss_shader)
+                      .setStage(vk::ShaderStageFlagBits::eMissKHR)
+                      .setPName("main");
 
     auto uniform_buffer_binding = vk::DescriptorSetLayoutBinding()
-        .setBinding(0)
-        .setDescriptorCount(1)
-        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-        .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
+                                  .setBinding(0)
+                                  .setDescriptorCount(1)
+                                  .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                                  .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
 
     auto tlas_binding = vk::DescriptorSetLayoutBinding()
-        .setBinding(1)
-        .setDescriptorCount(1)
-        .setDescriptorType(vk::DescriptorType::eAccelerationStructureKHR)
-        .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
+                        .setBinding(1)
+                        .setDescriptorCount(1)
+                        .setDescriptorType(vk::DescriptorType::eAccelerationStructureKHR)
+                        .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
 
     auto image_binding = vk::DescriptorSetLayoutBinding()
-        .setBinding(2)
-        .setDescriptorCount(1)
-        .setDescriptorType(vk::DescriptorType::eStorageImage)
-        .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
+                         .setBinding(2)
+                         .setDescriptorCount(1)
+                         .setDescriptorType(vk::DescriptorType::eStorageImage)
+                         .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
 
-    std::array bindings { uniform_buffer_binding, tlas_binding, image_binding };
+    std::array bindings{uniform_buffer_binding, tlas_binding, image_binding};
 
     auto set_layout = device.createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo()
@@ -360,39 +364,40 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
         .setPSetLayouts(&set_layout.get())
     );
 
-    std::array stages { raygen_stage, closest_hit_stage, miss_stage };
+    std::array stages{raygen_stage, miss_stage, closest_hit_stage};
 
     std::array groups{
         vk::RayTracingShaderGroupCreateInfoNV()
-            .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
-            .setGeneralShader(RAYGEN_SHADER_INDEX)
-            .setClosestHitShader(VK_SHADER_UNUSED_KHR)
-            .setAnyHitShader(VK_SHADER_UNUSED_KHR)
-            .setIntersectionShader(VK_SHADER_UNUSED_KHR),
+        .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
+        .setGeneralShader(RAYGEN_SHADER_INDEX)
+        .setClosestHitShader(VK_SHADER_UNUSED_KHR)
+        .setAnyHitShader(VK_SHADER_UNUSED_KHR)
+        .setIntersectionShader(VK_SHADER_UNUSED_KHR),
         vk::RayTracingShaderGroupCreateInfoNV()
-            .setType(vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup)
-            .setGeneralShader(VK_SHADER_UNUSED_KHR)
-            .setClosestHitShader(CLOSEST_HIT_SHADER_INDEX)
-            .setAnyHitShader(VK_SHADER_UNUSED_KHR)
-            .setIntersectionShader(VK_SHADER_UNUSED_KHR),
+        .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
+        .setGeneralShader(MISS_SHADER_INDEX)
+        .setClosestHitShader(VK_SHADER_UNUSED_KHR)
+        .setAnyHitShader(VK_SHADER_UNUSED_KHR)
+        .setIntersectionShader(VK_SHADER_UNUSED_KHR),
         vk::RayTracingShaderGroupCreateInfoNV()
-            .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
-            .setGeneralShader(MISS_SHADER_INDEX)
-            .setClosestHitShader(VK_SHADER_UNUSED_KHR)
-            .setAnyHitShader(VK_SHADER_UNUSED_KHR)
-            .setIntersectionShader(VK_SHADER_UNUSED_KHR),
+        .setType(vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup)
+        .setGeneralShader(VK_SHADER_UNUSED_KHR)
+        .setClosestHitShader(CLOSEST_HIT_SHADER_INDEX)
+        .setAnyHitShader(VK_SHADER_UNUSED_KHR)
+        .setIntersectionShader(VK_SHADER_UNUSED_KHR),
     };
 
     auto pl = device.createRayTracingPipelineNVUnique(
         nullptr,
         vk::RayTracingPipelineCreateInfoNV()
-            .setMaxRecursionDepth(1)
-            .setLayout(layout.get())
-            .setStages(stages)
-            .setGroups(groups)
+        .setMaxRecursionDepth(1)
+        .setLayout(layout.get())
+        .setStages(stages)
+        .setGroups(groups)
     );
 
-    return pipeline(device, {raygen_shader, closest_hit_shader, miss_shader}, {}, std::move(layout), std::move(set_layout), std::move(pl));
+    return pipeline(device, {raygen_shader, closest_hit_shader, miss_shader}, {}, std::move(layout),
+                    std::move(set_layout), std::move(pl));
 }
 
 std::unique_ptr<buffer> create_shader_binding_table(vk::PhysicalDevice physical_device, vk::Device device,
@@ -421,18 +426,20 @@ std::unique_ptr<buffer> create_shader_binding_table(vk::PhysicalDevice physical_
     return sbt;
 }
 
-pipeline::pipeline(vk::Device device, std::vector<vk::ShaderModule> shader_modules, std::vector<vk::Sampler> samplers, vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl)
-    : device(device), shader_modules(shader_modules), samplers(samplers), layout(std::move(layout)), set_layout(std::move(set_layout)), pl(std::move(pl))
+pipeline::pipeline(vk::Device device, std::vector<vk::ShaderModule> shader_modules, std::vector<vk::Sampler> samplers,
+                   vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl)
+    : device(device), shader_modules(shader_modules), samplers(samplers), layout(std::move(layout)),
+      set_layout(std::move(set_layout)), pl(std::move(pl))
 {
 }
 
 pipeline::~pipeline()
 {
-    for (auto sampler: samplers)
+    for (auto sampler : samplers)
     {
         device.destroySampler(sampler);
     }
-    for (auto shader_module: shader_modules)
+    for (auto shader_module : shader_modules)
     {
         device.destroyShaderModule(shader_module);
     }
