@@ -1,4 +1,4 @@
-#version 450 core
+#version 460
 
 layout(set = 0, binding = 1) uniform sampler2D fontSampler;
 

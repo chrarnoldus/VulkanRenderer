@@ -1,4 +1,4 @@
-#version 450 core
+#version 460
 
 const vec3 lightPosition = vec3(0.0, 0.0, 0.0);
 const float shininess = 16.0;
