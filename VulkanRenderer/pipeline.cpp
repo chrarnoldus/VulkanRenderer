@@ -31,6 +31,14 @@ static uint32_t ui_frag_shader_spv[] = {
 #include "ui.frag.num"
 };
 
+static uint32_t textured_quad_vert_spv[] = {
+#include "textured_quad.vert.num"
+};
+
+static uint32_t textured_quad_frag_spv[] = {
+#include "textured_quad.frag.num"
+};
+
 pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
 {
     auto vert_shader = device.createShaderModule(
@@ -144,6 +152,127 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
                            .setImmutableSamplers(samplers);
 
     std::array bindings = {uniform_binding, sampler_binding};
+
+    auto set_layout = device.createDescriptorSetLayoutUnique(
+        vk::DescriptorSetLayoutCreateInfo()
+        .setBindings(bindings)
+    );
+    auto layout = device.createPipelineLayoutUnique(
+        vk::PipelineLayoutCreateInfo()
+        .setSetLayoutCount(1)
+        .setPSetLayouts(&set_layout.get())
+    );
+
+    auto pl = device.createGraphicsPipelineUnique(
+        nullptr,
+        vk::GraphicsPipelineCreateInfo()
+        .setStages(stages)
+        .setPVertexInputState(&input_state)
+        .setPInputAssemblyState(&assembly_state)
+        .setPViewportState(&viewport_state)
+        .setPRasterizationState(&rasterization_state)
+        .setPMultisampleState(&multisample_state)
+        .setPColorBlendState(&blend_state)
+        .setPDepthStencilState(&depth_stencil_state)
+        .setRenderPass(render_pass)
+        .setLayout(layout.get())
+    );
+
+    return pipeline(device, {vert_shader, frag_shader}, samplers, std::move(layout), std::move(set_layout),
+                    std::move(pl));
+}
+
+pipeline create_textured_quad_pipeline(vk::Device device, vk::RenderPass render_pass)
+{
+    auto vert_shader = device.createShaderModule(
+        vk::ShaderModuleCreateInfo()
+        .setCodeSize(sizeof(textured_quad_vert_spv))
+        .setPCode(textured_quad_vert_spv)
+    );
+
+    auto frag_shader = device.createShaderModule(
+        vk::ShaderModuleCreateInfo()
+        .setCodeSize(sizeof(textured_quad_frag_spv))
+        .setPCode(textured_quad_frag_spv)
+    );
+
+    auto vert_stage = vk::PipelineShaderStageCreateInfo()
+                      .setStage(vk::ShaderStageFlagBits::eVertex)
+                      .setModule(vert_shader)
+                      .setPName("main");
+
+    auto frag_stage = vk::PipelineShaderStageCreateInfo()
+                      .setModule(frag_shader)
+                      .setStage(vk::ShaderStageFlagBits::eFragment)
+                      .setPName("main");
+
+    std::array stages{vert_stage, frag_stage};
+
+    auto input_binding = vk::VertexInputBindingDescription()
+        .setStride(sizeof(glm::vec2));
+
+    auto position_attribute = vk::VertexInputAttributeDescription()
+                              .setFormat(vk::Format::eR32G32Sfloat)
+                              .setLocation(0);
+
+    std::array attributes{position_attribute};
+
+    auto input_state = vk::PipelineVertexInputStateCreateInfo()
+                       .setVertexBindingDescriptionCount(1)
+                       .setPVertexBindingDescriptions(&input_binding)
+                       .setVertexAttributeDescriptions(attributes);
+
+    auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
+        .setTopology(vk::PrimitiveTopology::eTriangleStrip);
+
+    auto viewport = vk::Viewport().setWidth(static_cast<float>(WIDTH))
+                                  .setY(static_cast<float>(HEIGHT))
+                                  .setHeight(-static_cast<float>(HEIGHT))
+                                  .setMaxDepth(1.0);
+    auto scissor = vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT));
+
+    auto viewport_state = vk::PipelineViewportStateCreateInfo()
+                          .setViewportCount(1)
+                          .setPViewports(&viewport)
+                          .setScissorCount(1)
+                          .setPScissors(&scissor);
+
+    auto rasterization_state = vk::PipelineRasterizationStateCreateInfo()
+        .setLineWidth(1.f);
+
+    auto multisample_state = vk::PipelineMultisampleStateCreateInfo()
+        .setRasterizationSamples(vk::SampleCountFlagBits::e1);
+
+    auto attachment_state = vk::PipelineColorBlendAttachmentState()
+        .setColorWriteMask(
+            vk::ColorComponentFlagBits::eR |
+            vk::ColorComponentFlagBits::eG |
+            vk::ColorComponentFlagBits::eB |
+            vk::ColorComponentFlagBits::eA
+        );
+
+    auto blend_state = vk::PipelineColorBlendStateCreateInfo()
+                       .setAttachmentCount(1)
+                       .setPAttachments(&attachment_state);
+
+    auto depth_stencil_state = vk::PipelineDepthStencilStateCreateInfo();
+
+    std::vector samplers{
+        device.createSampler(
+            vk::SamplerCreateInfo()
+            .setMagFilter(vk::Filter::eLinear)
+            .setMinFilter(vk::Filter::eLinear)
+            .setMipmapMode(vk::SamplerMipmapMode::eLinear)
+        )
+    };
+
+    auto sampler_binding = vk::DescriptorSetLayoutBinding()
+                           .setBinding(0)
+                           .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+                           .setStageFlags(vk::ShaderStageFlagBits::eFragment)
+                           .setImmutableSamplers(samplers);
+
+    std::array bindings = {sampler_binding};
 
     auto set_layout = device.createDescriptorSetLayoutUnique(
         vk::DescriptorSetLayoutCreateInfo()

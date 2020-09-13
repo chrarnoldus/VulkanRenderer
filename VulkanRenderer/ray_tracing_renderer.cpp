@@ -49,13 +49,17 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
 
 ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, vk::Device device,
                                            vk::DescriptorPool descriptor_pool, const pipeline* ray_tracing_pipeline,
+                                           const pipeline* textured_quad_pipeline,
                                            const buffer* shader_binding_table, const ray_tracing_model* model)
     : model(model),
       shader_binding_table(shader_binding_table),
       ray_tracing_pipeline(ray_tracing_pipeline),
+      textured_quad_pipeline(textured_quad_pipeline),
       uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT,
                      sizeof(model_uniform_data)),
-      image(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT,
+      textured_quad(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT,
+                    4 * sizeof(glm::vec2)),
+      image(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH*2, HEIGHT*2,
                                                         vk::Format::eR8G8B8A8Unorm,
                                                         vk::ImageUsageFlagBits::eStorage |
                                                         vk::ImageUsageFlagBits::eSampled, vk::ImageTiling::eOptimal,
@@ -63,17 +67,42 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
                                                         vk::MemoryPropertyFlagBits::eDeviceLocal,
                                                         vk::ImageAspectFlagBits::eColor))
 {
-    std::array set_layouts{ray_tracing_pipeline->set_layout.get()};
+    std::array set_layouts{
+        ray_tracing_pipeline->set_layout.get(),
+        textured_quad_pipeline->set_layout.get(),
+    };
 
-    ray_tracing_descriptor_set = std::move(
-        device.allocateDescriptorSetsUnique(
-            vk::DescriptorSetAllocateInfo()
-            .setDescriptorPool(descriptor_pool)
-            .setSetLayouts(set_layouts)
-        )[0]
+    auto descriptor_sets = device.allocateDescriptorSetsUnique(
+        vk::DescriptorSetAllocateInfo()
+        .setDescriptorPool(descriptor_pool)
+        .setSetLayouts(set_layouts)
     );
 
+    ray_tracing_descriptor_set = std::move(descriptor_sets[0]);
+    textured_quad_descriptor_set = std::move(descriptor_sets[1]);
+
     initialize_ray_tracing_descriptor_set(device, model);
+
+    auto ptr = static_cast<glm::vec2*>(device.mapMemory(textured_quad.memory.get(), 0, textured_quad.size));
+    ptr[0] = glm::vec2(-1.f, -1.f);
+    ptr[1] = glm::vec2(-1.f, 1.f);
+    ptr[2] = glm::vec2(1.f, -1.f);
+    ptr[3] = glm::vec2(1.f, 1.f);
+    device.unmapMemory(textured_quad.memory.get());
+
+    std::array images{
+        vk::DescriptorImageInfo()
+        .setImageView(image.image_view.get())
+        .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
+    };
+
+    auto image_descriptor = vk::WriteDescriptorSet()
+                            .setDstBinding(0)
+                            .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+                            .setDstSet(textured_quad_descriptor_set.get())
+                            .setImageInfo(images);
+
+    device.updateDescriptorSets({image_descriptor}, {});
 }
 
 void ray_tracing_renderer::update(vk::Device device, model_uniform_data model_uniform_data) const
@@ -117,8 +146,8 @@ void ray_tracing_renderer::draw_outside_renderpass(vk::CommandBuffer command_buf
         nullptr,
         0,
         0,
-        WIDTH,
-        HEIGHT,
+        image.iwm->width,
+        image.iwm->height,
         1
     );
 
@@ -142,5 +171,10 @@ void ray_tracing_renderer::draw_outside_renderpass(vk::CommandBuffer command_buf
 
 void ray_tracing_renderer::draw(vk::CommandBuffer command_buffer) const
 {
-    //TODO render image
+    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, textured_quad_pipeline->layout.get(), 0,
+                                      textured_quad_descriptor_set.get(), {});
+    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, textured_quad_pipeline->pl.get());
+
+    command_buffer.bindVertexBuffers(0, {textured_quad.buf.get()}, {0});
+    command_buffer.draw(4, 1, 0, 0);
 }

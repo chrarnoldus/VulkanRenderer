@@ -24,5 +24,6 @@ struct pipeline
 
 pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass);
 pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass);
+pipeline create_textured_quad_pipeline(vk::Device device, vk::RenderPass render_pass);
 pipeline create_ray_tracing_pipeline(vk::Device device);
 std::unique_ptr<buffer> create_shader_binding_table(vk::PhysicalDevice physical_device, vk::Device device, vk::Pipeline pipeline);
