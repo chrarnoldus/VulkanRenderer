@@ -10,8 +10,10 @@ class ray_tracing_renderer : public renderer
     const buffer* shader_binding_table;
     const pipeline* ray_tracing_pipeline;
     buffer uniform_buffer;
-    vk::UniqueDescriptorSet descriptor_set;
+    vk::UniqueDescriptorSet ray_tracing_descriptor_set;
     image_with_view image;
+
+    void initialize_ray_tracing_descriptor_set(vk::Device device, const ray_tracing_model* model);
 
 public:
     ray_tracing_renderer(vk::PhysicalDevice physical_device, vk::Device device,

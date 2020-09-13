@@ -2,32 +2,8 @@
 #include "ray_tracing_renderer.h"
 #include "dimensions.h"
 
-ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, vk::Device device,
-                                           vk::DescriptorPool descriptor_pool, const pipeline* ray_tracing_pipeline,
-                                           const buffer* shader_binding_table, const ray_tracing_model* model)
-    : model(model),
-      shader_binding_table(shader_binding_table),
-      ray_tracing_pipeline(ray_tracing_pipeline),
-      uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT,
-                     sizeof(model_uniform_data)),
-      image(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT,
-                                                        vk::Format::eR8G8B8A8Unorm,
-                                                        vk::ImageUsageFlagBits::eStorage |
-                                                        vk::ImageUsageFlagBits::eTransferSrc, vk::ImageTiling::eOptimal,
-                                                        vk::ImageLayout::eUndefined,
-                                                        vk::MemoryPropertyFlagBits::eDeviceLocal,
-                                                        vk::ImageAspectFlagBits::eColor))
+void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device device, const ray_tracing_model* model)
 {
-    std::array set_layouts{ray_tracing_pipeline->set_layout.get()};
-
-    descriptor_set = std::move(
-        device.allocateDescriptorSetsUnique(
-            vk::DescriptorSetAllocateInfo()
-            .setDescriptorPool(descriptor_pool)
-            .setSetLayouts(set_layouts)
-        )[0]
-    );
-
     std::array buffer_infos = {
         vk::DescriptorBufferInfo()
         .setBuffer(uniform_buffer.buf.get())
@@ -37,7 +13,7 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
     auto uniform_buffer_descriptor = vk::WriteDescriptorSet()
                                      .setDstBinding(0)
                                      .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                                     .setDstSet(descriptor_set.get())
+                                     .setDstSet(ray_tracing_descriptor_set.get())
                                      .setBufferInfo(buffer_infos);
 
     std::array tlas{model->tlas->ac.get()};
@@ -45,7 +21,7 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
         vk::WriteDescriptorSet()
         .setDstBinding(1)
         .setDescriptorType(vk::DescriptorType::eAccelerationStructureKHR)
-        .setDstSet(descriptor_set.get())
+        .setDstSet(ray_tracing_descriptor_set.get())
         .setDescriptorCount(1),
 
         vk::WriteDescriptorSetAccelerationStructureKHR()
@@ -61,7 +37,7 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
     auto image_descriptor = vk::WriteDescriptorSet()
                             .setDstBinding(2)
                             .setDescriptorType(vk::DescriptorType::eStorageImage)
-                            .setDstSet(descriptor_set.get())
+                            .setDstSet(ray_tracing_descriptor_set.get())
                             .setImageInfo(images);
 
     device.updateDescriptorSets({
@@ -69,6 +45,35 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
                                     tlas_descriptor.get<vk::WriteDescriptorSet>(),
                                     image_descriptor,
                                 }, {});
+}
+
+ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, vk::Device device,
+                                           vk::DescriptorPool descriptor_pool, const pipeline* ray_tracing_pipeline,
+                                           const buffer* shader_binding_table, const ray_tracing_model* model)
+    : model(model),
+      shader_binding_table(shader_binding_table),
+      ray_tracing_pipeline(ray_tracing_pipeline),
+      uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT,
+                     sizeof(model_uniform_data)),
+      image(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT,
+                                                        vk::Format::eR8G8B8A8Unorm,
+                                                        vk::ImageUsageFlagBits::eStorage |
+                                                        vk::ImageUsageFlagBits::eSampled, vk::ImageTiling::eOptimal,
+                                                        vk::ImageLayout::eUndefined,
+                                                        vk::MemoryPropertyFlagBits::eDeviceLocal,
+                                                        vk::ImageAspectFlagBits::eColor))
+{
+    std::array set_layouts{ray_tracing_pipeline->set_layout.get()};
+
+    ray_tracing_descriptor_set = std::move(
+        device.allocateDescriptorSetsUnique(
+            vk::DescriptorSetAllocateInfo()
+            .setDescriptorPool(descriptor_pool)
+            .setSetLayouts(set_layouts)
+        )[0]
+    );
+
+    initialize_ray_tracing_descriptor_set(device, model);
 }
 
 void ray_tracing_renderer::update(vk::Device device, model_uniform_data model_uniform_data) const
@@ -96,7 +101,7 @@ void ray_tracing_renderer::draw_outside_renderpass(vk::CommandBuffer command_buf
     );
 
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingKHR, ray_tracing_pipeline->layout.get(), 0,
-                                      descriptor_set.get(), {});
+                                      ray_tracing_descriptor_set.get(), {});
     command_buffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, ray_tracing_pipeline->pl.get());
 
     auto entry_size = shader_binding_table->size / GROUP_COUNT;
@@ -115,6 +120,23 @@ void ray_tracing_renderer::draw_outside_renderpass(vk::CommandBuffer command_buf
         WIDTH,
         HEIGHT,
         1
+    );
+
+    command_buffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eRayTracingShaderKHR,
+        vk::PipelineStageFlagBits::eFragmentShader,
+        vk::DependencyFlagBits(),
+        {},
+        {},
+        {
+            vk::ImageMemoryBarrier()
+            .setOldLayout(vk::ImageLayout::eGeneral)
+            .setNewLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
+            .setImage(image.iwm->image.get())
+            .setSrcAccessMask(vk::AccessFlagBits::eShaderWrite)
+            .setDstAccessMask(vk::AccessFlagBits::eShaderRead)
+            .setSubresourceRange(image.iwm->sub_resource_range)
+        }
     );
 }
 
