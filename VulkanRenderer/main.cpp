@@ -50,13 +50,10 @@ static vk::UniqueInstance create_instance()
         VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
     };
 
-    auto app_info = vk::ApplicationInfo().setApiVersion(VK_API_VERSION_1_1);
-
     return vk::createInstanceUnique(
         vk::InstanceCreateInfo()
         .setPEnabledLayerNames(layerNames)
         .setPEnabledExtensionNames(extensionNames)
-        .setPApplicationInfo(&app_info)
     );
 }
 
@@ -86,6 +83,7 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
         .setQueuePriorities(priorities);
 
     std::array extensionNames {
+        VK_KHR_MAINTENANCE1_EXTENSION_NAME,
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
         VK_NV_RAY_TRACING_EXTENSION_NAME,
