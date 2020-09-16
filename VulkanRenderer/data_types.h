@@ -2,20 +2,10 @@
 #include <glm/fwd.hpp>
 #include <imgui.h>
 
-struct a2b10g10r10_snorm_pack32
-{
-    a2b10g10r10_snorm_pack32(glm::vec3 rgb);
-
-    signed int r : 10;
-    signed int g : 10;
-    signed int b : 10;
-    signed int a : 2;
-};
-
 struct vertex
 {
     glm::i16vec3 position;
-    a2b10g10r10_snorm_pack32 normal;
+    glm::i16vec3 normal;
     glm::u8vec3 color;
 };
 

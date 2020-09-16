@@ -338,7 +338,7 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
                               .setOffset(offsetof(vertex, position));
 
     auto normal_attribute = vk::VertexInputAttributeDescription()
-                            .setFormat(vk::Format::eA2B10G10R10SnormPack32)
+                            .setFormat(vk::Format::eR16G16B16Snorm)
                             .setLocation(1)
                             .setOffset(offsetof(vertex, normal));
 

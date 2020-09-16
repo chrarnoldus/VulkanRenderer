@@ -129,7 +129,6 @@
     </ClCompile>
     <ClCompile Include="acceleration_structure.cpp" />
     <ClCompile Include="buffer.cpp" />
-    <ClCompile Include="data_types.cpp" />
     <ClCompile Include="dimensions.cpp" />
     <ClCompile Include="frame.cpp" />
     <ClCompile Include="input_state.cpp" />

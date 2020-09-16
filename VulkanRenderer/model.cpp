@@ -113,12 +113,11 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
         );
 
         auto unnormalized_normal = glm::vec3(normals[3 * i], normals[3 * i + 1], normals[3 * i + 2]);
-        vertices[i].normal = a2b10g10r10_snorm_pack32(
-            glm::length(unnormalized_normal) > 1.e-10f
+        auto normal = glm::length(unnormalized_normal) > 1.e-10f
             ? glm::normalize(unnormalized_normal)
-            : unnormalized_normal
-        );
+            : unnormalized_normal;
 
+        vertices[i].normal =r16g16b16_snorm(normal.x, normal.y, normal.z);
         vertices[i].color = glm::u8vec3(colors[3 * i], colors[3 * i + 1], colors[3 * i + 2]);
     }
     device.unmapMemory(vertex_buffer.memory.get());
