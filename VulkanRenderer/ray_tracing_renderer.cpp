@@ -2,9 +2,9 @@
 #include "ray_tracing_renderer.h"
 #include "dimensions.h"
 
-void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device device, const ray_tracing_model* model)
+void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device device)
 {
-    std::array buffer_infos = {
+    std::array uniform_buffer_infos{
         vk::DescriptorBufferInfo()
         .setBuffer(uniform_buffer.buf.get())
         .setRange(uniform_buffer.size)
@@ -14,7 +14,7 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
                                      .setDstBinding(0)
                                      .setDescriptorType(vk::DescriptorType::eUniformBuffer)
                                      .setDstSet(ray_tracing_descriptor_set.get())
-                                     .setBufferInfo(buffer_infos);
+                                     .setBufferInfo(uniform_buffer_infos);
 
     std::array tlas{model->tlas->ac.get()};
     vk::StructureChain<vk::WriteDescriptorSet, vk::WriteDescriptorSetAccelerationStructureKHR> tlas_descriptor = {
@@ -40,10 +40,37 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
                             .setDstSet(ray_tracing_descriptor_set.get())
                             .setImageInfo(images);
 
+    std::array vertex_buffer_infos{
+        vk::DescriptorBufferInfo()
+        .setBuffer(model->mdl->vertex_buffer->buf.get())
+        .setRange(model->mdl->vertex_buffer->size)
+    };
+
+    auto vertex_buffer_descriptor = vk::WriteDescriptorSet()
+                                    .setDstBinding(3)
+                                    .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+                                    .setDstSet(ray_tracing_descriptor_set.get())
+                                    .setBufferInfo(vertex_buffer_infos);
+
+
+    std::array index_buffer_infos{
+        vk::DescriptorBufferInfo()
+        .setBuffer(model->mdl->index_buffer->buf.get())
+        .setRange(model->mdl->index_buffer->size)
+    };
+
+    auto index_buffer_descriptor = vk::WriteDescriptorSet()
+                                   .setDstBinding(4)
+                                   .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+                                   .setDstSet(ray_tracing_descriptor_set.get())
+                                   .setBufferInfo(index_buffer_infos);
+
     device.updateDescriptorSets({
                                     uniform_buffer_descriptor,
                                     tlas_descriptor.get<vk::WriteDescriptorSet>(),
                                     image_descriptor,
+                                    vertex_buffer_descriptor,
+                                    index_buffer_descriptor,
                                 }, {});
 }
 
@@ -59,7 +86,7 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
                      sizeof(model_uniform_data)),
       textured_quad(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT,
                     4 * sizeof(glm::vec2)),
-      image(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH*2, HEIGHT*2,
+      image(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT,
                                                         vk::Format::eR8G8B8A8Unorm,
                                                         vk::ImageUsageFlagBits::eStorage |
                                                         vk::ImageUsageFlagBits::eSampled, vk::ImageTiling::eOptimal,
@@ -81,7 +108,7 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
     ray_tracing_descriptor_set = std::move(descriptor_sets[0]);
     textured_quad_descriptor_set = std::move(descriptor_sets[1]);
 
-    initialize_ray_tracing_descriptor_set(device, model);
+    initialize_ray_tracing_descriptor_set(device);
 
     auto ptr = static_cast<glm::vec2*>(device.mapMemory(textured_quad.memory.get(), 0, textured_quad.size));
     ptr[0] = glm::vec2(-1.f, -1.f);

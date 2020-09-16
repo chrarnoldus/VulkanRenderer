@@ -16,7 +16,7 @@ class ray_tracing_renderer : public renderer
     vk::UniqueDescriptorSet textured_quad_descriptor_set;
     image_with_view image;
 
-    void initialize_ray_tracing_descriptor_set(vk::Device device, const ray_tracing_model* model);
+    void initialize_ray_tracing_descriptor_set(vk::Device device);
 
 public:
     ray_tracing_renderer(vk::PhysicalDevice physical_device, vk::Device device,

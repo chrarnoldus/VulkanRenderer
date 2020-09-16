@@ -84,6 +84,9 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
 
     std::array extensionNames {
         VK_KHR_MAINTENANCE1_EXTENSION_NAME,
+        VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_EXTENSION_NAME,
+        VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME,
+        VK_KHR_8BIT_STORAGE_EXTENSION_NAME,
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
         VK_NV_RAY_TRACING_EXTENSION_NAME,
@@ -95,13 +98,19 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
         .setShaderClipDistance(true)
         .setShaderCullDistance(true);
 
-    return physical_device.createDeviceUnique(
+     vk::StructureChain<vk::DeviceCreateInfo, vk::PhysicalDevice8BitStorageFeatures, vk::PhysicalDeviceFloat16Int8FeaturesKHR> device_create_info{
         vk::DeviceCreateInfo()
-        .setQueueCreateInfoCount(1)
-        .setPQueueCreateInfos(&queueInfo)
-        .setPEnabledExtensionNames(extensionNames)
-        .setPEnabledFeatures(&features)
-    );
+            .setQueueCreateInfoCount(1)
+            .setPQueueCreateInfos(&queueInfo)
+            .setPEnabledExtensionNames(extensionNames)
+            .setPEnabledFeatures(&features),
+        vk::PhysicalDevice8BitStorageFeatures()
+            .setUniformAndStorageBuffer8BitAccess(true),
+         vk::PhysicalDeviceFloat16Int8FeaturesKHR()
+            .setShaderInt8(true),
+     };
+
+    return physical_device.createDeviceUnique(device_create_info.get<vk::DeviceCreateInfo>());
 }
 
 glm::vec3 std_vector_to_glm_vec3(const std::vector<float>& vector)
