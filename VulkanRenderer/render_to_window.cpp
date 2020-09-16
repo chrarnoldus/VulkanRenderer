@@ -7,14 +7,21 @@
 #include "pipeline.h"
 #include "frame.h"
 #include "model_renderer.h"
+#include "ray_tracing_model.h"
+#include "ray_tracing_renderer.h"
 #include "ui_renderer.h"
+
+const bool enable_ray_tracing = true;
 
 class vulkanapp
 {
     vk::Queue queue;
     vk::UniqueCommandPool command_pool;
     model mdl;
+    std::unique_ptr<ray_tracing_model> ray_tracing_model;
+    std::unique_ptr<buffer> shader_binding_table;
     vk::UniqueRenderPass render_pass;
+    pipeline textured_quad_pipeline;
     pipeline model_pipeline;
     pipeline ui_pipeline;
     vk::UniqueDescriptorPool descriptor_pool;
@@ -46,12 +53,25 @@ static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::D
     return device_image;
 }
 
+pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass)
+{
+    if (enable_ray_tracing)
+    {
+        return create_ray_tracing_pipeline(device);
+    }
+    else
+    {
+        return create_model_pipeline(device, render_pass);
+    }
+}
+
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, const std::string& model_path)
     : queue(device.getQueue(0, 0))
     , command_pool(device.createCommandPoolUnique(vk::CommandPoolCreateInfo()))
     , mdl(read_model(physical_device, device, command_pool.get(), queue, model_path))
     , render_pass(create_render_pass(device, vk::Format::eB8G8R8A8Unorm, vk::ImageLayout::ePresentSrcKHR))
-    , model_pipeline(create_model_pipeline(device, render_pass.get()))
+    , textured_quad_pipeline(create_textured_quad_pipeline(device, render_pass.get()))
+    , model_pipeline(create_pipeline(device, render_pass.get()))
     , ui_pipeline(create_ui_pipeline(device, render_pass.get()))
     , font_image(load_font_image(physical_device, device, command_pool.get(), queue))
     , camera_distance(2.f)
@@ -81,11 +101,26 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
         .setPresentMode(vk::PresentModeKHR::eFifo)
     );
 
+    if (enable_ray_tracing)
+    {
+        ray_tracing_model = std::make_unique<struct ray_tracing_model>(physical_device, device, command_pool.get(), queue, &mdl);
+        shader_binding_table = create_shader_binding_table(physical_device, device, model_pipeline.pl.get());
+    }
+
     auto images = device.getSwapchainImagesKHR(swapchain.get());
     for (auto image : images)
     {
         std::vector<std::unique_ptr<renderer>> renderers;
-        renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool.get(), &model_pipeline, &mdl));
+
+        if (enable_ray_tracing)
+        {
+            renderers.emplace_back(new ray_tracing_renderer(physical_device, device, descriptor_pool.get(), &model_pipeline, &textured_quad_pipeline, shader_binding_table.get(), ray_tracing_model.get()));
+        }
+        else
+        {
+            renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool.get(), &model_pipeline, &mdl));
+        }
+
         renderers.emplace_back(new ui_renderer(physical_device, device, descriptor_pool.get(), &ui_pipeline, &font_image));
 
         frames.emplace_back(new frame(
