@@ -23,11 +23,6 @@ struct Vertex
     uint8_t colorB_snorm;
 };
 
-vec3 getPosition(Vertex vertex)
-{
-    return vec3(modelView * vec4(vertex.positionX_snorm/32767.0, vertex.positionY_snorm/32767.0, vertex.positionZ_snorm/32767.0, 1.0));
-}
-
 vec3 getNormal(Vertex vertex)
 {
     return vec3(modelView * vec4(vertex.normalX_snorm/32767.0, vertex.normalY_snorm/32767.0, vertex.normalZ_snorm/32767.0, 0.0));
@@ -73,7 +68,7 @@ void main()
     Vertex vertex1 = vertexBuffer[index1];
     Vertex vertex2 = vertexBuffer[index2];
 
-    vec3 position = interpolate(getPosition(vertex0), getPosition(vertex1), getPosition(vertex2));
+    vec3 position = vec3(modelView * vec4(gl_WorldRayOriginNV + gl_RayTmaxNV * gl_WorldRayDirectionNV, 1.0));
     vec3 normal = interpolate(getNormal(vertex0), getNormal(vertex1), getNormal(vertex2));
     vec3 color = interpolate(getColor(vertex0), getColor(vertex1), getColor(vertex2));
 
