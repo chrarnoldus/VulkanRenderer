@@ -50,7 +50,7 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
 void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_data) const
 {
     // TODO something useful
-    ImGui::ShowTestWindow();
+    ImGui::ShowDemoWindow();
     ImGui::Render();
     auto draw_data = ImGui::GetDrawData();
 

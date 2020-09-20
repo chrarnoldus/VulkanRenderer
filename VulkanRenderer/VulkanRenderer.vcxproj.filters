@@ -45,15 +45,6 @@
     <ClCompile Include="input_state.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Dependencies\imgui\imgui.cpp">
-      <Filter>Source Files\Dependencies</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Dependencies\imgui\imgui_demo.cpp">
-      <Filter>Source Files\Dependencies</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Dependencies\imgui\imgui_draw.cpp">
-      <Filter>Source Files\Dependencies</Filter>
-    </ClCompile>
     <ClCompile Include="ui_renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -217,6 +217,7 @@ vulkanapp::~vulkanapp()
 
 static void initialize_imgui()
 {
+    ImGui::CreateContext();
     auto& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(float(WIDTH), float(HEIGHT));
     io.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;
@@ -280,5 +281,5 @@ void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device,
 
     glfwTerminate();
 
-    ImGui::Shutdown();
+    ImGui::DestroyContext();
 }
