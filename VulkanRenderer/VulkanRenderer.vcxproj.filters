@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Dependencies">
-      <UniqueIdentifier>{bba1b8cc-01d3-49a4-b392-0fc40def650d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{6e6729b9-4f04-45b9-bc7f-e3e75132fb77}</UniqueIdentifier>
     </Filter>
@@ -47,9 +44,6 @@
     </ClCompile>
     <ClCompile Include="ui_renderer.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Dependencies\tinyply\source\tinyply.cpp">
-      <Filter>Source Files\Dependencies</Filter>
     </ClCompile>
     <ClCompile Include="model_renderer.cpp">
       <Filter>Source Files</Filter>

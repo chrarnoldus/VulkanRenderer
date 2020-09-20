@@ -1,9 +1,6 @@
 [submodule "Dependencies/glm"]
 	path = Dependencies/glm
 	url = https://github.com/g-truc/glm
-[submodule "Dependencies/tinyply"]
-	path = Dependencies/tinyply
-	url = https://github.com/ddiakopoulos/tinyply
 [submodule "Dependencies/cxxopts"]
 	path = Dependencies/cxxopts
 	url = https://github.com/jarro2783/cxxopts

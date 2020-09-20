@@ -33,7 +33,7 @@ static glm::i16vec3 r16g16b16_snorm(float x, float y, float z)
     );
 }
 
-static std::vector<float> generate_unnormalized_normals(const std::vector<float>& positions, const std::vector<uint32_t>& indices)
+static std::vector<float> generate_unnormalized_normals(const std::span<float>& positions, const std::span<uint32_t>& indices)
 {
     std::vector<float> normals(positions.size(), 0.f);
     for (size_t i = 0; i < indices.size() / 3; i++)
@@ -59,7 +59,7 @@ static std::vector<float> generate_unnormalized_normals(const std::vector<float>
     return normals;
 }
 
-static glm::vec4 unitize(const std::vector<float>& positions)
+static glm::vec4 unitize(const std::span<float>& positions)
 {
     glm::vec3 min(positions[0], positions[1], positions[2]);
     glm::vec3 max(positions[0], positions[1], positions[2]);
@@ -77,34 +77,63 @@ static glm::vec4 unitize(const std::vector<float>& positions)
     );
 }
 
+static std::shared_ptr<tinyply::PlyData> try_request_properties_from_element(
+    tinyply::PlyFile& ply_file,
+    const std::string& element_key,
+    const std::vector<std::string>& property_keys
+)
+{
+    try
+    {
+        return ply_file.request_properties_from_element(element_key, property_keys);
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
 model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue, const std::string& path)
 {
     std::ifstream stream(path, std::ios_base::binary);
-    tinyply::PlyFile ply_file(stream);
+    tinyply::PlyFile ply_file;
+    ply_file.parse_header(stream);
 
-    std::vector<float> positions;
-    std::vector<float> normals;
-    std::vector<uint8_t> colors;
-    std::vector<uint32_t> indices;
-
-    auto vertex_count = ply_file.request_properties_from_element("vertex", { "x","y","z" }, positions);
-    ply_file.request_properties_from_element("vertex", { "nx","ny","nz" }, normals);
-    ply_file.request_properties_from_element("vertex", { "red","green","blue" }, colors);
-    auto face_count = ply_file.request_properties_from_element("face", { "vertex_indices" }, indices, 3);
+    auto positionData = ply_file.request_properties_from_element("vertex", { "x","y","z" });
+    auto normalData = try_request_properties_from_element(ply_file, "vertex", { "nx","ny","nz" });
+    auto colorData = try_request_properties_from_element(ply_file, "vertex", { "red","green","blue" });
+    auto indexData = ply_file.request_properties_from_element("face", { "vertex_indices" });
     ply_file.read(stream);
 
-    assert(positions.size() > 0);
+    assert(positionData->count > 0);
+    std::span positions(reinterpret_cast<float*>(positionData->buffer.get()), 3 * positionData->count);
     glm::vec4 transformation(unitize(positions));
-    if (normals.size() == 0)
+
+    assert(indexData->count > 0);
+    std::span indices(reinterpret_cast<uint32_t*>(indexData->buffer.get()), 3 * indexData->count);
+
+
+    std::vector<float> normals;
+    if (normalData)
+    {
+        std::span span(reinterpret_cast<float*>(normalData->buffer.get()), 3 * normalData->count);
+        normals.assign(span.begin(), span.end());
+    }
+    else
     {
         normals = generate_unnormalized_normals(positions, indices);
     }
-    colors.resize(3 * vertex_count, UINT8_MAX);
-    assert(indices.size() > 0);
 
-    buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eTransferSrc, HOST_VISIBLE_AND_COHERENT, vertex_count * sizeof(vertex));
+    std::vector<uint8_t> colors (3 * positionData->count, UINT8_MAX);
+    if (colorData)
+    {
+        std::span span(colorData->buffer.get(), 3 * colorData->count);
+        colors.assign(span.begin(), span.end());
+    }
+
+    buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eTransferSrc, HOST_VISIBLE_AND_COHERENT, positionData->count * sizeof(vertex));
     auto vertices = reinterpret_cast<vertex*>(device.mapMemory(vertex_buffer.memory.get(), 0, vertex_buffer.size));
-    for (uint32_t i = 0; i < vertex_count; i++)
+    for (uint32_t i = 0; i < positionData->count; i++)
     {
         vertices[i].position = r16g16b16_snorm(
             (positions[3 * i] - transformation.x) * transformation.w,
@@ -134,6 +163,6 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
 
     queue.waitIdle();
 
-    std::printf("Model loaded: %llu triangles, %.2lf MB\n", face_count, (vertex_buffer.size + index_buffer.size) / (1024. * 1024.));
-    return model(vertex_count, uint32_t(indices.size()), std::move(device_vertex_buffer), std::move(device_index_buffer));
+    std::printf("Model loaded: %llu triangles, %.2lf MB\n", positionData->count / 3, (vertex_buffer.size + index_buffer.size) / (1024. * 1024.));
+    return model(positionData->count, uint32_t(indices.size()), std::move(device_vertex_buffer), std::move(device_index_buffer));
 }
