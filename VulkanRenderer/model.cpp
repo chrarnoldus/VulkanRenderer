@@ -137,7 +137,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
 
     buffer vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eTransferSrc, HOST_VISIBLE_AND_COHERENT,
                          positionData->count * sizeof(vertex));
-    auto vertices = reinterpret_cast<vertex*>(device.mapMemory(vertex_buffer.memory.get(), 0, vertex_buffer.size));
+    auto vertices = static_cast<vertex*>(device.mapMemory(vertex_buffer.memory.get(), 0, vertex_buffer.size));
     for (uint32_t i = 0; i < positionData->count; i++)
     {
         vertices[i].position = r16g16b16_snorm(
