@@ -66,9 +66,6 @@
     <ClCompile Include="helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Dependencies\lodepng\lodepng.cpp">
-      <Filter>Source Files\Dependencies</Filter>
-    </ClCompile>
     <ClCompile Include="render_to_window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

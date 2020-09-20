@@ -7,9 +7,6 @@
 [submodule "Dependencies/tinyply"]
 	path = Dependencies/tinyply
 	url = https://github.com/ddiakopoulos/tinyply
-[submodule "Dependencies/lodepng"]
-	path = Dependencies/lodepng
-	url = https://github.com/lvandeve/lodepng
 [submodule "Dependencies/cxxopts"]
 	path = Dependencies/cxxopts
 	url = https://github.com/jarro2783/cxxopts
