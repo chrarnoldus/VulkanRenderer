@@ -35,7 +35,8 @@ image_with_memory::image_with_memory(
     auto memory_type_index = UINT32_MAX;
     for (uint32_t i = 0; i < props.memoryTypeCount; i++)
     {
-        if ((reqs.memoryTypeBits & 1u << i) == 1u << i && (props.memoryTypes[i].propertyFlags & memory_flags) == memory_flags)
+        if ((reqs.memoryTypeBits & 1u << i) == 1u << i && (props.memoryTypes[i].propertyFlags & memory_flags) ==
+            memory_flags)
         {
             memory_type_index = i;
             break;
@@ -52,17 +53,19 @@ image_with_memory::image_with_memory(
     device.bindImageMemory(image.get(), memory.get(), 0);
 
     sub_resource_range = vk::ImageSubresourceRange()
-        .setAspectMask(aspect_flags)
-        .setLevelCount(1)
-        .setLayerCount(1);
+                         .setAspectMask(aspect_flags)
+                         .setLevelCount(1)
+                         .setLayerCount(1);
 }
 
-std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_for_shader_read(
+    vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
 {
     auto result = std::make_unique<image_with_memory>(
         physical_device, device, width, height, format,
         vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-        vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eColor
+        vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal,
+        vk::ImageAspectFlagBits::eColor
     );
 
     auto command_buffer = device.allocateCommandBuffers(
@@ -79,16 +82,18 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_f
         vk::DependencyFlags(),
         {},
         {},
-        { vk::ImageMemoryBarrier(
-            vk::AccessFlagBits::eHostWrite,
-            vk::AccessFlagBits::eTransferRead,
-            vk::ImageLayout::ePreinitialized,
-            vk::ImageLayout::eTransferSrcOptimal,
-            0,
-            0,
-            image.get(),
-            sub_resource_range
-        ) }
+        {
+            vk::ImageMemoryBarrier(
+                vk::AccessFlagBits::eHostWrite,
+                vk::AccessFlagBits::eTransferRead,
+                vk::ImageLayout::ePreinitialized,
+                vk::ImageLayout::eTransferSrcOptimal,
+                0,
+                0,
+                image.get(),
+                sub_resource_range
+            )
+        }
     );
     command_buffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTopOfPipe,
@@ -96,16 +101,18 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_f
         vk::DependencyFlags(),
         {},
         {},
-        { vk::ImageMemoryBarrier(
-            vk::AccessFlags(),
-            vk::AccessFlagBits::eTransferWrite,
-            vk::ImageLayout::eUndefined,
-            vk::ImageLayout::eTransferDstOptimal,
-            0,
-            0,
-            result->image.get(),
-            result->sub_resource_range
-        ) }
+        {
+            vk::ImageMemoryBarrier(
+                vk::AccessFlags(),
+                vk::AccessFlagBits::eTransferWrite,
+                vk::ImageLayout::eUndefined,
+                vk::ImageLayout::eTransferDstOptimal,
+                0,
+                0,
+                result->image.get(),
+                result->sub_resource_range
+            )
+        }
     );
     command_buffer.copyImage(
         image.get(), vk::ImageLayout::eTransferSrcOptimal, result->image.get(), vk::ImageLayout::eTransferDstOptimal, {
@@ -120,25 +127,28 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_f
         vk::DependencyFlags(),
         {},
         {},
-        { vk::ImageMemoryBarrier(
-            vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eShaderRead,
-            vk::ImageLayout::eTransferDstOptimal,
-            vk::ImageLayout::eShaderReadOnlyOptimal,
-            0,
-            0,
-            result->image.get(),
-            result->sub_resource_range
-        ) }
+        {
+            vk::ImageMemoryBarrier(
+                vk::AccessFlagBits::eTransferWrite,
+                vk::AccessFlagBits::eShaderRead,
+                vk::ImageLayout::eTransferDstOptimal,
+                vk::ImageLayout::eShaderReadOnlyOptimal,
+                0,
+                0,
+                result->image.get(),
+                result->sub_resource_range
+            )
+        }
     );
     command_buffer.end();
 
-    queue.submit({ vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer) }, nullptr);
+    queue.submit({vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer)}, nullptr);
 
     return result;
 }
 
-std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
+std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(
+    vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const
 {
     auto result = std::make_unique<image_with_memory>(
         physical_device, device, width, height, format,
@@ -162,16 +172,18 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(v
         vk::DependencyFlags(),
         {},
         {},
-        { vk::ImageMemoryBarrier(
-            vk::AccessFlagBits::eColorAttachmentWrite,
-            vk::AccessFlagBits::eTransferRead,
-            vk::ImageLayout::eTransferSrcOptimal,
-            vk::ImageLayout::eTransferSrcOptimal,
-            0,
-            0,
-            image.get(),
-            sub_resource_range
-        ) }
+        {
+            vk::ImageMemoryBarrier(
+                vk::AccessFlagBits::eColorAttachmentWrite,
+                vk::AccessFlagBits::eTransferRead,
+                vk::ImageLayout::eTransferSrcOptimal,
+                vk::ImageLayout::eTransferSrcOptimal,
+                0,
+                0,
+                image.get(),
+                sub_resource_range
+            )
+        }
     );
     command_buffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTopOfPipe,
@@ -179,23 +191,25 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(v
         vk::DependencyFlags(),
         {},
         {},
-        { vk::ImageMemoryBarrier(
-            vk::AccessFlags(),
-            vk::AccessFlagBits::eTransferWrite,
-            vk::ImageLayout::eUndefined,
-            vk::ImageLayout::eTransferDstOptimal,
-            0,
-            0,
-            result->image.get(),
-            result->sub_resource_range
-        ) }
+        {
+            vk::ImageMemoryBarrier(
+                vk::AccessFlags(),
+                vk::AccessFlagBits::eTransferWrite,
+                vk::ImageLayout::eUndefined,
+                vk::ImageLayout::eTransferDstOptimal,
+                0,
+                0,
+                result->image.get(),
+                result->sub_resource_range
+            )
+        }
     );
     command_buffer.copyImage(
         image.get(), vk::ImageLayout::eTransferSrcOptimal, result->image.get(), vk::ImageLayout::eTransferDstOptimal, {
             vk::ImageCopy()
             .setSrcSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
-        .setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
-        .setExtent(vk::Extent3D(width, height, 1))
+            .setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1))
+            .setExtent(vk::Extent3D(width, height, 1))
         });
     command_buffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTransfer,
@@ -203,25 +217,28 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(v
         vk::DependencyFlags(),
         {},
         {},
-        { vk::ImageMemoryBarrier(
-            vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eHostRead,
-            vk::ImageLayout::eTransferDstOptimal,
-            vk::ImageLayout::eGeneral,
-            0,
-            0,
-            result->image.get(),
-            result->sub_resource_range
-        ) }
+        {
+            vk::ImageMemoryBarrier(
+                vk::AccessFlagBits::eTransferWrite,
+                vk::AccessFlagBits::eHostRead,
+                vk::ImageLayout::eTransferDstOptimal,
+                vk::ImageLayout::eGeneral,
+                0,
+                0,
+                result->image.get(),
+                result->sub_resource_range
+            )
+        }
     );
     command_buffer.end();
 
-    queue.submit({ vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer) }, nullptr);
+    queue.submit({vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer)}, nullptr);
 
     return result;
 }
 
-std::unique_ptr<image_with_memory> load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Device device, uint32_t width, uint32_t height, const void* data)
+std::unique_ptr<image_with_memory> load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Device device,
+                                                               uint32_t width, uint32_t height, const void* data)
 {
     auto image = std::make_unique<image_with_memory>(
         physical_device,
@@ -244,7 +261,7 @@ std::unique_ptr<image_with_memory> load_r8g8b8a8_unorm_texture(vk::PhysicalDevic
 }
 
 image_with_view::image_with_view(vk::Device device, std::unique_ptr<image_with_memory> iwm)
-    :iwm(std::move(iwm))
+    : iwm(std::move(iwm))
 {
     image_view = device.createImageViewUnique(
         vk::ImageViewCreateInfo()

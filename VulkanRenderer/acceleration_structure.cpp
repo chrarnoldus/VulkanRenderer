@@ -45,7 +45,8 @@ acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_devic
     )[0]);
 
     command_buffer->begin(vk::CommandBufferBeginInfo());
-    command_buffer->buildAccelerationStructureNV(info, instance_data, 0, false, ac.get(), nullptr, scratch.buf.get(), 0);
+    command_buffer->buildAccelerationStructureNV(info, instance_data, 0, false, ac.get(), nullptr, scratch.buf.get(),
+                                                 0);
     command_buffer->end();
 
     std::array command_buffers{command_buffer.get()};

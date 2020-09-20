@@ -25,7 +25,7 @@ static void character_callback(GLFWwindow* window, unsigned int codepoint)
 {
     if (codepoint < UINT16_MAX)
     {
-        ImGui::GetIO().AddInputCharacter(ImWchar(codepoint));
+        ImGui::GetIO().AddInputCharacter(static_cast<ImWchar>(codepoint));
     }
 }
 
@@ -34,8 +34,8 @@ static void cursor_position_callback(GLFWwindow* window, double x_position, doub
     auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
     assert(input);
 
-    input->current_mouse_position = glm::vec2(float(x_position), float(y_position));
-    ImGui::GetIO().MousePos = ImVec2(float(x_position), float(y_position));
+    input->current_mouse_position = glm::vec2(static_cast<float>(x_position), static_cast<float>(y_position));
+    ImGui::GetIO().MousePos = ImVec2(static_cast<float>(x_position), static_cast<float>(y_position));
 }
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -85,11 +85,12 @@ static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset
     auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
     assert(input);
     input->scroll_amount = y_offset;
-    ImGui::GetIO().MouseWheel = float(y_offset);
+    ImGui::GetIO().MouseWheel = static_cast<float>(y_offset);
 }
 
 input_state::input_state(GLFWwindow* window)
-    : scroll_amount(0.), time(0.), left_mouse_button_down(false), right_mouse_button_down(false), ui_want_capture_mouse(false)
+    : scroll_amount(0.), time(0.), left_mouse_button_down(false), right_mouse_button_down(false),
+      ui_want_capture_mouse(false)
 {
     glfwSetWindowUserPointer(window, this);
     glfwSetKeyCallback(window, key_callback);
@@ -108,7 +109,7 @@ void input_state::update()
 
     auto& io = ImGui::GetIO();
     auto new_time = glfwGetTime();
-    io.DeltaTime = float(new_time - time);
+    io.DeltaTime = static_cast<float>(new_time - time);
     time = new_time;
 
     ImGui::NewFrame();

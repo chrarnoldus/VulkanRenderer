@@ -467,7 +467,8 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
                                   .setBinding(0)
                                   .setDescriptorCount(1)
                                   .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                                  .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR|vk::ShaderStageFlagBits::eClosestHitKHR);
+                                  .setStageFlags(
+                                      vk::ShaderStageFlagBits::eRaygenKHR | vk::ShaderStageFlagBits::eClosestHitKHR);
 
     auto tlas_binding = vk::DescriptorSetLayoutBinding()
                         .setBinding(1)
@@ -482,16 +483,16 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
                          .setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
 
     auto vertex_buffer_binding = vk::DescriptorSetLayoutBinding()
-                         .setBinding(3)
-                         .setDescriptorCount(1)
-                         .setDescriptorType(vk::DescriptorType::eStorageBuffer)
-                         .setStageFlags(vk::ShaderStageFlagBits::eClosestHitKHR);
+                                 .setBinding(3)
+                                 .setDescriptorCount(1)
+                                 .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+                                 .setStageFlags(vk::ShaderStageFlagBits::eClosestHitKHR);
 
     auto index_buffer_binding = vk::DescriptorSetLayoutBinding()
-                         .setBinding(4)
-                         .setDescriptorCount(1)
-                         .setDescriptorType(vk::DescriptorType::eStorageBuffer)
-                         .setStageFlags(vk::ShaderStageFlagBits::eClosestHitKHR);
+                                .setBinding(4)
+                                .setDescriptorCount(1)
+                                .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+                                .setStageFlags(vk::ShaderStageFlagBits::eClosestHitKHR);
 
     std::array bindings{
         uniform_buffer_binding,

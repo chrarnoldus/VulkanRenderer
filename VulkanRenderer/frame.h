@@ -17,6 +17,8 @@ public:
     vk::CommandBuffer command_buffer;
     vk::UniqueFence rendered_fence;
 
-    frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::DescriptorPool descriptor_pool, vk::Image image, vk::Format format, vk::RenderPass render_pass, std::vector<std::unique_ptr<renderer>> renderers);
+    frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool,
+          vk::DescriptorPool descriptor_pool, vk::Image image, vk::Format format, vk::RenderPass render_pass,
+          std::vector<std::unique_ptr<renderer>> renderers);
     void update(model_uniform_data model_uniform_data) const;
 };

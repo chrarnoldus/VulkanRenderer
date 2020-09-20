@@ -33,12 +33,14 @@ class vulkanapp
     float camera_distance;
 
 public:
-    vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, const std::string& model_path);
+    vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface,
+              const std::string& model_path);
     void update(vk::Device device, const input_state& input);
     ~vulkanapp();
 };
 
-static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue)
+static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::Device device,
+                                       vk::CommandPool command_pool, vk::Queue queue)
 {
     unsigned char* pixels;
     int width, height, bytes_per_pixel;
@@ -59,22 +61,20 @@ pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass)
     {
         return create_ray_tracing_pipeline(device);
     }
-    else
-    {
-        return create_model_pipeline(device, render_pass);
-    }
+    return create_model_pipeline(device, render_pass);
 }
 
-vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, const std::string& model_path)
+vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface,
+                     const std::string& model_path)
     : queue(device.getQueue(0, 0))
-    , command_pool(device.createCommandPoolUnique(vk::CommandPoolCreateInfo()))
-    , mdl(read_model(physical_device, device, command_pool.get(), queue, model_path))
-    , render_pass(create_render_pass(device, vk::Format::eB8G8R8A8Unorm, vk::ImageLayout::ePresentSrcKHR))
-    , textured_quad_pipeline(create_textured_quad_pipeline(device, render_pass.get()))
-    , model_pipeline(create_pipeline(device, render_pass.get()))
-    , ui_pipeline(create_ui_pipeline(device, render_pass.get()))
-    , font_image(load_font_image(physical_device, device, command_pool.get(), queue))
-    , camera_distance(2.f)
+      , command_pool(device.createCommandPoolUnique(vk::CommandPoolCreateInfo()))
+      , mdl(read_model(physical_device, device, command_pool.get(), queue, model_path))
+      , render_pass(create_render_pass(device, vk::Format::eB8G8R8A8Unorm, vk::ImageLayout::ePresentSrcKHR))
+      , textured_quad_pipeline(create_textured_quad_pipeline(device, render_pass.get()))
+      , model_pipeline(create_pipeline(device, render_pass.get()))
+      , ui_pipeline(create_ui_pipeline(device, render_pass.get()))
+      , font_image(load_font_image(physical_device, device, command_pool.get(), queue))
+      , camera_distance(2.f)
 {
     descriptor_pool = create_descriptor_pool(device);
     acquired_semaphore = device.createSemaphoreUnique(vk::SemaphoreCreateInfo());
@@ -103,7 +103,8 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
 
     if (enable_ray_tracing)
     {
-        ray_tracing_model = std::make_unique<struct ray_tracing_model>(physical_device, device, command_pool.get(), queue, &mdl);
+        ray_tracing_model = std::make_unique<struct ray_tracing_model>(physical_device, device, command_pool.get(),
+                                                                       queue, &mdl);
         shader_binding_table = create_shader_binding_table(physical_device, device, model_pipeline.pl.get());
     }
 
@@ -114,14 +115,18 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
 
         if (enable_ray_tracing)
         {
-            renderers.emplace_back(new ray_tracing_renderer(physical_device, device, descriptor_pool.get(), &model_pipeline, &textured_quad_pipeline, shader_binding_table.get(), ray_tracing_model.get()));
+            renderers.emplace_back(new ray_tracing_renderer(physical_device, device, descriptor_pool.get(),
+                                                            &model_pipeline, &textured_quad_pipeline,
+                                                            shader_binding_table.get(), ray_tracing_model.get()));
         }
         else
         {
-            renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool.get(), &model_pipeline, &mdl));
+            renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool.get(), &model_pipeline,
+                                                      &mdl));
         }
 
-        renderers.emplace_back(new ui_renderer(physical_device, device, descriptor_pool.get(), &ui_pipeline, &font_image));
+        renderers.emplace_back(new ui_renderer(physical_device, device, descriptor_pool.get(), &ui_pipeline,
+                                               &font_image));
 
         frames.emplace_back(new frame(
             physical_device,
@@ -143,24 +148,22 @@ static glm::vec3 get_trackball_position(glm::vec2 mouse_position)
 
     auto xy = glm::vec2(mouse_position.x, HEIGHT - mouse_position.y - 1) - origin;
 
-    if (glm::dot(xy, xy) <= radius * radius / 2.f)
+    if (dot(xy, xy) <= radius * radius / 2.f)
     {
         // Sphere
-        auto z = glm::sqrt(radius * radius - glm::dot(xy, xy));
+        auto z = glm::sqrt(radius * radius - dot(xy, xy));
         return glm::vec3(xy, z);
     }
-    else
-    {
-        // Hyperbola
-        auto z = (radius * radius / 2.f) / glm::length(xy);
-        return glm::vec3(xy, z);
-    }
+    // Hyperbola
+    auto z = (radius * radius / 2.f) / length(xy);
+    return glm::vec3(xy, z);
 }
 
 void vulkanapp::update(vk::Device device, const input_state& input)
 {
     //suspicious: no reason to believe semaphore is unsignaled
-    auto current_image = device.acquireNextImageKHR(swapchain.get(), UINT64_MAX, acquired_semaphore.get(), nullptr).value;
+    auto current_image = device.acquireNextImageKHR(swapchain.get(), UINT64_MAX, acquired_semaphore.get(), nullptr).
+                                value;
     auto& frame = frames[current_image];
 
     if (!input.ui_want_capture_mouse)
@@ -169,38 +172,39 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         {
             // Based on https://www.khronos.org/opengl/wiki/Object_Mouse_Trackball
             auto
-                v1 = glm::normalize(get_trackball_position(input.previous_mouse_position)),
-                v2 = glm::normalize(get_trackball_position(input.current_mouse_position));
+                v1 = normalize(get_trackball_position(input.previous_mouse_position)),
+                v2 = normalize(get_trackball_position(input.current_mouse_position));
             trackball_rotation = glm::quat(v1, v2) * trackball_rotation;
         }
-        camera_distance *= float(1 - .1 * input.scroll_amount);
+        camera_distance *= static_cast<float>(1 - .1 * input.scroll_amount);
     }
 
     model_uniform_data data;
-    data.projection = glm::perspective(glm::half_pi<float>(), float(WIDTH) / float(HEIGHT), .001f, 100.f);
+    data.projection = glm::perspective(glm::half_pi<float>(), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT),
+                                       .001f, 100.f);
     data.model_view =
-        glm::lookAt(
+        lookAt(
             glm::vec3(0.f, 0.f, camera_distance),
             glm::vec3(0.f, 0.f, 0.f),
             glm::vec3(0.f, 1.f, 0.f)
         )
         *
-        glm::mat4_cast(trackball_rotation);
+        mat4_cast(trackball_rotation);
 
-    device.waitForFences({ frame->rendered_fence.get() }, true, UINT64_MAX);
-    device.resetFences({ frame->rendered_fence.get() });
+    device.waitForFences({frame->rendered_fence.get()}, true, UINT64_MAX);
+    device.resetFences({frame->rendered_fence.get()});
 
     frame->update(data);
 
     auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     queue.submit({
-        vk::SubmitInfo()
-        .setCommandBufferCount(1)
-        .setPCommandBuffers(&frame->command_buffer)
-        .setPWaitDstStageMask(&wait_dst_stage_mask)
-        .setWaitSemaphoreCount(1)
-        .setPWaitSemaphores(&acquired_semaphore.get())
-    }, frame->rendered_fence.get());
+                     vk::SubmitInfo()
+                     .setCommandBufferCount(1)
+                     .setPCommandBuffers(&frame->command_buffer)
+                     .setPWaitDstStageMask(&wait_dst_stage_mask)
+                     .setWaitSemaphoreCount(1)
+                     .setPWaitSemaphores(&acquired_semaphore.get())
+                 }, frame->rendered_fence.get());
 
     queue.presentKHR(
         vk::PresentInfoKHR()
@@ -219,7 +223,7 @@ static void initialize_imgui()
 {
     ImGui::CreateContext();
     auto& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(float(WIDTH), float(HEIGHT));
+    io.DisplaySize = ImVec2(static_cast<float>(WIDTH), static_cast<float>(HEIGHT));
     io.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;
     io.KeyMap[ImGuiKey_LeftArrow] = GLFW_KEY_LEFT;
     io.KeyMap[ImGuiKey_RightArrow] = GLFW_KEY_RIGHT;
@@ -255,7 +259,8 @@ static vk::UniqueSurfaceKHR create_window_surface(vk::Instance instance, GLFWwin
     return vk::UniqueSurfaceKHR(surface, instance);
 }
 
-void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device, vk::Device device, const std::string& model_path)
+void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device, vk::Device device,
+                      const std::string& model_path)
 {
     initialize_imgui();
 

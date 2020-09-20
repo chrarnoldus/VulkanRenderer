@@ -22,8 +22,10 @@ struct image_with_memory
         vk::MemoryPropertyFlags memory_flags,
         vk::ImageAspectFlags aspect_flags
     );
-    std::unique_ptr<image_with_memory> copy_from_host_to_device_for_shader_read(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
-    std::unique_ptr<image_with_memory> copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
+    std::unique_ptr<image_with_memory> copy_from_host_to_device_for_shader_read(
+        vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool, vk::Queue queue) const;
+    std::unique_ptr<image_with_memory> copy_from_device_to_host(vk::PhysicalDevice physical_device, vk::Device device,
+                                                                vk::CommandPool command_pool, vk::Queue queue) const;
 };
 
 struct image_with_view
