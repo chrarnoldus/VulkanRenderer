@@ -6,12 +6,12 @@ Models can be rotated by dragging the mouse, while the distance between camera a
 
 ## Dependencies
 * [cxxopts](https://github.com/jarro2783/cxxopts/) (included as submodule)
-* [LodePNG](http://lodev.org/lodepng/) (included as submodule)
+* [LodePNG](http://lodev.org/lodepng/) (must be installed through vcpkg)
 * [LunarG Vulkan SDK](https://vulkan.lunarg.com/) (must be installed)
-* [GLFW](http://www.glfw.org/) (included as submodule)
+* [GLFW](http://www.glfw.org/) (must be installed through vcpkg)
 * [GLM](http://glm.g-truc.net/) (included as submodule)
-* [ImGui](https://github.com/ocornut/imgui/) (included as submodule)
-* [tiny file dialogs](https://sourceforge.net/projects/tinyfiledialogs/) (included as submodule)
+* [ImGui](https://github.com/ocornut/imgui/) (must be installed through vcpkg)
+* [tiny file dialogs](https://sourceforge.net/projects/tinyfiledialogs/) (must be installed through vcpkg)
 * [tinyply](https://github.com/ddiakopoulos/tinyply/) (included as submodule)
 
 ## Screenshots
