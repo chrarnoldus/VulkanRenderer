@@ -57,7 +57,7 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
     // TODO something useful
     ImGui::ShowDemoWindow();
     ImGui::Render();
-    auto draw_data = ImGui::GetDrawData();
+    auto* draw_data = ImGui::GetDrawData();
 
     // we're assuming that there's only one texture
 
@@ -65,21 +65,21 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
     assert(draw_data->TotalVtxCount < MAX_VERTEX_COUNT);
     assert(draw_data->TotalIdxCount < MAX_INDEX_COUNT);
 
-    auto indices = reinterpret_cast<uint16_t*>(device.mapMemory(index_buffer.memory.get(), 0, index_buffer.size));
-    auto vertices = reinterpret_cast<ImDrawVert*>(device.mapMemory(vertex_buffer.memory.get(), 0, vertex_buffer.size));
-    auto indirect = reinterpret_cast<VkDrawIndexedIndirectCommand*>(device.mapMemory(
+    auto* indices = reinterpret_cast<uint16_t*>(device.mapMemory(index_buffer.memory.get(), 0, index_buffer.size));
+    auto* vertices = reinterpret_cast<ImDrawVert*>(device.mapMemory(vertex_buffer.memory.get(), 0, vertex_buffer.size));
+    auto* indirect = reinterpret_cast<VkDrawIndexedIndirectCommand*>(device.mapMemory(
         indirect_buffer.memory.get(), 0, indirect_buffer.size));
     memset(indirect, 0, indirect_buffer.size);
 
-    auto uniform = reinterpret_cast<ui_uniform_data*>(device.mapMemory(uniform_buffer.memory.get(), 0,
-                                                                       uniform_buffer.size));
+    auto* uniform = reinterpret_cast<ui_uniform_data*>(device.mapMemory(uniform_buffer.memory.get(), 0,
+                                                                        uniform_buffer.size));
     uniform->screen_width = static_cast<float>(WIDTH);
     uniform->screen_height = static_cast<float>(HEIGHT);
 
     uint32_t indirect_index = 0, list_first_index = 0, list_first_vertex = 0;
     for (auto i = 0; i < draw_data->CmdListsCount; i++)
     {
-        auto cmd_list = draw_data->CmdLists[i];
+        auto* cmd_list = draw_data->CmdLists[i];
 
         memcpy(indices + list_first_index, cmd_list->IdxBuffer.Data,
                cmd_list->IdxBuffer.size() * sizeof(*cmd_list->IdxBuffer.Data));
@@ -91,7 +91,7 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
         {
             assert(indirect_index < MAX_UI_DRAW_COUNT);
 
-            auto indirect_command = &indirect[indirect_index];
+            auto* indirect_command = &indirect[indirect_index];
             indirect_command->instanceCount = 1;
             indirect_command->firstInstance = indirect_index;
             indirect_command->indexCount = cmd.ElemCount;

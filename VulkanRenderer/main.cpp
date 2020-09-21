@@ -154,8 +154,8 @@ int main(int argc, char** argv)
         }
         else
         {
-            auto pattern = "*.ply";
-            auto model_path_ptr = tinyfd_openFileDialog("Open 3D model", nullptr, 1, &pattern, nullptr, 0);
+            const auto* pattern = "*.ply";
+            auto* model_path_ptr = tinyfd_openFileDialog("Open 3D model", nullptr, 1, &pattern, nullptr, 0);
             if (!model_path_ptr)
             {
                 return EXIT_FAILURE;

@@ -12,7 +12,7 @@ static void record_command_buffer(
 {
     command_buffer.begin(vk::CommandBufferBeginInfo());
 
-    for (auto& renderer : renderers)
+    for (const auto& renderer : renderers)
     {
         renderer->draw_outside_renderpass(command_buffer);
     }
@@ -31,7 +31,7 @@ static void record_command_buffer(
         vk::SubpassContents::eInline
     );
 
-    for (auto& renderer : renderers)
+    for (const auto& renderer : renderers)
     {
         renderer->draw(command_buffer);
     }
@@ -97,7 +97,7 @@ frame::frame(
 
 void frame::update(model_uniform_data model_uniform_data) const
 {
-    for (auto& renderer : renderers)
+    for (const auto& renderer : renderers)
     {
         renderer->update(device, model_uniform_data);
     }

@@ -49,7 +49,7 @@ ray_tracing_model::ray_tracing_model(vk::PhysicalDevice physical_device, vk::Dev
     uint64_t blas_reference;
     device.getAccelerationStructureHandleNV(blas->ac.get(), sizeof(blas_reference), &blas_reference);
 
-    auto ptr = static_cast<vk::AccelerationStructureInstanceKHR*>(device.mapMemory(
+    auto* ptr = static_cast<vk::AccelerationStructureInstanceKHR*>(device.mapMemory(
         instance_data.memory.get(), 0, instance_data.size));
 
     std::array<std::array<float, 4>, 3> identity{

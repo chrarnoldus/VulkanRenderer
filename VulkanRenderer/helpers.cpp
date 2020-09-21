@@ -118,8 +118,8 @@ void render_to_image(
     auto host_image = device_image.copy_from_device_to_host(physical_device, device, command_pool.get(), queue);
     queue.waitIdle();
 
-    auto ptr = reinterpret_cast<uint8_t*>(device.mapMemory(host_image->memory.get(), 0,
-                                                           4 * host_image->width * host_image->height));
+    auto* ptr = reinterpret_cast<uint8_t*>(device.mapMemory(host_image->memory.get(), 0,
+                                                            4 * host_image->width * host_image->height));
     // TODO fix channels
     lodepng::encode(image_path, ptr, host_image->width, host_image->height);
     device.unmapMemory(host_image->memory.get());

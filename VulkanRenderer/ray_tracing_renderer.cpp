@@ -110,7 +110,7 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
 
     initialize_ray_tracing_descriptor_set(device);
 
-    auto ptr = static_cast<glm::vec2*>(device.mapMemory(textured_quad.memory.get(), 0, textured_quad.size));
+    auto* ptr = static_cast<glm::vec2*>(device.mapMemory(textured_quad.memory.get(), 0, textured_quad.size));
     ptr[0] = glm::vec2(-1.f, -1.f);
     ptr[1] = glm::vec2(-1.f, 1.f);
     ptr[2] = glm::vec2(1.f, -1.f);

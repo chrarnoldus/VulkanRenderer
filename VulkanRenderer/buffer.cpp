@@ -46,7 +46,7 @@ buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::Buffer
 
 void buffer::update(vk::Device device, void* data) const
 {
-    auto ptr = device.mapMemory(memory.get(), 0, VK_WHOLE_SIZE);
+    auto* ptr = device.mapMemory(memory.get(), 0, VK_WHOLE_SIZE);
     memcpy(ptr, data, size);
     device.unmapMemory(memory.get());
 }

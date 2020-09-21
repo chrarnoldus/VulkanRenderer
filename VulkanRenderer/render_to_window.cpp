@@ -271,7 +271,7 @@ void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device,
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    auto window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan renderer", nullptr, nullptr);
+    auto* window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan renderer", nullptr, nullptr);
     assert(window);
 
     auto surface = create_window_surface(instance, window);

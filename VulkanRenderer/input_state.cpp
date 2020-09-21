@@ -31,7 +31,7 @@ static void character_callback(GLFWwindow* window, unsigned int codepoint)
 
 static void cursor_position_callback(GLFWwindow* window, double x_position, double y_position)
 {
-    auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
+    auto* input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
     assert(input);
 
     input->current_mouse_position = glm::vec2(static_cast<float>(x_position), static_cast<float>(y_position));
@@ -40,7 +40,7 @@ static void cursor_position_callback(GLFWwindow* window, double x_position, doub
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
+    auto* input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
     assert(input);
 
     if (button == GLFW_MOUSE_BUTTON_LEFT)
@@ -82,7 +82,7 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
 
 static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset)
 {
-    auto input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
+    auto* input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
     assert(input);
     input->scroll_amount = y_offset;
     ImGui::GetIO().MouseWheel = static_cast<float>(y_offset);

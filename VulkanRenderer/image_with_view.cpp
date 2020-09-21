@@ -254,7 +254,7 @@ std::unique_ptr<image_with_memory> load_r8g8b8a8_unorm_texture(vk::PhysicalDevic
     );
 
     auto size = 4 * width * height;
-    auto ptr = device.mapMemory(image->memory.get(), 0, size);
+    auto* ptr = device.mapMemory(image->memory.get(), 0, size);
     memcpy(ptr, data, size);
     device.unmapMemory(image->memory.get());
     return image;

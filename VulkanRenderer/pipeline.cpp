@@ -564,7 +564,7 @@ std::unique_ptr<buffer> create_shader_binding_table(vk::PhysicalDevice physical_
     auto data = std::make_unique<uint8_t[]>(tempBufferSize);
     device.getRayTracingShaderGroupHandlesNV(pipeline, 0, GROUP_COUNT, tempBufferSize, data.get());
 
-    auto ptr = static_cast<uint8_t*>(device.mapMemory(sbt->memory.get(), 0, VK_WHOLE_SIZE));
+    auto* ptr = static_cast<uint8_t*>(device.mapMemory(sbt->memory.get(), 0, VK_WHOLE_SIZE));
     memset(ptr, 0xCA, bufferSize);
     memcpy(&ptr[RAYGEN_SHADER_INDEX * alignment], &data[RAYGEN_SHADER_INDEX * handleSize], handleSize);
     memcpy(&ptr[MISS_SHADER_INDEX * alignment], &data[MISS_SHADER_INDEX * handleSize], handleSize);
