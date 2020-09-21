@@ -15,17 +15,17 @@ static VkBool32 debug_report_callback(
 static std::optional<vk::UniqueDebugUtilsMessengerEXT> create_debug_report_callback(vk::Instance instance)
 {
 #if _DEBUG
-    auto info = vk::DebugUtilsMessengerCreateInfoEXT()
-                .setMessageSeverity(
-                    vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
-                    vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
-                )
-                .setMessageType(
-                    vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-                    vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
-                    vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
-                )
-                .setPfnUserCallback(debug_report_callback);
+    const auto info = vk::DebugUtilsMessengerCreateInfoEXT()
+                      .setMessageSeverity(
+                          vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+                          vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
+                      )
+                      .setMessageType(
+                          vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+                          vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+                          vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
+                      )
+                      .setPfnUserCallback(debug_report_callback);
 
     return std::optional{instance.createDebugUtilsMessengerEXTUnique(info, nullptr)};
 #else
@@ -62,12 +62,12 @@ static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
     auto devices = vulkan.enumeratePhysicalDevices();
     assert(devices.size() > 0);
 
-    auto device_it = std::find_if(std::begin(devices), std::end(devices), [](auto d)
+    const auto device_it = std::find_if(std::begin(devices), std::end(devices), [](auto d)
     {
         return d.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu;
     });
 
-    auto device = device_it != std::end(devices) ? *device_it : devices[0];
+    const auto device = device_it != std::end(devices) ? *device_it : devices[0];
     auto props = device.getProperties();
     std::cout << "Using physical device " << props.deviceName << std::endl;
     return device;

@@ -41,14 +41,14 @@ static std::vector<float> generate_unnormalized_normals(const std::span<float>& 
     std::vector<float> normals(positions.size(), 0.f);
     for (size_t i = 0; i < indices.size() / 3; i++)
     {
-        auto a_index = indices[3 * i];
+        const auto a_index = indices[3 * i];
         glm::vec3 a(positions[3 * a_index], positions[3 * a_index + 1], positions[3 * a_index + 2]);
-        auto b_index = indices[3 * i + 1];
+        const auto b_index = indices[3 * i + 1];
         glm::vec3 b(positions[3 * b_index], positions[3 * b_index + 1], positions[3 * b_index + 2]);
-        auto c_index = indices[3 * i + 2];
+        const auto c_index = indices[3 * i + 2];
         glm::vec3 c(positions[3 * c_index], positions[3 * c_index + 1], positions[3 * c_index + 2]);
 
-        auto weighted_normal = cross(b - a, c - a);
+        const auto weighted_normal = cross(b - a, c - a);
         normals[3 * a_index] += weighted_normal.x;
         normals[3 * a_index + 1] += weighted_normal.y;
         normals[3 * a_index + 2] += weighted_normal.z;

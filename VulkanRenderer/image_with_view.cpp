@@ -29,7 +29,7 @@ image_with_memory::image_with_memory(
         .setInitialLayout(initial_layout)
     );
 
-    auto reqs = device.getImageMemoryRequirements(image.get());
+    const auto reqs = device.getImageMemoryRequirements(image.get());
     auto props = physical_device.getMemoryProperties();
 
     auto memory_type_index = UINT32_MAX;
@@ -253,7 +253,7 @@ std::unique_ptr<image_with_memory> load_r8g8b8a8_unorm_texture(vk::PhysicalDevic
         vk::ImageAspectFlagBits::eColor
     );
 
-    auto size = 4 * width * height;
+    const auto size = 4 * width * height;
     auto* ptr = device.mapMemory(image->memory.get(), 0, size);
     memcpy(ptr, data, size);
     device.unmapMemory(image->memory.get());

@@ -10,11 +10,11 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
         .setRange(uniform_buffer.size)
     };
 
-    auto uniform_buffer_descriptor = vk::WriteDescriptorSet()
-                                     .setDstBinding(0)
-                                     .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                                     .setDstSet(ray_tracing_descriptor_set.get())
-                                     .setBufferInfo(uniform_buffer_infos);
+    const auto uniform_buffer_descriptor = vk::WriteDescriptorSet()
+                                           .setDstBinding(0)
+                                           .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                                           .setDstSet(ray_tracing_descriptor_set.get())
+                                           .setBufferInfo(uniform_buffer_infos);
 
     std::array tlas{model->tlas->ac.get()};
     vk::StructureChain<vk::WriteDescriptorSet, vk::WriteDescriptorSetAccelerationStructureKHR> tlas_descriptor = {
@@ -34,11 +34,11 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
         .setImageLayout(vk::ImageLayout::eGeneral)
     };
 
-    auto image_descriptor = vk::WriteDescriptorSet()
-                            .setDstBinding(2)
-                            .setDescriptorType(vk::DescriptorType::eStorageImage)
-                            .setDstSet(ray_tracing_descriptor_set.get())
-                            .setImageInfo(images);
+    const auto image_descriptor = vk::WriteDescriptorSet()
+                                  .setDstBinding(2)
+                                  .setDescriptorType(vk::DescriptorType::eStorageImage)
+                                  .setDstSet(ray_tracing_descriptor_set.get())
+                                  .setImageInfo(images);
 
     std::array vertex_buffer_infos{
         vk::DescriptorBufferInfo()
@@ -46,11 +46,11 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
         .setRange(model->mdl->vertex_buffer->size)
     };
 
-    auto vertex_buffer_descriptor = vk::WriteDescriptorSet()
-                                    .setDstBinding(3)
-                                    .setDescriptorType(vk::DescriptorType::eStorageBuffer)
-                                    .setDstSet(ray_tracing_descriptor_set.get())
-                                    .setBufferInfo(vertex_buffer_infos);
+    const auto vertex_buffer_descriptor = vk::WriteDescriptorSet()
+                                          .setDstBinding(3)
+                                          .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+                                          .setDstSet(ray_tracing_descriptor_set.get())
+                                          .setBufferInfo(vertex_buffer_infos);
 
 
     std::array index_buffer_infos{
@@ -59,11 +59,11 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
         .setRange(model->mdl->index_buffer->size)
     };
 
-    auto index_buffer_descriptor = vk::WriteDescriptorSet()
-                                   .setDstBinding(4)
-                                   .setDescriptorType(vk::DescriptorType::eStorageBuffer)
-                                   .setDstSet(ray_tracing_descriptor_set.get())
-                                   .setBufferInfo(index_buffer_infos);
+    const auto index_buffer_descriptor = vk::WriteDescriptorSet()
+                                         .setDstBinding(4)
+                                         .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+                                         .setDstSet(ray_tracing_descriptor_set.get())
+                                         .setBufferInfo(index_buffer_infos);
 
     device.updateDescriptorSets({
                                     uniform_buffer_descriptor,
@@ -160,7 +160,7 @@ void ray_tracing_renderer::draw_outside_renderpass(vk::CommandBuffer command_buf
                                       ray_tracing_descriptor_set.get(), {});
     command_buffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, ray_tracing_pipeline->pl.get());
 
-    auto entry_size = shader_binding_table->size / GROUP_COUNT;
+    const auto entry_size = shader_binding_table->size / GROUP_COUNT;
     command_buffer.traceRaysNV(
         shader_binding_table->buf.get(),
         RAYGEN_SHADER_INDEX * entry_size,

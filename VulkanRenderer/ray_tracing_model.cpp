@@ -52,7 +52,7 @@ ray_tracing_model::ray_tracing_model(vk::PhysicalDevice physical_device, vk::Dev
     auto* ptr = static_cast<vk::AccelerationStructureInstanceKHR*>(device.mapMemory(
         instance_data.memory.get(), 0, instance_data.size));
 
-    std::array<std::array<float, 4>, 3> identity{
+    const std::array<std::array<float, 4>, 3> identity{
         std::array<float, 4>{1.f, 0.f, 0.f, 0.f},
         std::array<float, 4>{0.f, 1.f, 0.f, 0.f},
         std::array<float, 4>{0.f, 0.f, 1.f, 0.f},

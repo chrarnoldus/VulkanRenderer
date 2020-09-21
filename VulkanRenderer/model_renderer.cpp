@@ -19,12 +19,12 @@ model_renderer::model_renderer(vk::PhysicalDevice physical_device, vk::Device de
                          .setBuffer(uniform_buffer.buf.get())
                          .setRange(uniform_buffer.size);
 
-    auto model_ub_write_description = vk::WriteDescriptorSet()
-                                      .setDstBinding(0)
-                                      .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                                      .setDescriptorCount(1)
-                                      .setDstSet(descriptor_set)
-                                      .setPBufferInfo(&model_ub_info);
+    const auto model_ub_write_description = vk::WriteDescriptorSet()
+                                            .setDstBinding(0)
+                                            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                                            .setDescriptorCount(1)
+                                            .setDstSet(descriptor_set)
+                                            .setPBufferInfo(&model_ub_info);
 
     device.updateDescriptorSets({model_ub_write_description}, {});
 }

@@ -10,7 +10,7 @@ acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_devic
 {
     ac = device.createAccelerationStructureNVUnique(vk::AccelerationStructureCreateInfoNV().setInfo(info));
 
-    auto memory_reqs = device.getAccelerationStructureMemoryRequirementsNV(
+    const auto memory_reqs = device.getAccelerationStructureMemoryRequirementsNV(
         vk::AccelerationStructureMemoryRequirementsInfoNV()
         .setAccelerationStructure(ac.get())
         .setType(vk::AccelerationStructureMemoryRequirementsTypeKHR::eObject)
@@ -28,7 +28,7 @@ acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_devic
         .setMemory(memory.get())
     });
 
-    auto scratch_requirements = device.getAccelerationStructureMemoryRequirementsNV(
+    const auto scratch_requirements = device.getAccelerationStructureMemoryRequirementsNV(
         vk::AccelerationStructureMemoryRequirementsInfoNV()
         .setAccelerationStructure(ac.get())
         .setType(vk::AccelerationStructureMemoryRequirementsTypeKHR::eBuildScratch)

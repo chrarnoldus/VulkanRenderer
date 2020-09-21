@@ -46,7 +46,7 @@ static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::D
     int width, height, bytes_per_pixel;
     ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &bytes_per_pixel);
     assert(bytes_per_pixel == 4);
-    auto host_image = load_r8g8b8a8_unorm_texture(physical_device, device, width, height, pixels);
+    const auto host_image = load_r8g8b8a8_unorm_texture(physical_device, device, width, height, pixels);
     auto device_image = image_with_view(
         device,
         host_image->copy_from_host_to_device_for_shader_read(physical_device, device, command_pool, queue)
@@ -79,10 +79,10 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     descriptor_pool = create_descriptor_pool(device);
     acquired_semaphore = device.createSemaphoreUnique(vk::SemaphoreCreateInfo());
 
-    auto supported = physical_device.getSurfaceSupportKHR(0, surface);
+    const auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
 
-    auto caps = physical_device.getSurfaceCapabilitiesKHR(surface);
+    const auto caps = physical_device.getSurfaceCapabilitiesKHR(surface);
 
     auto formats = physical_device.getSurfaceFormatsKHR(surface);
     assert(formats[0].format == vk::Format::eB8G8R8A8Unorm);
@@ -109,7 +109,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
     }
 
     auto images = device.getSwapchainImagesKHR(swapchain.get());
-    for (auto image : images)
+    for (const auto image : images)
     {
         std::vector<std::unique_ptr<renderer>> renderers;
 
@@ -143,19 +143,19 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
 
 static glm::vec3 get_trackball_position(glm::vec2 mouse_position)
 {
-    glm::vec2 origin(WIDTH / 2.f, HEIGHT / 2.f);
-    auto radius = glm::min(WIDTH, HEIGHT) / 2.f;
+    const glm::vec2 origin(WIDTH / 2.f, HEIGHT / 2.f);
+    const auto radius = glm::min(WIDTH, HEIGHT) / 2.f;
 
-    auto xy = glm::vec2(mouse_position.x, HEIGHT - mouse_position.y - 1) - origin;
+    const auto xy = glm::vec2(mouse_position.x, HEIGHT - mouse_position.y - 1) - origin;
 
     if (dot(xy, xy) <= radius * radius / 2.f)
     {
         // Sphere
-        auto z = glm::sqrt(radius * radius - dot(xy, xy));
+        const auto z = glm::sqrt(radius * radius - dot(xy, xy));
         return glm::vec3(xy, z);
     }
     // Hyperbola
-    auto z = (radius * radius / 2.f) / length(xy);
+    const auto z = (radius * radius / 2.f) / length(xy);
     return glm::vec3(xy, z);
 }
 
@@ -171,7 +171,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         if (input.left_mouse_button_down)
         {
             // Based on https://www.khronos.org/opengl/wiki/Object_Mouse_Trackball
-            auto
+            const auto
                 v1 = normalize(get_trackball_position(input.previous_mouse_position)),
                 v2 = normalize(get_trackball_position(input.current_mouse_position));
             trackball_rotation = glm::quat(v1, v2) * trackball_rotation;
@@ -254,7 +254,7 @@ static void error_callback(int error, const char* description)
 static vk::UniqueSurfaceKHR create_window_surface(vk::Instance instance, GLFWwindow* window)
 {
     VkSurfaceKHR surface;
-    auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+    const auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
     assert(result == VK_SUCCESS);
     return vk::UniqueSurfaceKHR(surface, instance);
 }
@@ -264,7 +264,7 @@ void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device,
 {
     initialize_imgui();
 
-    auto success = glfwInit();
+    const auto success = glfwInit();
     assert(success);
 
     glfwSetErrorCallback(error_callback);

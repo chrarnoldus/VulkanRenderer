@@ -31,23 +31,23 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
                       .setBuffer(uniform_buffer.buf.get())
                       .setRange(uniform_buffer.size);
 
-    auto ui_ub_write_description = vk::WriteDescriptorSet()
-                                   .setDstBinding(0)
-                                   .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                                   .setDescriptorCount(1)
-                                   .setDstSet(descriptor_set)
-                                   .setPBufferInfo(&ui_ub_info);
+    const auto ui_ub_write_description = vk::WriteDescriptorSet()
+                                         .setDstBinding(0)
+                                         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                                         .setDescriptorCount(1)
+                                         .setDstSet(descriptor_set)
+                                         .setPBufferInfo(&ui_ub_info);
 
     auto font_image_view_info = vk::DescriptorImageInfo()
                                 .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
                                 .setImageView(font_image->image_view.get());
 
-    auto font_image_write_descriptor_set = vk::WriteDescriptorSet()
-                                           .setDstBinding(1)
-                                           .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-                                           .setDescriptorCount(1)
-                                           .setDstSet(descriptor_set)
-                                           .setPImageInfo(&font_image_view_info);
+    const auto font_image_write_descriptor_set = vk::WriteDescriptorSet()
+                                                 .setDstBinding(1)
+                                                 .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+                                                 .setDescriptorCount(1)
+                                                 .setDstSet(descriptor_set)
+                                                 .setPImageInfo(&font_image_view_info);
 
     device.updateDescriptorSets({ui_ub_write_description, font_image_write_descriptor_set}, {});
 }

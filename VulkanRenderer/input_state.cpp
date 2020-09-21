@@ -108,7 +108,7 @@ void input_state::update()
     glfwPollEvents();
 
     auto& io = ImGui::GetIO();
-    auto new_time = glfwGetTime();
+    const auto new_time = glfwGetTime();
     io.DeltaTime = static_cast<float>(new_time - time);
     time = new_time;
 

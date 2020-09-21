@@ -32,8 +32,8 @@ buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::Buffer
         .setUsage(usage_flags)
     );
 
-    auto reqs = device.getBufferMemoryRequirements(buf.get());
-    uint32_t memory_type_index = get_memory_index(physical_device, memory_flags, reqs);
+    const auto reqs = device.getBufferMemoryRequirements(buf.get());
+    const uint32_t memory_type_index = get_memory_index(physical_device, memory_flags, reqs);
 
     memory = device.allocateMemoryUnique(
         vk::MemoryAllocateInfo()

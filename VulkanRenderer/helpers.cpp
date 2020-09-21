@@ -10,23 +10,23 @@
 
 vk::UniqueRenderPass create_render_pass(vk::Device device, vk::Format color_format, vk::ImageLayout final_layout)
 {
-    auto attachment0 = vk::AttachmentDescription()
-                       .setFormat(color_format)
-                       .setSamples(vk::SampleCountFlagBits::e1)
-                       .setLoadOp(vk::AttachmentLoadOp::eClear)
-                       .setStoreOp(vk::AttachmentStoreOp::eStore)
-                       .setInitialLayout(vk::ImageLayout::eUndefined)
-                       .setFinalLayout(final_layout);
+    const auto attachment0 = vk::AttachmentDescription()
+                             .setFormat(color_format)
+                             .setSamples(vk::SampleCountFlagBits::e1)
+                             .setLoadOp(vk::AttachmentLoadOp::eClear)
+                             .setStoreOp(vk::AttachmentStoreOp::eStore)
+                             .setInitialLayout(vk::ImageLayout::eUndefined)
+                             .setFinalLayout(final_layout);
 
-    auto attachment1 = vk::AttachmentDescription()
-                       .setFormat(vk::Format::eD24UnormS8Uint)
-                       .setSamples(vk::SampleCountFlagBits::e1)
-                       .setLoadOp(vk::AttachmentLoadOp::eClear)
-                       .setStoreOp(vk::AttachmentStoreOp::eStore)
-                       .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-                       .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
-                       .setInitialLayout(vk::ImageLayout::eUndefined)
-                       .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    const auto attachment1 = vk::AttachmentDescription()
+                             .setFormat(vk::Format::eD24UnormS8Uint)
+                             .setSamples(vk::SampleCountFlagBits::e1)
+                             .setLoadOp(vk::AttachmentLoadOp::eClear)
+                             .setStoreOp(vk::AttachmentStoreOp::eStore)
+                             .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+                             .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+                             .setInitialLayout(vk::ImageLayout::eUndefined)
+                             .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
     auto color_attachment = vk::AttachmentReference()
                             .setAttachment(0)
@@ -53,7 +53,7 @@ vk::UniqueRenderPass create_render_pass(vk::Device device, vk::Format color_form
 
 vk::UniqueDescriptorPool create_descriptor_pool(vk::Device device)
 {
-    auto max_count_per_type = static_cast<uint32_t>(10);
+    const auto max_count_per_type = static_cast<uint32_t>(10);
     std::array sizes{
         vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_count_per_type),
         vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, max_count_per_type),

@@ -583,11 +583,11 @@ pipeline::pipeline(vk::Device device, std::vector<vk::ShaderModule> shader_modul
 
 pipeline::~pipeline()
 {
-    for (auto sampler : samplers)
+    for (const auto sampler : samplers)
     {
         device.destroySampler(sampler);
     }
-    for (auto shader_module : shader_modules)
+    for (const auto shader_module : shader_modules)
     {
         device.destroyShaderModule(shader_module);
     }
