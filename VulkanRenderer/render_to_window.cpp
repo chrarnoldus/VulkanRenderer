@@ -75,10 +75,9 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
       , ui_pipeline(create_ui_pipeline(device, render_pass.get()))
       , font_image(load_font_image(physical_device, device, command_pool.get(), queue))
       , camera_distance(2.f)
+      , descriptor_pool(create_descriptor_pool(device))
+      , acquired_semaphore(device.createSemaphoreUnique(vk::SemaphoreCreateInfo()))
 {
-    descriptor_pool = create_descriptor_pool(device);
-    acquired_semaphore = device.createSemaphoreUnique(vk::SemaphoreCreateInfo());
-
     const auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
 
