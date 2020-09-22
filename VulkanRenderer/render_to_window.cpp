@@ -64,6 +64,31 @@ pipeline create_pipeline(vk::Device device, vk::RenderPass render_pass)
     return create_model_pipeline(device, render_pass);
 }
 
+static vk::UniqueSwapchainKHR create_swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface)
+{
+    const auto supported = physical_device.getSurfaceSupportKHR(0, surface);
+    assert(supported);
+
+    const auto caps = physical_device.getSurfaceCapabilitiesKHR(surface);
+
+    auto formats = physical_device.getSurfaceFormatsKHR(surface);
+    assert(formats[0].format == vk::Format::eB8G8R8A8Unorm);
+
+    return device.createSwapchainKHRUnique(
+        vk::SwapchainCreateInfoKHR()
+        .setSurface(surface)
+        .setMinImageCount(2)
+        .setImageFormat(vk::Format::eB8G8R8A8Unorm)
+        .setImageExtent(caps.currentExtent)
+        .setImageArrayLayers(1)
+        .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
+        .setPreTransform(caps.currentTransform)
+        .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
+        .setClipped(true)
+        .setPresentMode(vk::PresentModeKHR::eFifo)
+    );
+}
+
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface,
                      const std::string& model_path)
     : queue(device.getQueue(0, 0))
@@ -77,29 +102,8 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
       , camera_distance(2.f)
       , descriptor_pool(create_descriptor_pool(device))
       , acquired_semaphore(device.createSemaphoreUnique(vk::SemaphoreCreateInfo()))
+      , swapchain(create_swapchain(physical_device, device, surface))
 {
-    const auto supported = physical_device.getSurfaceSupportKHR(0, surface);
-    assert(supported);
-
-    const auto caps = physical_device.getSurfaceCapabilitiesKHR(surface);
-
-    auto formats = physical_device.getSurfaceFormatsKHR(surface);
-    assert(formats[0].format == vk::Format::eB8G8R8A8Unorm);
-
-    swapchain = device.createSwapchainKHRUnique(
-        vk::SwapchainCreateInfoKHR()
-        .setSurface(surface)
-        .setMinImageCount(2)
-        .setImageFormat(vk::Format::eB8G8R8A8Unorm)
-        .setImageExtent(caps.currentExtent)
-        .setImageArrayLayers(1)
-        .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
-        .setPreTransform(caps.currentTransform)
-        .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
-        .setClipped(true)
-        .setPresentMode(vk::PresentModeKHR::eFifo)
-    );
-
     if (enable_ray_tracing)
     {
         ray_tracing_model = std::make_unique<struct ray_tracing_model>(physical_device, device, command_pool.get(),
