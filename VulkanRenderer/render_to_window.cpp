@@ -118,14 +118,16 @@ class vulkanapp
 {
     vulkan_context context;
     model mdl;
-    std::unique_ptr<ray_tracer> ray_tracer;
     pipeline textured_quad_pipeline;
     pipeline model_pipeline;
     pipeline ui_pipeline;
     vk::UniqueSemaphore acquired_semaphore;
-    std::vector<std::unique_ptr<frame>> frames;
     vk::UniqueSwapchainKHR swapchain;
     image_with_view font_image;
+    std::vector<vk::Image> images;
+    std::unique_ptr<ray_tracer> ray_tracer;
+    frame_set default_frame_set;
+    const frame_set* current_frame_set;
     glm::quat trackball_rotation;
     float camera_distance;
 
@@ -188,22 +190,21 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
       , acquired_semaphore(device.createSemaphoreUnique(vk::SemaphoreCreateInfo()))
       , swapchain(create_swapchain(physical_device, device, surface))
       , font_image(load_font_image(physical_device, device, context.command_pool.get(), context.queue))
+      , images(device.getSwapchainImagesKHR(swapchain.get()))
+      , ray_tracer(std::make_unique<class ray_tracer>(context, images, &mdl, &ui_pipeline, &font_image))
+      , default_frame_set(create_frame_set(context, images, [&]()
+        {
+            return new model_renderer(physical_device, device, context.descriptor_pool.get(), &model_pipeline, &mdl);
+        }, &ui_pipeline, &font_image))
       , camera_distance(2.f)
 {
-    auto images = device.getSwapchainImagesKHR(swapchain.get());
-    ray_tracer = std::make_unique<class ray_tracer>(context, images, &mdl, &ui_pipeline, &font_image);
-
-    //TODO replace frames field by frameset
     if (enable_ray_tracing)
     {
-        frames = std::move(ray_tracer->frame_set.frames);
+        current_frame_set = &ray_tracer->frame_set;
     }
     else
     {
-        frames = std::move(create_frame_set(context, images, [&]()
-        {
-            return new model_renderer(physical_device, device, context.descriptor_pool.get(), &model_pipeline, &mdl);
-        }, &ui_pipeline, &font_image).frames);
+        current_frame_set = &default_frame_set;
     }
 }
 
@@ -230,7 +231,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
     //suspicious: no reason to believe semaphore is unsignaled
     auto current_image = device.acquireNextImageKHR(swapchain.get(), UINT64_MAX, acquired_semaphore.get(), nullptr).
                                 value;
-    auto& frame = frames[current_image];
+    auto& frame = current_frame_set->get(current_image);
 
     if (!input.ui_want_capture_mouse)
     {
@@ -257,20 +258,20 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         *
         mat4_cast(trackball_rotation);
 
-    device.waitForFences({frame->rendered_fence.get()}, true, UINT64_MAX);
-    device.resetFences({frame->rendered_fence.get()});
+    device.waitForFences({frame.rendered_fence.get()}, true, UINT64_MAX);
+    device.resetFences({frame.rendered_fence.get()});
 
-    frame->update(data);
+    frame.update(data);
 
     auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     context.queue.submit({
                              vk::SubmitInfo()
                              .setCommandBufferCount(1)
-                             .setPCommandBuffers(&frame->command_buffer)
+                             .setPCommandBuffers(&frame.command_buffer)
                              .setPWaitDstStageMask(&wait_dst_stage_mask)
                              .setWaitSemaphoreCount(1)
                              .setPWaitSemaphores(&acquired_semaphore.get())
-                         }, frame->rendered_fence.get());
+                         }, frame.rendered_fence.get());
 
     context.queue.presentKHR(
         vk::PresentInfoKHR()
