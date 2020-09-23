@@ -12,8 +12,6 @@
 #include "ray_tracing_renderer.h"
 #include "ui_renderer.h"
 
-const bool enable_ray_tracing = true;
-
 class vulkan_context
 {
 public:
@@ -127,7 +125,6 @@ class vulkanapp
     std::vector<vk::Image> images;
     std::unique_ptr<ray_tracer> ray_tracer;
     frame_set default_frame_set;
-    const frame_set* current_frame_set;
     glm::quat trackball_rotation;
     float camera_distance;
 
@@ -198,14 +195,6 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
         }, &ui_pipeline, &font_image))
       , camera_distance(2.f)
 {
-    if (enable_ray_tracing)
-    {
-        current_frame_set = &ray_tracer->frame_set;
-    }
-    else
-    {
-        current_frame_set = &default_frame_set;
-    }
 }
 
 static glm::vec3 get_trackball_position(glm::vec2 mouse_position)
@@ -231,7 +220,6 @@ void vulkanapp::update(vk::Device device, const input_state& input)
     //suspicious: no reason to believe semaphore is unsignaled
     auto current_image = device.acquireNextImageKHR(swapchain.get(), UINT64_MAX, acquired_semaphore.get(), nullptr).
                                 value;
-    auto& frame = current_frame_set->get(current_image);
 
     if (!input.ui_want_capture_mouse)
     {
@@ -257,6 +245,9 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         )
         *
         mat4_cast(trackball_rotation);
+
+    const auto& current_frame_set = input.enable_ray_tracing ? ray_tracer->frame_set : default_frame_set;
+    const auto& frame = current_frame_set.get(current_image);
 
     device.waitForFences({frame.rendered_fence.get()}, true, UINT64_MAX);
     device.resetFences({frame.rendered_fence.get()});

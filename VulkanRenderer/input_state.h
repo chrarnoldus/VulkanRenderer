@@ -11,6 +11,7 @@ struct input_state
     bool left_mouse_button_down;
     bool right_mouse_button_down;
     bool ui_want_capture_mouse;
+    bool enable_ray_tracing;
 
     input_state(GLFWwindow* window);
     void update();

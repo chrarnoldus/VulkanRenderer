@@ -90,7 +90,7 @@ static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset
 
 input_state::input_state(GLFWwindow* window)
     : scroll_amount(0.), time(0.), left_mouse_button_down(false), right_mouse_button_down(false),
-      ui_want_capture_mouse(false)
+      ui_want_capture_mouse(false), enable_ray_tracing(false)
 {
     glfwSetWindowUserPointer(window, this);
     glfwSetKeyCallback(window, key_callback);
@@ -111,7 +111,9 @@ void input_state::update()
     const auto new_time = glfwGetTime();
     io.DeltaTime = static_cast<float>(new_time - time);
     time = new_time;
+    ui_want_capture_mouse = io.WantCaptureMouse;
 
     ImGui::NewFrame();
-    ui_want_capture_mouse = io.WantCaptureMouse;
+    ImGui::Checkbox("Enable ray tracing", &enable_ray_tracing);
+    ImGui::Render();
 }
