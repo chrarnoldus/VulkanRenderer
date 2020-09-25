@@ -25,7 +25,7 @@ struct Vertex
 
 vec3 getNormal(Vertex vertex)
 {
-    return vec3(modelView * vec4(vertex.normalX_snorm/32767.0, vertex.normalY_snorm/32767.0, vertex.normalZ_snorm/32767.0, 0.0));
+    return vec3(vertex.normalX_snorm/32767.0, vertex.normalY_snorm/32767.0, vertex.normalZ_snorm/32767.0);
 }
 
 vec3 getColor(Vertex vertex)
@@ -72,7 +72,7 @@ void main()
     vec3 normal = interpolate(getNormal(vertex0), getNormal(vertex1), getNormal(vertex2));
     vec3 color = interpolate(getColor(vertex0), getColor(vertex1), getColor(vertex2));
 
-    vec3 normalDir = normalize(normal);
+    vec3 normalDir = normalize(mat3x3(modelView) * mat3x3(gl_ObjectToWorldNV) * normalize(normal));
     vec3 lightDir = normalize(lightPosition - position);
     vec3 viewDir = normalize(-position);
     vec3 reflectDir = reflect(-lightDir, normalDir);
