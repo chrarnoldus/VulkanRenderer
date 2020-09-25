@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "helpers.h"
 #include "render_to_window.h"
+#include "vulkan_context.h"
 
 static VkBool32 debug_report_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -82,15 +83,20 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
     auto queueInfo = vk::DeviceQueueCreateInfo()
         .setQueuePriorities(priorities);
 
-    std::array extensionNames{
+    std::vector extensionNames{
         VK_KHR_MAINTENANCE1_EXTENSION_NAME,
         VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_EXTENSION_NAME,
         VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME,
         VK_KHR_8BIT_STORAGE_EXTENSION_NAME,
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-        VK_NV_RAY_TRACING_EXTENSION_NAME,
     };
+
+    if (is_ray_tracing_supported(physical_device))
+    {
+        std::cout << "Enabling ray tracing extension" << std::endl;
+        extensionNames.emplace_back(VK_NV_RAY_TRACING_EXTENSION_NAME);
+    }
 
     auto features = vk::PhysicalDeviceFeatures()
                     .setMultiDrawIndirect(true)

@@ -165,7 +165,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
       , swapchain(create_swapchain(physical_device, device, surface))
       , font_image(load_font_image(physical_device, device, context.command_pool.get(), context.queue))
       , images(device.getSwapchainImagesKHR(swapchain.get()))
-      , ray_tracer(std::make_unique<class ray_tracer>(context, images, &mdl, &ui_pipeline, &font_image))
+      , ray_tracer(context.is_ray_tracing_supported ? std::make_unique<class ray_tracer>(context, images, &mdl, &ui_pipeline, &font_image) : nullptr)
       , default_frame_set(create_frame_set(context, images, [&]()
         {
             return new model_renderer(physical_device, device, context.descriptor_pool.get(), &model_pipeline, &mdl);
@@ -223,7 +223,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         *
         mat4_cast(trackball_rotation);
 
-    const auto& current_frame_set = input.enable_ray_tracing ? ray_tracer->frame_set : default_frame_set;
+    const auto& current_frame_set = context.is_ray_tracing_supported && input.enable_ray_tracing ? ray_tracer->frame_set : default_frame_set;
     const auto& frame = current_frame_set.get(current_image);
 
     device.waitForFences({frame.rendered_fence.get()}, true, UINT64_MAX);
