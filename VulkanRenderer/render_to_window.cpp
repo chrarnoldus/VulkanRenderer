@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "render_to_window.h"
 #include "dimensions.h"
-#include "helpers.h"
+#include "vulkan_context.h"
 #include "input_state.h"
 #include "model.h"
 #include "pipeline.h"
@@ -11,29 +11,6 @@
 #include "ray_tracing_model.h"
 #include "ray_tracing_renderer.h"
 #include "ui_renderer.h"
-
-class vulkan_context
-{
-public:
-    vk::PhysicalDevice physical_device;
-    vk::Device device;
-    vk::Queue queue;
-    vk::UniqueCommandPool command_pool;
-    vk::UniqueRenderPass render_pass;
-    vk::UniqueDescriptorPool descriptor_pool;
-
-    vulkan_context(vk::PhysicalDevice physical_device, vk::Device device);
-};
-
-vulkan_context::vulkan_context(vk::PhysicalDevice physical_device, vk::Device device)
-    : physical_device(physical_device)
-      , device(device)
-      , queue(device.getQueue(0, 0))
-      , command_pool(device.createCommandPoolUnique(vk::CommandPoolCreateInfo()))
-      , render_pass(create_render_pass(device, vk::Format::eB8G8R8A8Unorm, vk::ImageLayout::ePresentSrcKHR))
-      , descriptor_pool(create_descriptor_pool(device))
-{
-}
 
 class ray_tracer
 {
