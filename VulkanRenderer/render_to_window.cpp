@@ -72,12 +72,12 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
 {
 }
 
-static glm::vec3 get_trackball_position(glm::vec2 mouse_position)
+static glm::vec3 get_trackball_position(const input_state& input, glm::vec2 mouse_position)
 {
-    const glm::vec2 origin(WIDTH / 2.f, HEIGHT / 2.f);
-    const auto radius = glm::min(WIDTH, HEIGHT) / 2.f;
+    const glm::vec2 origin(input.width / 2.f, input.height / 2.f);
+    const auto radius = glm::min(input.width, input.height) / 2.f;
 
-    const auto xy = glm::vec2(mouse_position.x, HEIGHT - mouse_position.y - 1) - origin;
+    const auto xy = glm::vec2(mouse_position.x, input.height - mouse_position.y - 1) - origin;
 
     if (dot(xy, xy) <= radius * radius / 2.f)
     {
@@ -103,15 +103,15 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         {
             // Based on https://www.khronos.org/opengl/wiki/Object_Mouse_Trackball
             const auto
-                v1 = normalize(get_trackball_position(input.previous_mouse_position)),
-                v2 = normalize(get_trackball_position(input.current_mouse_position));
+                v1 = normalize(get_trackball_position(input, input.previous_mouse_position)),
+                v2 = normalize(get_trackball_position(input, input.current_mouse_position));
             trackball_rotation = glm::quat(v1, v2) * trackball_rotation;
         }
         camera_distance *= static_cast<float>(1 - .1 * input.scroll_amount);
     }
 
     model_uniform_data data;
-    data.projection = glm::perspective(glm::half_pi<float>(), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT),
+    data.projection = glm::perspective(glm::half_pi<float>(), static_cast<float>(input.width) / static_cast<float>(input.height),
                                        .001f, 100.f);
     data.model_view =
         lookAt(

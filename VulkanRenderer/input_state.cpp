@@ -88,10 +88,21 @@ static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset
     ImGui::GetIO().MouseWheel = static_cast<float>(y_offset);
 }
 
+static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    auto* input = static_cast<input_state*>(glfwGetWindowUserPointer(window));
+    assert(input);
+    input->width = width;
+    input->height = height;
+}
+
+
 input_state::input_state(GLFWwindow* window)
     : scroll_amount(0.), time(0.), left_mouse_button_down(false), right_mouse_button_down(false),
       ui_want_capture_mouse(false), enable_ray_tracing(false)
 {
+    glfwGetFramebufferSize(window, &width, &height);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetWindowUserPointer(window, this);
     glfwSetKeyCallback(window, key_callback);
     glfwSetCharCallback(window, character_callback);
