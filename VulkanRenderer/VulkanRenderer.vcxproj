@@ -100,6 +100,7 @@
     <ClCompile Include="pipeline.cpp" />
     <ClCompile Include="image_with_view.cpp" />
     <ClCompile Include="helpers.cpp" />
+    <ClCompile Include="ray_tracer.cpp" />
     <ClCompile Include="ray_tracing_model.cpp" />
     <ClCompile Include="ray_tracing_renderer.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -123,6 +124,7 @@
     <ClInclude Include="model_renderer.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="image_with_view.h" />
+    <ClInclude Include="ray_tracer.h" />
     <ClInclude Include="ray_tracing_model.h" />
     <ClInclude Include="ray_tracing_renderer.h" />
     <ClInclude Include="renderer.h" />

@@ -8,47 +8,10 @@
 #include "frame.h"
 #include "frame_set.h"
 #include "model_renderer.h"
+#include "ray_tracer.h"
 #include "ray_tracing_model.h"
 #include "ray_tracing_renderer.h"
 #include "swapchain.h"
-#include "ui_renderer.h"
-
-class ray_tracer
-{
-public:
-    ray_tracing_model ray_tracing_model;
-    pipeline textured_quad_pipeline;
-    pipeline model_pipeline;
-    std::unique_ptr<buffer> shader_binding_table;
-    frame_set frame_set;
-    ray_tracer(
-        const vulkan_context& context,
-        const std::vector<vk::Image>& images,
-        const model* model,
-        const pipeline* ui_pipeline,
-        const image_with_view* font_image);
-};
-
-ray_tracer::ray_tracer(
-    const vulkan_context& context,
-    const std::vector<vk::Image>& images,
-    const model* model,
-    const pipeline* ui_pipeline,
-    const image_with_view* font_image)
-    : ray_tracing_model(context.physical_device, context.device, context.command_pool.get(), context.queue, model)
-      , textured_quad_pipeline(create_textured_quad_pipeline(context.device, context.render_pass.get()))
-      , model_pipeline(create_ray_tracing_pipeline(context.device))
-      , shader_binding_table(
-          create_shader_binding_table(context.physical_device, context.device, model_pipeline.pl.get()))
-      , frame_set(create_frame_set(context, images, [&]()
-      {
-          return new ray_tracing_renderer(context.physical_device, context.device, context.descriptor_pool.get(),
-                                          &model_pipeline, &textured_quad_pipeline,
-                                          shader_binding_table.get(), &ray_tracing_model);
-      }, ui_pipeline, font_image))
-
-{
-}
 
 class vulkanapp
 {
