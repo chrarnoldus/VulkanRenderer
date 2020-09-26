@@ -61,11 +61,13 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
       , acquired_semaphore(device.createSemaphoreUnique(vk::SemaphoreCreateInfo()))
       , swapchain(physical_device, device, surface)
       , font_image(load_font_image(physical_device, device, context.command_pool.get(), context.queue))
-      , ray_tracer(context.is_ray_tracing_supported ? std::make_unique<class ray_tracer>(context, swapchain.images, &mdl, &ui_pipeline, &font_image) : nullptr)
+      , ray_tracer(context.is_ray_tracing_supported
+                       ? std::make_unique<class ray_tracer>(context, swapchain.images, &mdl, &ui_pipeline, &font_image)
+                       : nullptr)
       , default_frame_set(create_frame_set(context, swapchain.images, [&]()
-        {
-            return new model_renderer(physical_device, device, context.descriptor_pool.get(), &model_pipeline, &mdl);
-        }, &ui_pipeline, &font_image))
+      {
+          return new model_renderer(physical_device, device, context.descriptor_pool.get(), &model_pipeline, &mdl);
+      }, &ui_pipeline, &font_image))
       , camera_distance(2.f)
 {
 }
@@ -91,7 +93,8 @@ static glm::vec3 get_trackball_position(glm::vec2 mouse_position)
 void vulkanapp::update(vk::Device device, const input_state& input)
 {
     //suspicious: no reason to believe semaphore is unsignaled
-    auto current_image = device.acquireNextImageKHR(swapchain.handle.get(), UINT64_MAX, acquired_semaphore.get(), nullptr).
+    auto current_image = device.acquireNextImageKHR(swapchain.handle.get(), UINT64_MAX, acquired_semaphore.get(),
+                                                    nullptr).
                                 value;
 
     if (!input.ui_want_capture_mouse)
@@ -119,7 +122,9 @@ void vulkanapp::update(vk::Device device, const input_state& input)
         *
         mat4_cast(trackball_rotation);
 
-    const auto& current_frame_set = context.is_ray_tracing_supported && input.enable_ray_tracing ? ray_tracer->frame_set : default_frame_set;
+    const auto& current_frame_set = context.is_ray_tracing_supported && input.enable_ray_tracing
+                                        ? ray_tracer->frame_set
+                                        : default_frame_set;
     const auto& frame = current_frame_set.get(current_image);
 
     device.waitForFences({frame.rendered_fence.get()}, true, UINT64_MAX);
