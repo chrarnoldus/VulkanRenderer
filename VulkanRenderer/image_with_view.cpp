@@ -92,16 +92,7 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_f
                 0,
                 image.get(),
                 sub_resource_range
-            )
-        }
-    );
-    command_buffer.pipelineBarrier(
-        vk::PipelineStageFlagBits::eTopOfPipe,
-        vk::PipelineStageFlagBits::eTransfer,
-        vk::DependencyFlags(),
-        {},
-        {},
-        {
+            ),
             vk::ImageMemoryBarrier(
                 vk::AccessFlags(),
                 vk::AccessFlagBits::eTransferWrite,
@@ -111,7 +102,7 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_f
                 0,
                 result->image.get(),
                 result->sub_resource_range
-            )
+            ),
         }
     );
     command_buffer.copyImage(
