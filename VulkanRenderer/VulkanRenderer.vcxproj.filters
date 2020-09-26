@@ -72,6 +72,9 @@
     <ClCompile Include="vulkan_context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="swapchain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -129,6 +132,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vulkan_context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="swapchain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -10,6 +10,7 @@
 #include "model_renderer.h"
 #include "ray_tracing_model.h"
 #include "ray_tracing_renderer.h"
+#include "swapchain.h"
 #include "ui_renderer.h"
 
 class ray_tracer
@@ -57,9 +58,8 @@ class vulkanapp
     pipeline model_pipeline;
     pipeline ui_pipeline;
     vk::UniqueSemaphore acquired_semaphore;
-    vk::UniqueSwapchainKHR swapchain;
+    swapchain swapchain;
     image_with_view font_image;
-    std::vector<vk::Image> images;
     std::unique_ptr<ray_tracer> ray_tracer;
     frame_set default_frame_set;
     glm::quat trackball_rotation;
@@ -88,32 +88,6 @@ static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::D
     return device_image;
 }
 
-static vk::UniqueSwapchainKHR create_swapchain(vk::PhysicalDevice physical_device, vk::Device device,
-                                               vk::SurfaceKHR surface)
-{
-    const auto supported = physical_device.getSurfaceSupportKHR(0, surface);
-    assert(supported);
-
-    const auto caps = physical_device.getSurfaceCapabilitiesKHR(surface);
-
-    auto formats = physical_device.getSurfaceFormatsKHR(surface);
-    assert(formats[0].format == vk::Format::eB8G8R8A8Unorm);
-
-    return device.createSwapchainKHRUnique(
-        vk::SwapchainCreateInfoKHR()
-        .setSurface(surface)
-        .setMinImageCount(2)
-        .setImageFormat(vk::Format::eB8G8R8A8Unorm)
-        .setImageExtent(caps.currentExtent)
-        .setImageArrayLayers(1)
-        .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment)
-        .setPreTransform(caps.currentTransform)
-        .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
-        .setClipped(true)
-        .setPresentMode(vk::PresentModeKHR::eFifo)
-    );
-}
-
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface,
                      const std::string& model_path)
     : context(physical_device, device)
@@ -122,11 +96,10 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
       , model_pipeline(create_model_pipeline(device, context.render_pass.get()))
       , ui_pipeline(create_ui_pipeline(device, context.render_pass.get()))
       , acquired_semaphore(device.createSemaphoreUnique(vk::SemaphoreCreateInfo()))
-      , swapchain(create_swapchain(physical_device, device, surface))
+      , swapchain(physical_device, device, surface)
       , font_image(load_font_image(physical_device, device, context.command_pool.get(), context.queue))
-      , images(device.getSwapchainImagesKHR(swapchain.get()))
-      , ray_tracer(context.is_ray_tracing_supported ? std::make_unique<class ray_tracer>(context, images, &mdl, &ui_pipeline, &font_image) : nullptr)
-      , default_frame_set(create_frame_set(context, images, [&]()
+      , ray_tracer(context.is_ray_tracing_supported ? std::make_unique<class ray_tracer>(context, swapchain.images, &mdl, &ui_pipeline, &font_image) : nullptr)
+      , default_frame_set(create_frame_set(context, swapchain.images, [&]()
         {
             return new model_renderer(physical_device, device, context.descriptor_pool.get(), &model_pipeline, &mdl);
         }, &ui_pipeline, &font_image))
@@ -155,7 +128,7 @@ static glm::vec3 get_trackball_position(glm::vec2 mouse_position)
 void vulkanapp::update(vk::Device device, const input_state& input)
 {
     //suspicious: no reason to believe semaphore is unsignaled
-    auto current_image = device.acquireNextImageKHR(swapchain.get(), UINT64_MAX, acquired_semaphore.get(), nullptr).
+    auto current_image = device.acquireNextImageKHR(swapchain.handle.get(), UINT64_MAX, acquired_semaphore.get(), nullptr).
                                 value;
 
     if (!input.ui_want_capture_mouse)
@@ -204,7 +177,7 @@ void vulkanapp::update(vk::Device device, const input_state& input)
     context.queue.presentKHR(
         vk::PresentInfoKHR()
         .setSwapchainCount(1)
-        .setPSwapchains(&swapchain.get())
+        .setPSwapchains(&swapchain.handle.get())
         .setPImageIndices(&current_image)
     );
 }

@@ -106,6 +106,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="swapchain.cpp" />
     <ClCompile Include="ui_renderer.cpp" />
     <ClCompile Include="render_to_window.cpp" />
     <ClCompile Include="vulkan_context.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="renderer.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="swapchain.h" />
     <ClInclude Include="ui_renderer.h" />
     <ClInclude Include="render_to_window.h" />
     <ClInclude Include="vulkan_context.h" />
