@@ -62,13 +62,13 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
     assert(draw_data->TotalVtxCount < MAX_VERTEX_COUNT);
     assert(draw_data->TotalIdxCount < MAX_INDEX_COUNT);
 
-    auto* indices = reinterpret_cast<uint16_t*>(device.mapMemory(index_buffer.memory.get(), 0, index_buffer.size));
-    auto* vertices = reinterpret_cast<ImDrawVert*>(device.mapMemory(vertex_buffer.memory.get(), 0, vertex_buffer.size));
-    auto* indirect = reinterpret_cast<VkDrawIndexedIndirectCommand*>(device.mapMemory(
+    auto* indices = static_cast<uint16_t*>(device.mapMemory(index_buffer.memory.get(), 0, index_buffer.size));
+    auto* vertices = static_cast<ImDrawVert*>(device.mapMemory(vertex_buffer.memory.get(), 0, vertex_buffer.size));
+    auto* indirect = static_cast<VkDrawIndexedIndirectCommand*>(device.mapMemory(
         indirect_buffer.memory.get(), 0, indirect_buffer.size));
     memset(indirect, 0, indirect_buffer.size);
 
-    auto* uniform = reinterpret_cast<ui_uniform_data*>(device.mapMemory(uniform_buffer.memory.get(), 0,
+    auto* uniform = static_cast<ui_uniform_data*>(device.mapMemory(uniform_buffer.memory.get(), 0,
                                                                         uniform_buffer.size));
     uniform->screen_width = static_cast<float>(framebuffer_size.width);
     uniform->screen_height = static_cast<float>(framebuffer_size.height);
