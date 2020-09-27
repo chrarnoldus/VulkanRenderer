@@ -143,11 +143,17 @@ void ray_tracing_renderer::update(vk::Device device, model_uniform_data model_un
 void ray_tracing_renderer::draw_outside_renderpass(vk::CommandBuffer command_buffer) const
 {
     command_buffer.pipelineBarrier(
-        vk::PipelineStageFlagBits::eFragmentShader,
+        vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eHost,
         vk::PipelineStageFlagBits::eRayTracingShaderKHR,
         vk::DependencyFlagBits(),
         {},
-        {},
+        {
+            vk::BufferMemoryBarrier()
+            .setBuffer(uniform_buffer.buf.get())
+            .setSrcAccessMask(vk::AccessFlagBits::eHostWrite)
+            .setDstAccessMask(vk::AccessFlagBits::eShaderRead)
+            .setSize(uniform_buffer.size),
+        },
         {
             vk::ImageMemoryBarrier()
             .setOldLayout(vk::ImageLayout::eUndefined)
@@ -155,7 +161,7 @@ void ray_tracing_renderer::draw_outside_renderpass(vk::CommandBuffer command_buf
             .setImage(image.iwm->image.get())
             .setSrcAccessMask(vk::AccessFlagBits::eShaderRead)
             .setDstAccessMask(vk::AccessFlagBits::eShaderWrite)
-            .setSubresourceRange(image.iwm->sub_resource_range)
+            .setSubresourceRange(image.iwm->sub_resource_range),
         }
     );
 

@@ -37,6 +37,24 @@ void model_renderer::update(vk::Device device, model_uniform_data model_uniform_
     uniform_buffer.update(device, &model_uniform_data);
 }
 
+void model_renderer::draw_outside_renderpass(vk::CommandBuffer command_buffer) const
+{
+    command_buffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eHost,
+        vk::PipelineStageFlagBits::eVertexShader,
+        vk::DependencyFlagBits(),
+        {},
+        {
+            vk::BufferMemoryBarrier()
+            .setBuffer(uniform_buffer.buf.get())
+            .setSrcAccessMask(vk::AccessFlagBits::eHostWrite)
+            .setDstAccessMask(vk::AccessFlagBits::eShaderRead)
+            .setSize(uniform_buffer.size)
+        },
+        {}
+    );
+}
+
 void model_renderer::draw(vk::CommandBuffer command_buffer) const
 {
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, model_pipeline->layout.get(), 0,

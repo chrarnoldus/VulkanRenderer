@@ -110,6 +110,39 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
     device.unmapMemory(index_buffer.memory.get());
 }
 
+void ui_renderer::draw_outside_renderpass(vk::CommandBuffer command_buffer) const
+{
+    command_buffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eHost,
+        vk::PipelineStageFlagBits::eDrawIndirect | vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader,
+        vk::DependencyFlagBits(),
+        {},
+        {
+            vk::BufferMemoryBarrier()
+            .setBuffer(uniform_buffer.buf.get())
+            .setSrcAccessMask(vk::AccessFlagBits::eHostWrite)
+            .setDstAccessMask(vk::AccessFlagBits::eShaderRead)
+            .setSize(uniform_buffer.size),
+            vk::BufferMemoryBarrier()
+            .setBuffer(indirect_buffer.buf.get())
+            .setSrcAccessMask(vk::AccessFlagBits::eHostWrite)
+            .setDstAccessMask(vk::AccessFlagBits::eIndirectCommandRead)
+            .setSize(indirect_buffer.size),
+            vk::BufferMemoryBarrier()
+            .setBuffer(vertex_buffer.buf.get())
+            .setSrcAccessMask(vk::AccessFlagBits::eHostWrite)
+            .setDstAccessMask(vk::AccessFlagBits::eVertexAttributeRead)
+            .setSize(vertex_buffer.size),
+            vk::BufferMemoryBarrier()
+            .setBuffer(index_buffer.buf.get())
+            .setSrcAccessMask(vk::AccessFlagBits::eHostWrite)
+            .setDstAccessMask(vk::AccessFlagBits::eIndexRead)
+            .setSize(index_buffer.size),
+        },
+        {}
+    );
+}
+
 void ui_renderer::draw(vk::CommandBuffer command_buffer) const
 {
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, ui_pipeline->layout.get(), 0,

@@ -18,9 +18,7 @@ public:
                    vk::Extent2D framebuffer_size, const pipeline* model_pipeline, const model* mdl);
     void update(vk::Device device, model_uniform_data model_uniform_data) const override;
 
-    void draw_outside_renderpass(vk::CommandBuffer command_buffer) const override
-    {
-    }
+    void draw_outside_renderpass(vk::CommandBuffer command_buffer) const override;
 
     void draw(vk::CommandBuffer command_buffer) const override;
 };
