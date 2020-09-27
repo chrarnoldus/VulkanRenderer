@@ -1,13 +1,12 @@
 #include "stdafx.h"
 #include "ui_renderer.h"
 #include "data_types.h"
-#include "dimensions.h"
 
 static const uint32_t MAX_VERTEX_COUNT = UINT16_MAX;
 static const uint32_t MAX_INDEX_COUNT = UINT16_MAX;
 
 ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool,
-                         const pipeline* ui_pipeline, const image_with_view* font_image)
+                         vk::Extent2D framebuffer_size, const pipeline* ui_pipeline, const image_with_view* font_image)
     : vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT,
                     MAX_VERTEX_COUNT * sizeof(ImDrawVert))
       , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, HOST_VISIBLE_AND_COHERENT,
@@ -18,13 +17,14 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
                        sizeof(ui_uniform_data))
       , ui_pipeline(ui_pipeline)
       , font_image(font_image)
+      , framebuffer_size(framebuffer_size)
 {
     std::array set_layouts{ui_pipeline->set_layout.get()};
-    descriptor_set = device.allocateDescriptorSets(
+    descriptor_set = std::move(device.allocateDescriptorSetsUnique(
         vk::DescriptorSetAllocateInfo()
         .setDescriptorPool(descriptor_pool)
         .setSetLayouts(set_layouts)
-    )[0];
+    )[0]);
 
 
     auto ui_ub_info = vk::DescriptorBufferInfo()
@@ -35,7 +35,7 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
                                          .setDstBinding(0)
                                          .setDescriptorType(vk::DescriptorType::eUniformBuffer)
                                          .setDescriptorCount(1)
-                                         .setDstSet(descriptor_set)
+                                         .setDstSet(descriptor_set.get())
                                          .setPBufferInfo(&ui_ub_info);
 
     auto font_image_view_info = vk::DescriptorImageInfo()
@@ -46,7 +46,7 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
                                                  .setDstBinding(1)
                                                  .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
                                                  .setDescriptorCount(1)
-                                                 .setDstSet(descriptor_set)
+                                                 .setDstSet(descriptor_set.get())
                                                  .setPImageInfo(&font_image_view_info);
 
     device.updateDescriptorSets({ui_ub_write_description, font_image_write_descriptor_set}, {});
@@ -70,8 +70,8 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
 
     auto* uniform = reinterpret_cast<ui_uniform_data*>(device.mapMemory(uniform_buffer.memory.get(), 0,
                                                                         uniform_buffer.size));
-    uniform->screen_width = static_cast<float>(WIDTH);
-    uniform->screen_height = static_cast<float>(HEIGHT);
+    uniform->screen_width = static_cast<float>(framebuffer_size.width);
+    uniform->screen_height = static_cast<float>(framebuffer_size.height);
 
     uint32_t indirect_index = 0, list_first_index = 0, list_first_vertex = 0;
     for (auto i = 0; i < draw_data->CmdListsCount; i++)
@@ -112,9 +112,18 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
 
 void ui_renderer::draw(vk::CommandBuffer command_buffer) const
 {
-    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, ui_pipeline->layout.get(), 0, descriptor_set,
+    command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, ui_pipeline->layout.get(), 0,
+                                      descriptor_set.get(),
                                       {});
     command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, ui_pipeline->pl.get());
+
+    command_buffer.setViewport(0, {
+                                   vk::Viewport().setWidth(static_cast<float>(framebuffer_size.width))
+                                                 .setHeight(static_cast<float>(framebuffer_size.height))
+                                                 .setMaxDepth(1.0)
+                               });
+
+    command_buffer.setScissor(0, {vk::Rect2D().setExtent(framebuffer_size)});
 
     command_buffer.bindIndexBuffer(index_buffer.buf.get(), 0, vk::IndexType::eUint16);
     command_buffer.bindVertexBuffers(0, {vertex_buffer.buf.get()}, {0});

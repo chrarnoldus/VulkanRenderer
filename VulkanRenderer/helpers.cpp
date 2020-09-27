@@ -3,7 +3,6 @@
 #include "model.h"
 #include "helpers.h"
 #include "pipeline.h"
-#include "dimensions.h"
 #include "image_with_view.h"
 #include "frame.h"
 #include "model_renderer.h"
@@ -53,7 +52,7 @@ vk::UniqueRenderPass create_render_pass(vk::Device device, vk::Format color_form
 
 vk::UniqueDescriptorPool create_descriptor_pool(vk::Device device)
 {
-    const auto max_count_per_type = static_cast<uint32_t>(10);
+    const auto max_count_per_type = static_cast<uint32_t>(100);
     std::array sizes{
         vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_count_per_type),
         vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, max_count_per_type),
@@ -84,8 +83,8 @@ void render_to_image(
     auto device_image = image_with_memory(
         physical_device,
         device,
-        WIDTH,
-        HEIGHT,
+        1024,
+        768,
         vk::Format::eR8G8B8A8Unorm,
         vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
         vk::ImageTiling::eOptimal,
@@ -95,14 +94,14 @@ void render_to_image(
     );
 
     std::vector<std::unique_ptr<renderer>> renderers;
-    renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool.get(), &pipeline, &model));
+    renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool.get(), vk::Extent2D(device_image.width, device_image.height), &pipeline, &model));
 
-    frame frame(physical_device, device, command_pool.get(), descriptor_pool.get(), device_image.image.get(),
+    frame frame(physical_device, device, command_pool.get(), vk::Extent2D(device_image.width, device_image.height), device_image.image.get(),
                 vk::Format::eR8G8B8A8Unorm, render_pass.get(),
                 std::move(renderers));
 
     model_uniform_data data;
-    data.projection = glm::perspective(glm::half_pi<float>(), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT),
+    data.projection = glm::perspective(glm::half_pi<float>(), static_cast<float>(device_image.width) / static_cast<float>(device_image.height),
                                        .001f, 100.f);
     data.model_view = lookAt(camera_position, glm::vec3(0.f, 0.f, 0.f), camera_up);
     frame.update(data);
@@ -111,7 +110,7 @@ void render_to_image(
     queue.submit({
                      vk::SubmitInfo()
                      .setCommandBufferCount(1)
-                     .setPCommandBuffers(&frame.command_buffer)
+                     .setPCommandBuffers(&frame.command_buffer.get())
                  }, frame.rendered_fence.get());
     device.waitForFences({frame.rendered_fence.get()}, true, UINT64_MAX);
 

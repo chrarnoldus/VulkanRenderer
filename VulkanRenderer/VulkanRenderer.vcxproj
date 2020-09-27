@@ -90,7 +90,6 @@
   <ItemGroup>
     <ClCompile Include="acceleration_structure.cpp" />
     <ClCompile Include="buffer.cpp" />
-    <ClCompile Include="dimensions.cpp" />
     <ClCompile Include="frame.cpp" />
     <ClCompile Include="frame_set.cpp" />
     <ClCompile Include="input_state.cpp" />
@@ -116,7 +115,6 @@
     <ClInclude Include="acceleration_structure.h" />
     <ClInclude Include="buffer.h" />
     <ClInclude Include="data_types.h" />
-    <ClInclude Include="dimensions.h" />
     <ClInclude Include="frame.h" />
     <ClInclude Include="frame_set.h" />
     <ClInclude Include="input_state.h" />

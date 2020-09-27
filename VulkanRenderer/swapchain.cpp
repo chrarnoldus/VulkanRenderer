@@ -2,7 +2,7 @@
 #include "swapchain.h"
 
 static vk::UniqueSwapchainKHR create_swapchain(vk::PhysicalDevice physical_device, vk::Device device,
-                                               vk::SurfaceKHR surface)
+                                               vk::SurfaceKHR surface, vk::SwapchainKHR old_swapchain)
 {
     const auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);
@@ -24,11 +24,12 @@ static vk::UniqueSwapchainKHR create_swapchain(vk::PhysicalDevice physical_devic
         .setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque)
         .setClipped(true)
         .setPresentMode(vk::PresentModeKHR::eFifo)
+        .setOldSwapchain(old_swapchain)
     );
 }
 
-swapchain::swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface)
-    : handle(create_swapchain(physical_device, device, surface))
+swapchain::swapchain(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface, vk::SwapchainKHR old_swapchain)
+    : handle(create_swapchain(physical_device, device, surface, old_swapchain))
     , images(device.getSwapchainImagesKHR(handle.get()))
 {
 }

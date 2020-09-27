@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "frame.h"
 #include "data_types.h"
-#include "dimensions.h"
 
 static void record_command_buffer(
+    vk::Extent2D framebuffer_size,
     vk::CommandBuffer command_buffer,
     vk::RenderPass render_pass,
     const std::vector<std::unique_ptr<renderer>>& renderers,
@@ -26,7 +26,7 @@ static void record_command_buffer(
         vk::RenderPassBeginInfo()
         .setRenderPass(render_pass)
         .setClearValues(clear_values)
-        .setRenderArea(vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT)))
+        .setRenderArea(vk::Rect2D().setExtent(framebuffer_size))
         .setFramebuffer(framebuffer),
         vk::SubpassContents::eInline
     );
@@ -44,12 +44,12 @@ frame::frame(
     vk::PhysicalDevice physical_device,
     vk::Device device,
     vk::CommandPool command_pool,
-    vk::DescriptorPool descriptor_pool,
+    vk::Extent2D framebuffer_size,
     vk::Image image,
     vk::Format format,
     vk::RenderPass render_pass,
     std::vector<std::unique_ptr<renderer>> renderers)
-    : device(device), dsb(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT,
+    : device(device), dsb(device, std::make_unique<image_with_memory>(physical_device, device, framebuffer_size.width, framebuffer_size.height,
                                                                       vk::Format::eD24UnormS8Uint,
                                                                       vk::ImageUsageFlagBits::eDepthStencilAttachment,
                                                                       vk::ImageTiling::eOptimal,
@@ -79,20 +79,20 @@ frame::frame(
         vk::FramebufferCreateInfo()
         .setRenderPass(render_pass)
         .setAttachments(attachments)
-        .setWidth(WIDTH)
-        .setHeight(HEIGHT)
+        .setWidth(framebuffer_size.width)
+        .setHeight(framebuffer_size.height)
         .setLayers(1)
     );
 
     rendered_fence = device.createFenceUnique(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-    command_buffer = device.allocateCommandBuffers(
+    command_buffer = std::move(device.allocateCommandBuffersUnique(
         vk::CommandBufferAllocateInfo()
         .setCommandPool(command_pool)
         .setLevel(vk::CommandBufferLevel::ePrimary)
         .setCommandBufferCount(1)
-    )[0];
+    )[0]);
 
-    record_command_buffer(command_buffer, render_pass, this->renderers, framebuffer.get());
+    record_command_buffer(framebuffer_size, command_buffer.get(), render_pass, this->renderers, framebuffer.get());
 }
 
 void frame::update(model_uniform_data model_uniform_data) const

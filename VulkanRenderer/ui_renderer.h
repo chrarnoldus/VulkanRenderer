@@ -14,11 +14,12 @@ class ui_renderer : public renderer
     buffer uniform_buffer;
     const pipeline* ui_pipeline;
     const image_with_view* font_image;
-    vk::DescriptorSet descriptor_set;
+    vk::UniqueDescriptorSet descriptor_set;
+    vk::Extent2D framebuffer_size;
 
 public:
     ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool,
-                const pipeline* ui_pipeline, const image_with_view* font_image);
+                vk::Extent2D framebuffer_size, const pipeline* ui_pipeline, const image_with_view* font_image);
     void update(vk::Device device, model_uniform_data model_uniform_data) const override;
 
     void draw_outside_renderpass(vk::CommandBuffer command_buffer) const override

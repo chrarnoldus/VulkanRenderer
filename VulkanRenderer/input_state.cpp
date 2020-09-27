@@ -1,6 +1,33 @@
 #include "stdafx.h"
 #include "input_state.h"
 
+static void initialize_imgui(int width, int height)
+{
+    ImGui::CreateContext();
+    auto& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+    io.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;
+    io.KeyMap[ImGuiKey_LeftArrow] = GLFW_KEY_LEFT;
+    io.KeyMap[ImGuiKey_RightArrow] = GLFW_KEY_RIGHT;
+    io.KeyMap[ImGuiKey_UpArrow] = GLFW_KEY_UP;
+    io.KeyMap[ImGuiKey_DownArrow] = GLFW_KEY_DOWN;
+    io.KeyMap[ImGuiKey_PageUp] = GLFW_KEY_PAGE_UP;
+    io.KeyMap[ImGuiKey_PageDown] = GLFW_KEY_PAGE_DOWN;
+    io.KeyMap[ImGuiKey_Home] = GLFW_KEY_HOME;
+    io.KeyMap[ImGuiKey_End] = GLFW_KEY_END;
+    io.KeyMap[ImGuiKey_Delete] = GLFW_KEY_DELETE;
+    io.KeyMap[ImGuiKey_Backspace] = GLFW_KEY_BACKSPACE;
+    io.KeyMap[ImGuiKey_Enter] = GLFW_KEY_ENTER;
+    io.KeyMap[ImGuiKey_Escape] = GLFW_KEY_ESCAPE;
+    io.KeyMap[ImGuiKey_A] = GLFW_KEY_A;
+    io.KeyMap[ImGuiKey_C] = GLFW_KEY_C;
+    io.KeyMap[ImGuiKey_V] = GLFW_KEY_V;
+    io.KeyMap[ImGuiKey_X] = GLFW_KEY_X;
+    io.KeyMap[ImGuiKey_Y] = GLFW_KEY_Y;
+    io.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
+    // TODO clipboard, ime
+}
+
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     auto& io = ImGui::GetIO();
@@ -94,6 +121,8 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     assert(input);
     input->width = width;
     input->height = height;
+    auto& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
 }
 
 
@@ -102,6 +131,7 @@ input_state::input_state(GLFWwindow* window)
       ui_want_capture_mouse(false), enable_ray_tracing(false)
 {
     glfwGetFramebufferSize(window, &width, &height);
+    initialize_imgui(width, height);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetWindowUserPointer(window, this);
     glfwSetKeyCallback(window, key_callback);

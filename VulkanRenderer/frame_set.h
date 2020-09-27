@@ -16,6 +16,7 @@ public:
 template <typename RendererFactory>
 static frame_set create_frame_set(
     const vulkan_context& context,
+    const vk::Extent2D framebuffer_size,
     const std::vector<vk::Image>& images,
     RendererFactory create_model_renderer,
     const pipeline* ui_pipeline,
@@ -34,6 +35,7 @@ static frame_set create_frame_set(
             context.physical_device,
             context.device,
             context.descriptor_pool.get(),
+            framebuffer_size,
             ui_pipeline,
             font_image
         ));
@@ -42,7 +44,7 @@ static frame_set create_frame_set(
             context.physical_device,
             context.device,
             context.command_pool.get(),
-            context.descriptor_pool.get(),
+            framebuffer_size,
             image,
             vk::Format::eB8G8R8A8Unorm,
             context.render_pass.get(),

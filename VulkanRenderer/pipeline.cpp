@@ -93,15 +93,9 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
     auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleList);
 
-    auto viewport = vk::Viewport().setWidth(static_cast<float>(WIDTH)).setHeight(static_cast<float>(HEIGHT)).
-                                   setMaxDepth(1.0);
-    auto scissor = vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT));
-
     auto viewport_state = vk::PipelineViewportStateCreateInfo()
-                          .setViewportCount(1)
-                          .setPViewports(&viewport)
-                          .setScissorCount(1)
-                          .setPScissors(&scissor);
+        .setViewportCount(1)
+        .setScissorCount(1);
 
     auto rasterization_state = vk::PipelineRasterizationStateCreateInfo()
         .setLineWidth(1.f);
@@ -163,6 +157,11 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setPSetLayouts(&set_layout.get())
     );
 
+    std::array dynamic_states {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+
+    auto dynamic_state = vk::PipelineDynamicStateCreateInfo()
+        .setDynamicStates(dynamic_states);
+
     auto pl = device.createGraphicsPipelineUnique(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
@@ -176,6 +175,7 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setPDepthStencilState(&depth_stencil_state)
         .setRenderPass(render_pass)
         .setLayout(layout.get())
+        .setPDynamicState(&dynamic_state)
     );
 
     return pipeline(device, {vert_shader, frag_shader}, samplers, std::move(layout), std::move(set_layout),
@@ -225,17 +225,7 @@ pipeline create_textured_quad_pipeline(vk::Device device, vk::RenderPass render_
     auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleStrip);
 
-    auto viewport = vk::Viewport().setWidth(static_cast<float>(WIDTH))
-                                  .setY(static_cast<float>(HEIGHT))
-                                  .setHeight(-static_cast<float>(HEIGHT))
-                                  .setMaxDepth(1.0);
-    auto scissor = vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT));
-
-    auto viewport_state = vk::PipelineViewportStateCreateInfo()
-                          .setViewportCount(1)
-                          .setPViewports(&viewport)
-                          .setScissorCount(1)
-                          .setPScissors(&scissor);
+    auto viewport_state = vk::PipelineViewportStateCreateInfo().setViewportCount(1).setScissorCount(1);
 
     auto rasterization_state = vk::PipelineRasterizationStateCreateInfo()
         .setLineWidth(1.f);
@@ -284,6 +274,11 @@ pipeline create_textured_quad_pipeline(vk::Device device, vk::RenderPass render_
         .setPSetLayouts(&set_layout.get())
     );
 
+    std::array dynamic_states {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+
+    auto dynamic_state = vk::PipelineDynamicStateCreateInfo()
+        .setDynamicStates(dynamic_states);
+
     auto pl = device.createGraphicsPipelineUnique(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
@@ -297,6 +292,7 @@ pipeline create_textured_quad_pipeline(vk::Device device, vk::RenderPass render_
         .setPDepthStencilState(&depth_stencil_state)
         .setRenderPass(render_pass)
         .setLayout(layout.get())
+        .setPDynamicState(&dynamic_state)
     );
 
     return pipeline(device, {vert_shader, frag_shader}, samplers, std::move(layout), std::move(set_layout),
@@ -357,18 +353,9 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
     auto assembly_state = vk::PipelineInputAssemblyStateCreateInfo()
         .setTopology(vk::PrimitiveTopology::eTriangleList);
 
-    auto viewport = vk::Viewport()
-                    .setWidth(static_cast<float>(WIDTH))
-                    .setY(static_cast<float>(HEIGHT))
-                    .setHeight(-static_cast<float>(HEIGHT))
-                    .setMaxDepth(1.0);
-    auto scissor = vk::Rect2D().setExtent(vk::Extent2D(WIDTH, HEIGHT));
-
     auto viewport_state = vk::PipelineViewportStateCreateInfo()
                           .setViewportCount(1)
-                          .setPViewports(&viewport)
-                          .setScissorCount(1)
-                          .setPScissors(&scissor);
+                          .setScissorCount(1);
 
     auto rasterization_state = vk::PipelineRasterizationStateCreateInfo()
         .setLineWidth(1.f);
@@ -409,6 +396,11 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setPSetLayouts(&set_layout.get())
     );
 
+    std::array dynamic_states {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+
+    auto dynamic_state = vk::PipelineDynamicStateCreateInfo()
+        .setDynamicStates(dynamic_states);
+
     auto pl = device.createGraphicsPipelineUnique(
         nullptr,
         vk::GraphicsPipelineCreateInfo()
@@ -422,6 +414,7 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
         .setPDepthStencilState(&depth_stencil_state)
         .setRenderPass(render_pass)
         .setLayout(layout.get())
+        .setPDynamicState(&dynamic_state)
     );
 
     return pipeline(device, {vert_shader, frag_shader}, std::vector<vk::Sampler>(), std::move(layout),

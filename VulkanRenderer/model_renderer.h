@@ -10,11 +10,12 @@ class model_renderer : public renderer
     const model* mdl;
     const pipeline* model_pipeline;
     buffer uniform_buffer;
-    vk::DescriptorSet descriptor_set;
+    vk::UniqueDescriptorSet descriptor_set;
+    vk::Extent2D framebuffer_size;
 
 public:
     model_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool,
-                   const pipeline* model_pipeline, const model* mdl);
+                   vk::Extent2D framebuffer_size, const pipeline* model_pipeline, const model* mdl);
     void update(vk::Device device, model_uniform_data model_uniform_data) const override;
 
     void draw_outside_renderpass(vk::CommandBuffer command_buffer) const override

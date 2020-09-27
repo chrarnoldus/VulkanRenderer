@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "ray_tracing_renderer.h"
-#include "dimensions.h"
 
 void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device device)
 {
@@ -75,7 +74,9 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
 }
 
 ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, vk::Device device,
-                                           vk::DescriptorPool descriptor_pool, const pipeline* ray_tracing_pipeline,
+                                           vk::DescriptorPool descriptor_pool,
+                                           vk::Extent2D framebuffer_size,
+                                           const pipeline* ray_tracing_pipeline,
                                            const pipeline* textured_quad_pipeline,
                                            const buffer* shader_binding_table, const ray_tracing_model* model)
     : model(model),
@@ -86,13 +87,15 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
                      sizeof(model_uniform_data)),
       textured_quad(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT,
                     4 * sizeof(glm::vec2)),
-      image(device, std::make_unique<image_with_memory>(physical_device, device, WIDTH, HEIGHT,
+      image(device, std::make_unique<image_with_memory>(physical_device, device, framebuffer_size.width,
+                                                        framebuffer_size.height,
                                                         vk::Format::eR8G8B8A8Unorm,
                                                         vk::ImageUsageFlagBits::eStorage |
                                                         vk::ImageUsageFlagBits::eSampled, vk::ImageTiling::eOptimal,
                                                         vk::ImageLayout::eUndefined,
                                                         vk::MemoryPropertyFlagBits::eDeviceLocal,
-                                                        vk::ImageAspectFlagBits::eColor))
+                                                        vk::ImageAspectFlagBits::eColor)),
+      framebuffer_size(framebuffer_size)
 {
     std::array set_layouts{
         ray_tracing_pipeline->set_layout.get(),
@@ -201,6 +204,15 @@ void ray_tracing_renderer::draw(vk::CommandBuffer command_buffer) const
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, textured_quad_pipeline->layout.get(), 0,
                                       textured_quad_descriptor_set.get(), {});
     command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, textured_quad_pipeline->pl.get());
+
+    command_buffer.setViewport(0, {
+                                   vk::Viewport().setWidth(static_cast<float>(framebuffer_size.width))
+                                                 .setY(static_cast<float>(framebuffer_size.height))
+                                                 .setHeight(-static_cast<float>(framebuffer_size.height))
+                                                 .setMaxDepth(1.0)
+                               });
+
+    command_buffer.setScissor(0, {vk::Rect2D().setExtent(framebuffer_size)});
 
     command_buffer.bindVertexBuffers(0, {textured_quad.buf.get()}, {0});
     command_buffer.draw(4, 1, 0, 0);
