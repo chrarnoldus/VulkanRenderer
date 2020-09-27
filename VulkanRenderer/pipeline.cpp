@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "data_types.h"
 #include "pipeline.h"
-#include "dimensions.h"
 
 static uint32_t model_vert_shader_spv[] = {
 #include "model.vert.num"
