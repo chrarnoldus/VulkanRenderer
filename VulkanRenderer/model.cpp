@@ -176,6 +176,6 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
 
     std::printf("Model loaded: %llu triangles, %.2lf MB\n", positionData->count / 3,
                 (vertex_buffer.size + index_buffer.size) / (1024. * 1024.));
-    return model(positionData->count, static_cast<uint32_t>(indices.size()), std::move(device_vertex_buffer),
+    return model(static_cast<uint32_t>(positionData->count), static_cast<uint32_t>(indices.size()), std::move(device_vertex_buffer),
                  std::move(device_index_buffer));
 }

@@ -52,7 +52,7 @@ vk::UniqueRenderPass create_render_pass(vk::Device device, vk::Format color_form
 
 vk::UniqueDescriptorPool create_descriptor_pool(vk::Device device)
 {
-    const auto max_count_per_type = static_cast<uint32_t>(100);
+    const auto max_count_per_type = 100u;
     std::array sizes{
         vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, max_count_per_type),
         vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, max_count_per_type),
@@ -60,7 +60,7 @@ vk::UniqueDescriptorPool create_descriptor_pool(vk::Device device)
     return device.createDescriptorPoolUnique(
         vk::DescriptorPoolCreateInfo()
         .setPoolSizes(sizes)
-        .setMaxSets(max_count_per_type * sizes.size())
+        .setMaxSets(max_count_per_type * static_cast<uint32_t>(sizes.size()))
     );
 }
 
