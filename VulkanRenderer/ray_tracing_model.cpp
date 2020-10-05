@@ -46,8 +46,7 @@ ray_tracing_model::ray_tracing_model(vk::PhysicalDevice physical_device, vk::Dev
                          vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                          sizeof(VkAccelerationStructureInstanceKHR));
 
-    uint64_t blas_reference;
-    device.getAccelerationStructureHandleNV(blas->ac.get(), sizeof(blas_reference), &blas_reference);
+    auto blas_reference = device.getAccelerationStructureHandleNV<uint64_t>(blas->ac.get());
 
     auto* ptr = static_cast<vk::AccelerationStructureInstanceKHR*>(device.mapMemory(
         instance_data.memory.get(), 0, instance_data.size));
