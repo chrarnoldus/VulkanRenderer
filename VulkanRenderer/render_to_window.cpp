@@ -74,6 +74,7 @@ vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::
       {
           return create_model_renderer(framebuffer_size);
       }, &ui_pipeline, &font_image))
+      , trackball_rotation(1.f, 0.f, 0.f, 0.f)
       , camera_distance(2.f)
 {
 }
