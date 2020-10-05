@@ -178,7 +178,7 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass)
     );
 
     return pipeline(device, {vert_shader, frag_shader}, samplers, std::move(layout), std::move(set_layout),
-                    std::move(pl));
+                    std::move(pl.value));
 }
 
 pipeline create_textured_quad_pipeline(vk::Device device, vk::RenderPass render_pass)
@@ -295,7 +295,7 @@ pipeline create_textured_quad_pipeline(vk::Device device, vk::RenderPass render_
     );
 
     return pipeline(device, {vert_shader, frag_shader}, samplers, std::move(layout), std::move(set_layout),
-                    std::move(pl));
+                    std::move(pl.value));
 }
 
 pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
@@ -417,7 +417,7 @@ pipeline create_model_pipeline(vk::Device device, vk::RenderPass render_pass)
     );
 
     return pipeline(device, {vert_shader, frag_shader}, std::vector<vk::Sampler>(), std::move(layout),
-                    std::move(set_layout), std::move(pl));
+                    std::move(set_layout), std::move(pl.value));
 }
 
 pipeline create_ray_tracing_pipeline(vk::Device device)
@@ -537,7 +537,7 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
     );
 
     return pipeline(device, {raygen_shader, closest_hit_shader, miss_shader}, {}, std::move(layout),
-                    std::move(set_layout), std::move(pl));
+                    std::move(set_layout), std::move(pl.value));
 }
 
 std::unique_ptr<buffer> create_shader_binding_table(vk::PhysicalDevice physical_device, vk::Device device,
