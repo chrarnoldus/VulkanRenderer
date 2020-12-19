@@ -48,13 +48,15 @@ static vk::UniqueInstance create_instance()
 #endif
         VK_KHR_SURFACE_EXTENSION_NAME,
         VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
     };
+
+    const auto application_info = vk::ApplicationInfo().setApiVersion(VK_API_VERSION_1_2);
 
     return createInstanceUnique(
         vk::InstanceCreateInfo()
         .setPEnabledLayerNames(layerNames)
         .setPEnabledExtensionNames(extensionNames)
+        .setPApplicationInfo(&application_info)
     );
 }
 
@@ -84,12 +86,7 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
         .setQueuePriorities(priorities);
 
     std::vector extensionNames{
-        VK_KHR_MAINTENANCE1_EXTENSION_NAME,
-        VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_EXTENSION_NAME,
-        VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME,
-        VK_KHR_8BIT_STORAGE_EXTENSION_NAME,
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
     };
 
     if (is_ray_tracing_supported(physical_device))
