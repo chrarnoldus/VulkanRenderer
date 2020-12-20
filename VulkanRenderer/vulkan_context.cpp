@@ -5,10 +5,10 @@
 bool is_ray_tracing_supported(vk::PhysicalDevice physical_device)
 {
     auto extensions = physical_device.enumerateDeviceExtensionProperties();
-    return std::find_if(extensions.begin(), extensions.end(), [](auto& e)
+    return std::ranges::any_of(extensions, [](auto& e)
     {
-        return strcmp(e.extensionName, VK_NV_RAY_TRACING_EXTENSION_NAME) == 0;
-    }) != extensions.end();
+        return strcmp(e.extensionName, VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME) == 0;
+    });
 }
 
 vulkan_context::vulkan_context(vk::PhysicalDevice physical_device, vk::Device device)
