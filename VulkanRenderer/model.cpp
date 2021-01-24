@@ -157,8 +157,11 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
     device.unmapMemory(vertex_buffer.memory.get());
     auto device_vertex_buffer = vertex_buffer.copy_from_host_to_device_for_vertex_input(
         physical_device, device,
-        vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer |
-        vk::BufferUsageFlagBits::eTransferDst, command_pool, queue
+        vk::BufferUsageFlagBits::eVertexBuffer
+        | vk::BufferUsageFlagBits::eTransferDst
+        | vk::BufferUsageFlagBits::eShaderDeviceAddress
+        | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
+        , command_pool, queue
     );
 
     buffer index_buffer(physical_device, device, vk::BufferUsageFlagBits::eTransferSrc, HOST_VISIBLE_AND_COHERENT,
@@ -168,8 +171,11 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
     device.unmapMemory(index_buffer.memory.get());
     auto device_index_buffer = index_buffer.copy_from_host_to_device_for_vertex_input(
         physical_device, device,
-        vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eStorageBuffer |
-        vk::BufferUsageFlagBits::eTransferDst, command_pool, queue
+        vk::BufferUsageFlagBits::eIndexBuffer
+        | vk::BufferUsageFlagBits::eTransferDst
+        | vk::BufferUsageFlagBits::eShaderDeviceAddress
+        | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
+        , command_pool, queue
     );
 
     queue.waitIdle();

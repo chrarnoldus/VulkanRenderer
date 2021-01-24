@@ -10,12 +10,12 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
     };
 
     const auto uniform_buffer_descriptor = vk::WriteDescriptorSet()
-                                           .setDstBinding(0)
-                                           .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                                           .setDstSet(ray_tracing_descriptor_set.get())
-                                           .setBufferInfo(uniform_buffer_infos);
+        .setDstBinding(0)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setDstSet(ray_tracing_descriptor_set.get())
+        .setBufferInfo(uniform_buffer_infos);
 
-    std::array tlas{model->tlas->ac.get()};
+    std::array tlas{ model->tlas->ac.get() };
     vk::StructureChain<vk::WriteDescriptorSet, vk::WriteDescriptorSetAccelerationStructureKHR> tlas_descriptor = {
         vk::WriteDescriptorSet()
         .setDstBinding(1)
@@ -34,10 +34,10 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
     };
 
     const auto image_descriptor = vk::WriteDescriptorSet()
-                                  .setDstBinding(2)
-                                  .setDescriptorType(vk::DescriptorType::eStorageImage)
-                                  .setDstSet(ray_tracing_descriptor_set.get())
-                                  .setImageInfo(images);
+        .setDstBinding(2)
+        .setDescriptorType(vk::DescriptorType::eStorageImage)
+        .setDstSet(ray_tracing_descriptor_set.get())
+        .setImageInfo(images);
 
     std::array vertex_buffer_infos{
         vk::DescriptorBufferInfo()
@@ -46,10 +46,10 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
     };
 
     const auto vertex_buffer_descriptor = vk::WriteDescriptorSet()
-                                          .setDstBinding(3)
-                                          .setDescriptorType(vk::DescriptorType::eStorageBuffer)
-                                          .setDstSet(ray_tracing_descriptor_set.get())
-                                          .setBufferInfo(vertex_buffer_infos);
+        .setDstBinding(3)
+        .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+        .setDstSet(ray_tracing_descriptor_set.get())
+        .setBufferInfo(vertex_buffer_infos);
 
 
     std::array index_buffer_infos{
@@ -59,10 +59,10 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
     };
 
     const auto index_buffer_descriptor = vk::WriteDescriptorSet()
-                                         .setDstBinding(4)
-                                         .setDescriptorType(vk::DescriptorType::eStorageBuffer)
-                                         .setDstSet(ray_tracing_descriptor_set.get())
-                                         .setBufferInfo(index_buffer_infos);
+        .setDstBinding(4)
+        .setDescriptorType(vk::DescriptorType::eStorageBuffer)
+        .setDstSet(ray_tracing_descriptor_set.get())
+        .setBufferInfo(index_buffer_infos);
 
     device.updateDescriptorSets({
                                     uniform_buffer_descriptor,
@@ -70,32 +70,32 @@ void ray_tracing_renderer::initialize_ray_tracing_descriptor_set(vk::Device devi
                                     image_descriptor,
                                     vertex_buffer_descriptor,
                                     index_buffer_descriptor,
-                                }, {});
+        }, {});
 }
 
 ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, vk::Device device,
-                                           vk::DescriptorPool descriptor_pool,
-                                           vk::Extent2D framebuffer_size,
-                                           const pipeline* ray_tracing_pipeline,
-                                           const pipeline* textured_quad_pipeline,
-                                           const buffer* shader_binding_table, const ray_tracing_model* model)
+    vk::DescriptorPool descriptor_pool,
+    vk::Extent2D framebuffer_size,
+    const pipeline* ray_tracing_pipeline,
+    const pipeline* textured_quad_pipeline,
+    const buffer* shader_binding_table, const ray_tracing_model* model)
     : model(model),
-      shader_binding_table(shader_binding_table),
-      ray_tracing_pipeline(ray_tracing_pipeline),
-      textured_quad_pipeline(textured_quad_pipeline),
-      uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT,
-                     sizeof(model_uniform_data)),
-      textured_quad(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT,
-                    4 * sizeof(glm::vec2)),
-      image(device, std::make_unique<image_with_memory>(physical_device, device, framebuffer_size.width,
-                                                        framebuffer_size.height,
-                                                        vk::Format::eR8G8B8A8Unorm,
-                                                        vk::ImageUsageFlagBits::eStorage |
-                                                        vk::ImageUsageFlagBits::eSampled, vk::ImageTiling::eOptimal,
-                                                        vk::ImageLayout::eUndefined,
-                                                        vk::MemoryPropertyFlagBits::eDeviceLocal,
-                                                        vk::ImageAspectFlagBits::eColor)),
-      framebuffer_size(framebuffer_size)
+    shader_binding_table(shader_binding_table),
+    ray_tracing_pipeline(ray_tracing_pipeline),
+    textured_quad_pipeline(textured_quad_pipeline),
+    uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT,
+        sizeof(model_uniform_data)),
+    textured_quad(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT,
+        4 * sizeof(glm::vec2)),
+    image(device, std::make_unique<image_with_memory>(physical_device, device, framebuffer_size.width,
+        framebuffer_size.height,
+        vk::Format::eR8G8B8A8Unorm,
+        vk::ImageUsageFlagBits::eStorage |
+        vk::ImageUsageFlagBits::eSampled, vk::ImageTiling::eOptimal,
+        vk::ImageLayout::eUndefined,
+        vk::MemoryPropertyFlagBits::eDeviceLocal,
+        vk::ImageAspectFlagBits::eColor)),
+    framebuffer_size(framebuffer_size)
 {
     std::array set_layouts{
         ray_tracing_pipeline->set_layout.get(),
@@ -127,12 +127,12 @@ ray_tracing_renderer::ray_tracing_renderer(vk::PhysicalDevice physical_device, v
     };
 
     auto image_descriptor = vk::WriteDescriptorSet()
-                            .setDstBinding(0)
-                            .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-                            .setDstSet(textured_quad_descriptor_set.get())
-                            .setImageInfo(images);
+        .setDstBinding(0)
+        .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+        .setDstSet(textured_quad_descriptor_set.get())
+        .setImageInfo(images);
 
-    device.updateDescriptorSets({image_descriptor}, {});
+    device.updateDescriptorSets({ image_descriptor }, {});
 }
 
 void ray_tracing_renderer::update(vk::Device device, model_uniform_data model_uniform_data) const
@@ -163,25 +163,36 @@ void ray_tracing_renderer::draw_outside_renderpass(vk::CommandBuffer command_buf
             .setDstAccessMask(vk::AccessFlagBits::eShaderWrite)
             .setSubresourceRange(image.iwm->sub_resource_range),
         }
-    );
+        );
 
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingKHR, ray_tracing_pipeline->layout.get(), 0,
-                                      ray_tracing_descriptor_set.get(), {});
+        ray_tracing_descriptor_set.get(), {});
     command_buffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, ray_tracing_pipeline->pl.get());
 
     const auto entry_size = shader_binding_table->size / GROUP_COUNT;
-    command_buffer.traceRaysNV(
-        shader_binding_table->buf.get(),
-        RAYGEN_SHADER_INDEX * entry_size,
-        shader_binding_table->buf.get(),
-        MISS_SHADER_INDEX * entry_size,
-        0,
-        shader_binding_table->buf.get(),
-        CLOSEST_HIT_SHADER_INDEX * entry_size,
-        0,
-        nullptr,
-        0,
-        0,
+
+    const auto raygen_shader = vk::StridedDeviceAddressRegionKHR()
+        .setDeviceAddress(shader_binding_table->address)
+        .setSize(entry_size)
+        .setStride(entry_size);
+
+    const auto miss_shader = vk::StridedDeviceAddressRegionKHR()
+        .setDeviceAddress(shader_binding_table->address + MISS_SHADER_INDEX * entry_size)
+        .setSize(entry_size)
+        .setStride(entry_size);
+
+    const auto closest_hit_shader = vk::StridedDeviceAddressRegionKHR()
+        .setDeviceAddress(shader_binding_table->address + CLOSEST_HIT_SHADER_INDEX * entry_size)
+        .setSize(entry_size)
+        .setStride(entry_size);
+
+    const auto callable_shader = vk::StridedDeviceAddressRegionKHR();
+
+    command_buffer.traceRaysKHR(
+        &raygen_shader,
+        &miss_shader,
+        &closest_hit_shader,
+        &callable_shader,
         image.iwm->width,
         image.iwm->height,
         1
@@ -202,13 +213,13 @@ void ray_tracing_renderer::draw_outside_renderpass(vk::CommandBuffer command_buf
             .setDstAccessMask(vk::AccessFlagBits::eShaderRead)
             .setSubresourceRange(image.iwm->sub_resource_range)
         }
-    );
+        );
 }
 
 void ray_tracing_renderer::draw(vk::CommandBuffer command_buffer) const
 {
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, textured_quad_pipeline->layout.get(), 0,
-                                      textured_quad_descriptor_set.get(), {});
+        textured_quad_descriptor_set.get(), {});
     command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, textured_quad_pipeline->pl.get());
 
     command_buffer.setViewport(0, {
@@ -216,10 +227,10 @@ void ray_tracing_renderer::draw(vk::CommandBuffer command_buffer) const
                                                  .setY(static_cast<float>(framebuffer_size.height))
                                                  .setHeight(-static_cast<float>(framebuffer_size.height))
                                                  .setMaxDepth(1.0)
-                               });
+        });
 
-    command_buffer.setScissor(0, {vk::Rect2D().setExtent(framebuffer_size)});
+    command_buffer.setScissor(0, { vk::Rect2D().setExtent(framebuffer_size) });
 
-    command_buffer.bindVertexBuffers(0, {textured_quad.buf.get()}, {0});
+    command_buffer.bindVertexBuffers(0, { textured_quad.buf.get() }, { 0 });
     command_buffer.draw(4, 1, 0, 0);
 }

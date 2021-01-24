@@ -8,6 +8,7 @@ uint32_t get_memory_index(vk::PhysicalDevice physical_device, vk::MemoryProperty
 
 struct buffer
 {
+    vk::DeviceAddress address;
     vk::DeviceSize size;
     vk::UniqueDeviceMemory memory;
     vk::UniqueBuffer buf;

@@ -2,7 +2,7 @@
 #include "buffer.h"
 
 uint32_t get_memory_index(vk::PhysicalDevice physical_device, vk::MemoryPropertyFlags memory_flags,
-                          vk::MemoryRequirements reqs)
+    vk::MemoryRequirements reqs)
 {
     auto props = physical_device.getMemoryProperties();
 
@@ -22,7 +22,7 @@ uint32_t get_memory_index(vk::PhysicalDevice physical_device, vk::MemoryProperty
 }
 
 buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::BufferUsageFlags usage_flags,
-               vk::MemoryPropertyFlags memory_flags, vk::DeviceSize size)
+    vk::MemoryPropertyFlags memory_flags, vk::DeviceSize size)
 {
     this->size = size;
 
@@ -35,13 +35,26 @@ buffer::buffer(vk::PhysicalDevice physical_device, vk::Device device, vk::Buffer
     const auto reqs = device.getBufferMemoryRequirements(buf.get());
     const uint32_t memory_type_index = get_memory_index(physical_device, memory_flags, reqs);
 
-    memory = device.allocateMemoryUnique(
+    auto shader_device_address = (usage_flags & vk::BufferUsageFlagBits::eShaderDeviceAddress) == vk::BufferUsageFlagBits::eShaderDeviceAddress;
+
+    const auto info = vk::StructureChain<vk::MemoryAllocateInfo, vk::MemoryAllocateFlagsInfo>{
         vk::MemoryAllocateInfo()
         .setAllocationSize(reqs.size)
-        .setMemoryTypeIndex(memory_type_index)
-    );
+        .setMemoryTypeIndex(memory_type_index),
+        vk::MemoryAllocateFlagsInfo()
+        .setFlags(shader_device_address ? vk::MemoryAllocateFlagBits::eDeviceAddress : vk::MemoryAllocateFlagBits())
+    };
+
+    memory = device.allocateMemoryUnique(info.get());
 
     device.bindBufferMemory(buf.get(), memory.get(), 0);
+
+    if (shader_device_address) {
+        address = device.getBufferAddress(buf.get());
+    }
+    else {
+        address = 0;
+    }
 }
 
 void buffer::update(vk::Device device, void* data) const
@@ -56,7 +69,7 @@ std::unique_ptr<buffer> buffer::copy_from_host_to_device_for_vertex_input(
     vk::CommandPool command_pool, vk::Queue queue) const
 {
     auto result = std::make_unique<buffer>(physical_device, device, new_usage_flags,
-                                           vk::MemoryPropertyFlagBits::eDeviceLocal, size);
+        vk::MemoryPropertyFlagBits::eDeviceLocal, size);
 
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -66,7 +79,7 @@ std::unique_ptr<buffer> buffer::copy_from_host_to_device_for_vertex_input(
     )[0];
 
     command_buffer.begin(vk::CommandBufferBeginInfo());
-    command_buffer.copyBuffer(buf.get(), result->buf.get(), {vk::BufferCopy(0, 0, size)});
+    command_buffer.copyBuffer(buf.get(), result->buf.get(), { vk::BufferCopy(0, 0, size) });
 
     command_buffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTransfer,
@@ -85,7 +98,7 @@ std::unique_ptr<buffer> buffer::copy_from_host_to_device_for_vertex_input(
 
     command_buffer.end();
 
-    queue.submit({vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer)}, nullptr);
+    queue.submit({ vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer) }, nullptr);
 
     return result;
 }

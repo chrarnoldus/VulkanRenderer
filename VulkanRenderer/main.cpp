@@ -92,26 +92,39 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
     if (is_ray_tracing_supported(physical_device))
     {
         std::cout << "Enabling ray tracing extension" << std::endl;
-        extensionNames.emplace_back(VK_NV_RAY_TRACING_EXTENSION_NAME);
+        extensionNames.emplace_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+        extensionNames.emplace_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+        extensionNames.emplace_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
     }
 
     auto features = vk::PhysicalDeviceFeatures()
-                    .setMultiDrawIndirect(true)
-                    .setDrawIndirectFirstInstance(true)
-                    .setShaderClipDistance(true)
-                    .setShaderCullDistance(true);
+        .setMultiDrawIndirect(true)
+        .setDrawIndirectFirstInstance(true)
+        .setShaderClipDistance(true)
+        .setShaderCullDistance(true);
 
-    vk::StructureChain<vk::DeviceCreateInfo, vk::PhysicalDevice8BitStorageFeatures,
-                       vk::PhysicalDeviceFloat16Int8FeaturesKHR> device_create_info{
-        vk::DeviceCreateInfo()
-        .setQueueCreateInfoCount(1)
-        .setPQueueCreateInfos(&queueInfo)
-        .setPEnabledExtensionNames(extensionNames)
-        .setPEnabledFeatures(&features),
-        vk::PhysicalDevice8BitStorageFeatures()
-        .setUniformAndStorageBuffer8BitAccess(true),
-        vk::PhysicalDeviceFloat16Int8FeaturesKHR()
-        .setShaderInt8(true),
+    vk::StructureChain<
+        vk::DeviceCreateInfo,
+        vk::PhysicalDevice8BitStorageFeatures,
+        vk::PhysicalDeviceFloat16Int8FeaturesKHR,
+        vk::PhysicalDeviceBufferDeviceAddressFeatures,
+        vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
+        vk::PhysicalDeviceRayTracingPipelineFeaturesKHR> device_create_info{
+            vk::DeviceCreateInfo()
+            .setQueueCreateInfoCount(1)
+            .setPQueueCreateInfos(&queueInfo)
+            .setPEnabledExtensionNames(extensionNames)
+            .setPEnabledFeatures(&features),
+            vk::PhysicalDevice8BitStorageFeatures()
+            .setUniformAndStorageBuffer8BitAccess(true),
+            vk::PhysicalDeviceFloat16Int8FeaturesKHR()
+            .setShaderInt8(true),
+            vk::PhysicalDeviceBufferDeviceAddressFeatures()
+            .setBufferDeviceAddress(true),
+            vk::PhysicalDeviceAccelerationStructureFeaturesKHR()
+            .setAccelerationStructure(true),
+             vk::PhysicalDeviceRayTracingPipelineFeaturesKHR()
+            .setRayTracingPipeline(true)
     };
 
     return physical_device.createDeviceUnique(device_create_info.get<vk::DeviceCreateInfo>());

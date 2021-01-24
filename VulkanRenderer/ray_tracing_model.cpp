@@ -7,46 +7,30 @@ ray_tracing_model::ray_tracing_model(vk::PhysicalDevice physical_device, vk::Dev
                                      vk::CommandPool command_pool, vk::Queue queue, const model* mdl)
     : mdl(mdl)
 {
-    std::array blas_geometries = {
-        vk::GeometryNV()
+    auto blas_geometry = vk::AccelerationStructureGeometryKHR()
         .setGeometryType(vk::GeometryTypeKHR::eTriangles)
         .setGeometry(
-            vk::GeometryDataNV()
+            vk::AccelerationStructureGeometryDataKHR()
             .setTriangles(
-                vk::GeometryTrianglesNV()
-                .setIndexCount(mdl->index_count)
-                .setIndexData(mdl->index_buffer->buf.get()) // TODO buffer usage flags?
-                .setVertexData(mdl->vertex_buffer->buf.get())
+                vk::AccelerationStructureGeometryTrianglesDataKHR()
+                .setIndexData(device.getBufferAddress(mdl->index_buffer->buf.get())) // TODO buffer usage flags?
+                .setVertexData(device.getBufferAddress(mdl->vertex_buffer->buf.get()))
                 .setIndexType(vk::IndexType::eUint32)
-                .setVertexCount(mdl->vertex_count)
+                .setMaxVertex(mdl->vertex_count - 1)
                 .setVertexFormat(vk::Format::eR16G16B16Snorm)
                 .setVertexStride(sizeof(vertex))
-                .setVertexOffset(offsetof(vertex, position))
             )
-        )
-    };
+        );
 
-    auto blas_info = vk::AccelerationStructureInfoNV()
-                     .setFlags(
-                         vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction |
-                         vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace)
-                     .setGeometries(blas_geometries)
-                     .setType(vk::AccelerationStructureTypeKHR::eBottomLevel);
-
-    blas = std::make_unique<acceleration_structure>(physical_device, device, command_pool, queue, blas_info, nullptr);
-
-    auto tlas_info = vk::AccelerationStructureInfoNV()
-                     .setFlags(
-                         vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction |
-                         vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace)
-                     .setType(vk::AccelerationStructureTypeKHR::eTopLevel)
-                     .setInstanceCount(1);
+    blas = std::make_unique<acceleration_structure>(physical_device, device, command_pool, queue, blas_geometry, vk::AccelerationStructureTypeKHR::eBottomLevel, mdl->index_count/3, nullptr);
 
     buffer instance_data(physical_device, device, vk::BufferUsageFlagBits::eTransferSrc,
                          vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                          sizeof(VkAccelerationStructureInstanceKHR));
 
-    auto blas_reference = device.getAccelerationStructureHandleNV<uint64_t>(blas->ac.get());
+    auto blas_reference = device.getAccelerationStructureAddressKHR(
+    vk::AccelerationStructureDeviceAddressInfoKHR().setAccelerationStructure(blas->ac.get())
+    );
 
     auto* ptr = static_cast<vk::AccelerationStructureInstanceKHR*>(device.mapMemory(
         instance_data.memory.get(), 0, instance_data.size));
@@ -66,9 +50,15 @@ ray_tracing_model::ray_tracing_model(vk::PhysicalDevice physical_device, vk::Dev
     device.unmapMemory(instance_data.memory.get());
 
     auto instance_data_device_local = instance_data.copy_from_host_to_device_for_vertex_input(
-        physical_device, device, vk::BufferUsageFlagBits::eRayTracingKHR | vk::BufferUsageFlagBits::eTransferDst,
+        physical_device, device, vk::BufferUsageFlagBits::eTransferDst|vk::BufferUsageFlagBits::eShaderDeviceAddress,
         command_pool, queue); //TODO pipeline barrier
 
-    tlas = std::make_unique<acceleration_structure>(physical_device, device, command_pool, queue, tlas_info,
-                                                    instance_data_device_local->buf.get());
+    auto tlas_geometry = vk::AccelerationStructureGeometryKHR()
+    .setGeometryType(vk::GeometryTypeKHR::eInstances)
+    .setGeometry(vk::AccelerationStructureGeometryDataKHR().setInstances(
+        vk::AccelerationStructureGeometryInstancesDataKHR()
+            .setData(device.getBufferAddress(instance_data_device_local->buf.get()))
+    ));
+
+    tlas = std::make_unique<acceleration_structure>(physical_device, device, command_pool, queue, tlas_geometry, vk::AccelerationStructureTypeKHR::eTopLevel, 1, std::move(instance_data_device_local));
 }

@@ -507,19 +507,19 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
     std::array stages{raygen_stage, miss_stage, closest_hit_stage};
 
     std::array groups{
-        vk::RayTracingShaderGroupCreateInfoNV()
+        vk::RayTracingShaderGroupCreateInfoKHR()
         .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
         .setGeneralShader(RAYGEN_SHADER_INDEX)
         .setClosestHitShader(VK_SHADER_UNUSED_KHR)
         .setAnyHitShader(VK_SHADER_UNUSED_KHR)
         .setIntersectionShader(VK_SHADER_UNUSED_KHR),
-        vk::RayTracingShaderGroupCreateInfoNV()
+        vk::RayTracingShaderGroupCreateInfoKHR()
         .setType(vk::RayTracingShaderGroupTypeKHR::eGeneral)
         .setGeneralShader(MISS_SHADER_INDEX)
         .setClosestHitShader(VK_SHADER_UNUSED_KHR)
         .setAnyHitShader(VK_SHADER_UNUSED_KHR)
         .setIntersectionShader(VK_SHADER_UNUSED_KHR),
-        vk::RayTracingShaderGroupCreateInfoNV()
+        vk::RayTracingShaderGroupCreateInfoKHR()
         .setType(vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup)
         .setGeneralShader(VK_SHADER_UNUSED_KHR)
         .setClosestHitShader(CLOSEST_HIT_SHADER_INDEX)
@@ -527,10 +527,11 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
         .setIntersectionShader(VK_SHADER_UNUSED_KHR),
     };
 
-    auto pl = device.createRayTracingPipelineNVUnique(
+    auto pl = device.createRayTracingPipelineKHRUnique(
         nullptr,
-        vk::RayTracingPipelineCreateInfoNV()
-        .setMaxRecursionDepth(1)
+        nullptr,
+        vk::RayTracingPipelineCreateInfoKHR()
+        .setMaxPipelineRayRecursionDepth(1)
         .setLayout(layout.get())
         .setStages(stages)
         .setGroups(groups)
@@ -543,17 +544,17 @@ pipeline create_ray_tracing_pipeline(vk::Device device)
 std::unique_ptr<buffer> create_shader_binding_table(vk::PhysicalDevice physical_device, vk::Device device,
                                                     vk::Pipeline pipeline)
 {
-    auto props = physical_device.getProperties2<vk::PhysicalDeviceProperties2, vk::PhysicalDeviceRayTracingPropertiesNV
+    auto props = physical_device.getProperties2<vk::PhysicalDeviceProperties2, vk::PhysicalDeviceRayTracingPipelinePropertiesKHR
     >();
-    auto alignment = props.get<vk::PhysicalDeviceRayTracingPropertiesNV>().shaderGroupBaseAlignment;
+    auto alignment = props.get<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>().shaderGroupBaseAlignment;
     auto bufferSize = GROUP_COUNT * alignment;
-    auto sbt = std::make_unique<buffer>(physical_device, device, vk::BufferUsageFlagBits::eRayTracingKHR,
+    auto sbt = std::make_unique<buffer>(physical_device, device, vk::BufferUsageFlagBits::eShaderBindingTableKHR,
                                         vk::MemoryPropertyFlagBits::eHostVisible |
                                         vk::MemoryPropertyFlagBits::eHostCoherent, bufferSize);
 
-    auto handleSize = props.get<vk::PhysicalDeviceRayTracingPropertiesNV>().shaderGroupHandleSize;
+    auto handleSize = props.get<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>().shaderGroupHandleSize;
     auto tempBufferSize = GROUP_COUNT * handleSize;
-    auto data = device.getRayTracingShaderGroupHandlesNV<uint8_t>(pipeline, 0, GROUP_COUNT, tempBufferSize);
+    auto data = device.getRayTracingShaderGroupHandlesKHR<uint8_t>(pipeline, 0, GROUP_COUNT, tempBufferSize);
 
     auto* ptr = static_cast<uint8_t*>(device.mapMemory(sbt->memory.get(), 0, VK_WHOLE_SIZE));
     memset(ptr, 0xCA, bufferSize);
