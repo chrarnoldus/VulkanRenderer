@@ -9,10 +9,12 @@ acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_devic
                                                std::unique_ptr<buffer> instance_data
 ): instance_data(std::move(instance_data))
 {
+    const auto build_flags = vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction | vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
     std::array geometries{ geometry };
     const auto build_sizes = device.getAccelerationStructureBuildSizesKHR(
         vk::AccelerationStructureBuildTypeKHR::eDevice,
         vk::AccelerationStructureBuildGeometryInfoKHR()
+            .setFlags(build_flags)
             .setType(type)
             .setGeometries(geometries),
         {max_primitives}
@@ -44,7 +46,7 @@ acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_devic
     command_buffer->begin(vk::CommandBufferBeginInfo());
     command_buffer->buildAccelerationStructuresKHR({
         vk::AccelerationStructureBuildGeometryInfoKHR()
-        .setFlags(vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction | vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace)
+        .setFlags(build_flags)
         .setMode(vk::BuildAccelerationStructureModeKHR::eBuild)
         .setDstAccelerationStructure(ac.get())
         .setType(type)
