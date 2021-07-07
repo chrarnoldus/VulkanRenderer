@@ -50,7 +50,7 @@ ray_tracing_model::ray_tracing_model(vk::PhysicalDevice physical_device, vk::Dev
     device.unmapMemory(instance_data.memory.get());
 
     auto instance_data_device_local = instance_data.copy_from_host_to_device_for_vertex_input(
-        physical_device, device, vk::BufferUsageFlagBits::eTransferDst|vk::BufferUsageFlagBits::eShaderDeviceAddress,
+        physical_device, device, vk::BufferUsageFlagBits::eTransferDst|vk::BufferUsageFlagBits::eShaderDeviceAddress|vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
         command_pool, queue); //TODO pipeline barrier
 
     auto tlas_geometry = vk::AccelerationStructureGeometryKHR()
