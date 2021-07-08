@@ -101,11 +101,13 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
         .setMultiDrawIndirect(true)
         .setDrawIndirectFirstInstance(true)
         .setShaderClipDistance(true)
-        .setShaderCullDistance(true);
+        .setShaderCullDistance(true)
+        .setShaderInt16(true);
 
     vk::StructureChain<
         vk::DeviceCreateInfo,
         vk::PhysicalDevice8BitStorageFeatures,
+        vk::PhysicalDevice16BitStorageFeatures,
         vk::PhysicalDeviceFloat16Int8FeaturesKHR,
         vk::PhysicalDeviceBufferDeviceAddressFeatures,
         vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
@@ -116,7 +118,9 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
             .setPEnabledExtensionNames(extensionNames)
             .setPEnabledFeatures(&features),
             vk::PhysicalDevice8BitStorageFeatures()
-            .setUniformAndStorageBuffer8BitAccess(true),
+            .setStorageBuffer8BitAccess(true),
+            vk::PhysicalDevice16BitStorageFeatures()
+            .setStorageBuffer16BitAccess(true),
             vk::PhysicalDeviceFloat16Int8FeaturesKHR()
             .setShaderInt8(true),
             vk::PhysicalDeviceBufferDeviceAddressFeatures()
