@@ -161,6 +161,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
         | vk::BufferUsageFlagBits::eTransferDst
         | vk::BufferUsageFlagBits::eShaderDeviceAddress
         | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
+        | vk::BufferUsageFlagBits::eStorageBuffer
         , command_pool, queue
     );
 
@@ -175,6 +176,7 @@ model read_model(vk::PhysicalDevice physical_device, vk::Device device, vk::Comm
         | vk::BufferUsageFlagBits::eTransferDst
         | vk::BufferUsageFlagBits::eShaderDeviceAddress
         | vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR
+        | vk::BufferUsageFlagBits::eStorageBuffer
         , command_pool, queue
     );
 
