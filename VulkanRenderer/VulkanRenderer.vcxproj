@@ -172,19 +172,19 @@
     </CustomBuild>
     <CustomBuild Include="model.rchit">
       <FileType>Document</FileType>
-      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" --target-env=vulkan1.2 -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
       <Message>Compiling %(Identity)</Message>
       <Outputs>%(FullPath).num;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="model.rgen">
       <FileType>Document</FileType>
-      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" --target-env=vulkan1.2 -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
       <Message>Compiling %(Identity)</Message>
       <Outputs>%(FullPath).num;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="model.rmiss">
       <FileType>Document</FileType>
-      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
+      <Command>"$(VK_SDK_PATH)\Bin\glslc.exe" --target-env=vulkan1.2 -mfmt=num -o "%(FullPath).num" "%(FullPath)"</Command>
       <Message>Compiling %(Identity)</Message>
       <Outputs>%(FullPath).num;%(Outputs)</Outputs>
     </CustomBuild>

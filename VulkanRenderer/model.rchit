@@ -1,5 +1,5 @@
 #version 460
-#extension GL_NV_ray_tracing : enable
+#extension GL_EXT_ray_tracing : enable
 #extension GL_EXT_shader_explicit_arithmetic_types : enable
 
 layout(set = 0, binding = 0, std140) uniform ub
@@ -43,9 +43,9 @@ layout(set = 0, binding = 4, std430) readonly buffer iv
     int indexBuffer[];
 };
 
-layout(location = 0) rayPayloadInNV vec3 outColor;
+layout(location = 0) rayPayloadInEXT vec3 outColor;
 
-hitAttributeNV vec2 baryCoord;
+hitAttributeEXT vec2 baryCoord;
 
 const vec3 lightPosition = vec3(0.0, 0.0, 0.0);
 const float shininess = 16.0;
@@ -68,11 +68,11 @@ void main()
     Vertex vertex1 = vertexBuffer[index1];
     Vertex vertex2 = vertexBuffer[index2];
 
-    vec3 position = vec3(modelView * vec4(gl_WorldRayOriginNV + gl_RayTmaxNV * gl_WorldRayDirectionNV, 1.0));
+    vec3 position = vec3(modelView * vec4(gl_WorldRayOriginEXT + gl_RayTmaxEXT * gl_WorldRayDirectionEXT, 1.0));
     vec3 normal = interpolate(getNormal(vertex0), getNormal(vertex1), getNormal(vertex2));
     vec3 color = interpolate(getColor(vertex0), getColor(vertex1), getColor(vertex2));
 
-    vec3 normalDir = normalize(mat3x3(modelView) * mat3x3(gl_ObjectToWorldNV) * normalize(normal));
+    vec3 normalDir = normalize(mat3x3(modelView) * mat3x3(gl_ObjectToWorldEXT) * normalize(normal));
     vec3 lightDir = normalize(lightPosition - position);
     vec3 viewDir = normalize(-position);
     vec3 reflectDir = reflect(-lightDir, normalDir);
