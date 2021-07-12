@@ -10,7 +10,7 @@ static uint32_t model_frag_shader_spv[] = {
 #include "model.frag.num"
 };
 
-static uint32_t model_rgen_shader_spv[]{
+static uint32_t model_rgen_shader_spv[] = {
 #include "model.rgen.num"
 };
 
