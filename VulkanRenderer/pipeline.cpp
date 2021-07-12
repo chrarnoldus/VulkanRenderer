@@ -548,7 +548,7 @@ std::unique_ptr<buffer> create_shader_binding_table(vk::PhysicalDevice physical_
     >();
     auto alignment = props.get<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>().shaderGroupBaseAlignment;
     auto bufferSize = GROUP_COUNT * alignment;
-    auto sbt = std::make_unique<buffer>(physical_device, device, vk::BufferUsageFlagBits::eShaderBindingTableKHR,
+    auto sbt = std::make_unique<buffer>(physical_device, device, vk::BufferUsageFlagBits::eShaderBindingTableKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
                                         vk::MemoryPropertyFlagBits::eHostVisible |
                                         vk::MemoryPropertyFlagBits::eHostCoherent, bufferSize);
 
