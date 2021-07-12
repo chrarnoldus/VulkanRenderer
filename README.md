@@ -12,7 +12,7 @@ Models can be rotated by dragging the mouse, while the distance between camera a
 * [GLM](http://glm.g-truc.net/) (included as submodule)
 * [ImGui](https://github.com/ocornut/imgui/) (must be installed through vcpkg)
 * [tiny file dialogs](https://sourceforge.net/projects/tinyfiledialogs/) (must be installed through vcpkg)
-* [tinyply](https://github.com/ddiakopoulos/tinyply/) (included as submodule)
+* [tinyply](https://github.com/ddiakopoulos/tinyply/) (must be installed through vcpkg)
 
 ## Screenshots
 
