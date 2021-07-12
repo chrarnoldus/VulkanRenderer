@@ -5,14 +5,17 @@ This is a small application that uses the Vulkan API to render 3D models stored 
 Models can be rotated by dragging the mouse, while the distance between camera and model can be changed using the mouse wheel.
 
 ## Dependencies
-* [cxxopts](https://github.com/jarro2783/cxxopts/) (included as submodule)
-* [LodePNG](http://lodev.org/lodepng/) (must be installed through vcpkg)
+
+Must be installed through vcpkg, unless otherwise noted.
+
+* [cxxopts](https://github.com/jarro2783/cxxopts/)
+* [LodePNG](http://lodev.org/lodepng/)
 * [LunarG Vulkan SDK](https://vulkan.lunarg.com/) (must be installed)
-* [GLFW](http://www.glfw.org/) (must be installed through vcpkg)
-* [GLM](http://glm.g-truc.net/) (included as submodule)
-* [ImGui](https://github.com/ocornut/imgui/) (must be installed through vcpkg)
-* [tiny file dialogs](https://sourceforge.net/projects/tinyfiledialogs/) (must be installed through vcpkg)
-* [tinyply](https://github.com/ddiakopoulos/tinyply/) (must be installed through vcpkg)
+* [GLFW](http://www.glfw.org/)
+* [GLM](http://glm.g-truc.net/)
+* [ImGui](https://github.com/ocornut/imgui/)
+* [tiny file dialogs](https://sourceforge.net/projects/tinyfiledialogs/)
+* [tinyply](https://github.com/ddiakopoulos/tinyply/)
 
 ## Screenshots
 
