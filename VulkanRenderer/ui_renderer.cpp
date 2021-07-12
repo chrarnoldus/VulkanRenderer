@@ -6,20 +6,20 @@ static const uint32_t MAX_VERTEX_COUNT = UINT16_MAX;
 static const uint32_t MAX_INDEX_COUNT = UINT16_MAX;
 
 ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, vk::DescriptorPool descriptor_pool,
-                         vk::Extent2D framebuffer_size, const pipeline* ui_pipeline, const image_with_view* font_image)
+    vk::Extent2D framebuffer_size, const pipeline* ui_pipeline, const image_with_view* font_image)
     : vertex_buffer(physical_device, device, vk::BufferUsageFlagBits::eVertexBuffer, HOST_VISIBLE_AND_COHERENT,
-                    MAX_VERTEX_COUNT * sizeof(ImDrawVert))
-      , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, HOST_VISIBLE_AND_COHERENT,
-                     MAX_INDEX_COUNT * sizeof(uint16_t))
-      , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, HOST_VISIBLE_AND_COHERENT,
-                        MAX_UI_DRAW_COUNT * sizeof(VkDrawIndexedIndirectCommand))
-      , uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT,
-                       sizeof(ui_uniform_data))
-      , ui_pipeline(ui_pipeline)
-      , font_image(font_image)
-      , framebuffer_size(framebuffer_size)
+        MAX_VERTEX_COUNT * sizeof(ImDrawVert))
+    , index_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndexBuffer, HOST_VISIBLE_AND_COHERENT,
+        MAX_INDEX_COUNT * sizeof(uint16_t))
+    , indirect_buffer(physical_device, device, vk::BufferUsageFlagBits::eIndirectBuffer, HOST_VISIBLE_AND_COHERENT,
+        MAX_UI_DRAW_COUNT * sizeof(VkDrawIndexedIndirectCommand))
+    , uniform_buffer(physical_device, device, vk::BufferUsageFlagBits::eUniformBuffer, HOST_VISIBLE_AND_COHERENT,
+        sizeof(ui_uniform_data))
+    , ui_pipeline(ui_pipeline)
+    , font_image(font_image)
+    , framebuffer_size(framebuffer_size)
 {
-    std::array set_layouts{ui_pipeline->set_layout.get()};
+    std::array set_layouts{ ui_pipeline->set_layout.get() };
     descriptor_set = std::move(device.allocateDescriptorSetsUnique(
         vk::DescriptorSetAllocateInfo()
         .setDescriptorPool(descriptor_pool)
@@ -28,28 +28,28 @@ ui_renderer::ui_renderer(vk::PhysicalDevice physical_device, vk::Device device, 
 
 
     auto ui_ub_info = vk::DescriptorBufferInfo()
-                      .setBuffer(uniform_buffer.buf.get())
-                      .setRange(uniform_buffer.size);
+        .setBuffer(uniform_buffer.buf.get())
+        .setRange(uniform_buffer.size);
 
     const auto ui_ub_write_description = vk::WriteDescriptorSet()
-                                         .setDstBinding(0)
-                                         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                                         .setDescriptorCount(1)
-                                         .setDstSet(descriptor_set.get())
-                                         .setPBufferInfo(&ui_ub_info);
+        .setDstBinding(0)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setDescriptorCount(1)
+        .setDstSet(descriptor_set.get())
+        .setPBufferInfo(&ui_ub_info);
 
     auto font_image_view_info = vk::DescriptorImageInfo()
-                                .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
-                                .setImageView(font_image->image_view.get());
+        .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
+        .setImageView(font_image->image_view.get());
 
     const auto font_image_write_descriptor_set = vk::WriteDescriptorSet()
-                                                 .setDstBinding(1)
-                                                 .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-                                                 .setDescriptorCount(1)
-                                                 .setDstSet(descriptor_set.get())
-                                                 .setPImageInfo(&font_image_view_info);
+        .setDstBinding(1)
+        .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+        .setDescriptorCount(1)
+        .setDstSet(descriptor_set.get())
+        .setPImageInfo(&font_image_view_info);
 
-    device.updateDescriptorSets({ui_ub_write_description, font_image_write_descriptor_set}, {});
+    device.updateDescriptorSets({ ui_ub_write_description, font_image_write_descriptor_set }, {});
 }
 
 void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_data) const
@@ -69,7 +69,7 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
     memset(indirect, 0, indirect_buffer.size);
 
     auto* uniform = static_cast<ui_uniform_data*>(device.mapMemory(uniform_buffer.memory.get(), 0,
-                                                                        uniform_buffer.size));
+        uniform_buffer.size));
     uniform->screen_width = static_cast<float>(framebuffer_size.width);
     uniform->screen_height = static_cast<float>(framebuffer_size.height);
 
@@ -79,9 +79,9 @@ void ui_renderer::update(vk::Device device, model_uniform_data model_uniform_dat
         auto* cmd_list = draw_data->CmdLists[i];
 
         memcpy(indices + list_first_index, cmd_list->IdxBuffer.Data,
-               cmd_list->IdxBuffer.size() * sizeof(*cmd_list->IdxBuffer.Data));
+            cmd_list->IdxBuffer.size() * sizeof(*cmd_list->IdxBuffer.Data));
         memcpy(vertices + list_first_vertex, cmd_list->VtxBuffer.Data,
-               cmd_list->VtxBuffer.size() * sizeof(*cmd_list->VtxBuffer.Data));
+            cmd_list->VtxBuffer.size() * sizeof(*cmd_list->VtxBuffer.Data));
 
         uint32_t cmd_first_index = 0;
         for (auto& cmd : cmd_list->CmdBuffer)
@@ -146,20 +146,20 @@ void ui_renderer::draw_outside_renderpass(vk::CommandBuffer command_buffer) cons
 void ui_renderer::draw(vk::CommandBuffer command_buffer) const
 {
     command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, ui_pipeline->layout.get(), 0,
-                                      descriptor_set.get(),
-                                      {});
+        descriptor_set.get(),
+        {});
     command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, ui_pipeline->pl.get());
 
     command_buffer.setViewport(0, {
                                    vk::Viewport().setWidth(static_cast<float>(framebuffer_size.width))
                                                  .setHeight(static_cast<float>(framebuffer_size.height))
                                                  .setMaxDepth(1.0)
-                               });
+        });
 
-    command_buffer.setScissor(0, {vk::Rect2D().setExtent(framebuffer_size)});
+    command_buffer.setScissor(0, { vk::Rect2D().setExtent(framebuffer_size) });
 
     command_buffer.bindIndexBuffer(index_buffer.buf.get(), 0, vk::IndexType::eUint16);
-    command_buffer.bindVertexBuffers(0, {vertex_buffer.buf.get()}, {0});
+    command_buffer.bindVertexBuffers(0, { vertex_buffer.buf.get() }, { 0 });
     command_buffer.drawIndexedIndirect(indirect_buffer.buf.get(), 0, MAX_UI_DRAW_COUNT,
-                                       sizeof(VkDrawIndexedIndirectCommand));
+        sizeof(VkDrawIndexedIndirectCommand));
 }

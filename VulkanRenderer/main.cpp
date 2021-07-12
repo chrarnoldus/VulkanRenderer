@@ -17,18 +17,18 @@ static std::optional<vk::UniqueDebugUtilsMessengerEXT> create_debug_report_callb
 {
 #if _DEBUG
     const auto info = vk::DebugUtilsMessengerCreateInfoEXT()
-                      .setMessageSeverity(
-                          vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
-                          vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
-                      )
-                      .setMessageType(
-                          vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-                          vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
-                          vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
-                      )
-                      .setPfnUserCallback(debug_report_callback);
+        .setMessageSeverity(
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
+        )
+        .setMessageType(
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
+        )
+        .setPfnUserCallback(debug_report_callback);
 
-    return std::optional{instance.createDebugUtilsMessengerEXTUnique(info, nullptr)};
+    return std::optional{ instance.createDebugUtilsMessengerEXTUnique(info, nullptr) };
 #else
     return std::nullopt;
 #endif
@@ -37,7 +37,7 @@ static std::optional<vk::UniqueDebugUtilsMessengerEXT> create_debug_report_callb
 static vk::UniqueInstance create_instance()
 {
 #if _DEBUG
-    std::array layerNames{"VK_LAYER_KHRONOS_validation"};
+    std::array layerNames{ "VK_LAYER_KHRONOS_validation" };
 #else
     std::array<const char*, 0> layerNames;
 #endif
@@ -66,9 +66,9 @@ static vk::PhysicalDevice get_physical_device(vk::Instance vulkan)
     assert(devices.size() > 0);
 
     const auto device_it = std::find_if(std::begin(devices), std::end(devices), [](auto d)
-    {
-        return d.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu;
-    });
+        {
+            return d.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu;
+        });
 
     const auto device = device_it != std::end(devices) ? *device_it : devices[0];
     auto props = device.getProperties();
@@ -81,7 +81,7 @@ static vk::UniqueDevice create_device(vk::PhysicalDevice physical_device)
     auto props = physical_device.getQueueFamilyProperties();
     assert((props[0].queueFlags & vk::QueueFlagBits::eGraphics) == vk::QueueFlagBits::eGraphics);
 
-    std::array priorities{0.f};
+    std::array priorities{ 0.f };
     auto queueInfo = vk::DeviceQueueCreateInfo()
         .setQueuePriorities(priorities);
 
@@ -148,13 +148,13 @@ int main(int argc, char** argv)
         cxxopts::Options options("VulkanRenderer", "Vulkan renderer");
         options.add_options()
             ("model", "PLY model to render. File dialog will be shown if ommitted.", cxxopts::value<std::string>(),
-             "path")
+                "path")
             ("image", "PNG image to save rendering to (overwrites existing). No window will be created if specified.",
-             cxxopts::value<std::string>(), "path")
+                cxxopts::value<std::string>(), "path")
             ("camera_position", "When using --image, specifies the camera position.",
-             cxxopts::value<std::vector<float>>(), "x y z")
+                cxxopts::value<std::vector<float>>(), "x y z")
             ("camera_up", "When using --image, specifies the camera up vector.", cxxopts::value<std::vector<float>>(),
-             "x y z")
+                "x y z")
             ("help", "Show help");
 
         cxxopts::ParseResult result = options.parse(argc, argv);
@@ -200,17 +200,17 @@ int main(int argc, char** argv)
         {
             auto camera_position_option = result["camera_position"];
             auto camera_position = camera_position_option.count() == 3
-                                       ? std_vector_to_glm_vec3(camera_position_option.as<std::vector<float>>())
-                                       : glm::vec3(0.f, 0.f, 2.f);
+                ? std_vector_to_glm_vec3(camera_position_option.as<std::vector<float>>())
+                : glm::vec3(0.f, 0.f, 2.f);
 
             auto camera_up_vector = result["camera_up"];
             auto camera_up = camera_up_vector.count() == 3
-                                 ? std_vector_to_glm_vec3(camera_up_vector.as<std::vector<float>>())
-                                 : glm::vec3(0.f, -1.f, 0.f);
+                ? std_vector_to_glm_vec3(camera_up_vector.as<std::vector<float>>())
+                : glm::vec3(0.f, -1.f, 0.f);
 
             std::cout << "Rendering to image..." << std::endl;
             render_to_image(physical_device, device.get(), model_path, image_path_option.as<std::string>(),
-                            camera_position, camera_up);
+                camera_position, camera_up);
         }
         else
         {

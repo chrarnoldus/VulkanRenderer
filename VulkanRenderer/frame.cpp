@@ -50,14 +50,14 @@ frame::frame(
     vk::RenderPass render_pass,
     std::vector<std::unique_ptr<renderer>> renderers)
     : device(device), dsb(device, std::make_unique<image_with_memory>(physical_device, device, framebuffer_size.width, framebuffer_size.height,
-                                                                      vk::Format::eD24UnormS8Uint,
-                                                                      vk::ImageUsageFlagBits::eDepthStencilAttachment,
-                                                                      vk::ImageTiling::eOptimal,
-                                                                      vk::ImageLayout::eUndefined,
-                                                                      vk::MemoryPropertyFlagBits::eDeviceLocal,
-                                                                      vk::ImageAspectFlagBits::eDepth |
-                                                                      vk::ImageAspectFlagBits::eStencil))
-      , renderers(std::move(renderers))
+        vk::Format::eD24UnormS8Uint,
+        vk::ImageUsageFlagBits::eDepthStencilAttachment,
+        vk::ImageTiling::eOptimal,
+        vk::ImageLayout::eUndefined,
+        vk::MemoryPropertyFlagBits::eDeviceLocal,
+        vk::ImageAspectFlagBits::eDepth |
+        vk::ImageAspectFlagBits::eStencil))
+    , renderers(std::move(renderers))
 {
     this->image = image;
 
@@ -74,7 +74,7 @@ frame::frame(
         )
     );
 
-    std::array attachments{image_view.get(), dsb.image_view.get()};
+    std::array attachments{ image_view.get(), dsb.image_view.get() };
     framebuffer = device.createFramebufferUnique(
         vk::FramebufferCreateInfo()
         .setRenderPass(render_pass)

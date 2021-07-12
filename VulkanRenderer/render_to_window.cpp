@@ -33,13 +33,13 @@ class vulkanapp
 
 public:
     vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface,
-              vk::Extent2D framebuffer_size, const std::string& model_path);
+        vk::Extent2D framebuffer_size, const std::string& model_path);
     void update(vk::Device device, const input_state& input);
     ~vulkanapp();
 };
 
 static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::Device device,
-                                       vk::CommandPool command_pool, vk::Queue queue)
+    vk::CommandPool command_pool, vk::Queue queue)
 {
     unsigned char* pixels;
     int width, height, bytes_per_pixel;
@@ -55,186 +55,186 @@ static image_with_view load_font_image(vk::PhysicalDevice physical_device, vk::D
 }
 
 vulkanapp::vulkanapp(vk::PhysicalDevice physical_device, vk::Device device, vk::SurfaceKHR surface,
-                     vk::Extent2D framebuffer_size, const std::string& model_path)
+    vk::Extent2D framebuffer_size, const std::string& model_path)
     : context(physical_device, device)
-      , surface(surface)
-      , mdl(read_model(physical_device, device, context.command_pool.get(), context.queue, model_path))
-      , textured_quad_pipeline(create_textured_quad_pipeline(device, context.render_pass.get()))
-      , model_pipeline(create_model_pipeline(device, context.render_pass.get()))
-      , ui_pipeline(create_ui_pipeline(device, context.render_pass.get()))
-      , acquired_semaphore(device.createSemaphoreUnique(vk::SemaphoreCreateInfo()))
-      , current_swapchain(physical_device, device, surface, nullptr)
-      , font_image(load_font_image(physical_device, device, context.command_pool.get(), context.queue))
-      , ray_tracer(context.is_ray_tracing_supported
-                       ? std::make_unique<class ray_tracer>(context, current_swapchain.images, framebuffer_size, &mdl,
-                                                            &ui_pipeline,
-                                                            &font_image)
-                       : nullptr)
-      , default_frame_set(create_frame_set(context, framebuffer_size, current_swapchain.images, [&]()
-      {
-          return create_model_renderer(framebuffer_size);
-      }, &ui_pipeline, &font_image))
-      , trackball_rotation(1.f, 0.f, 0.f, 0.f)
-      , camera_distance(2.f)
-{
-}
-
-void vulkanapp::recreate_swapchain(vk::Extent2D framebuffer_size)
-{
-    context.queue.waitIdle();
-    current_swapchain = swapchain(context.physical_device, context.device, surface, current_swapchain.handle.get());
-    default_frame_set = create_frame_set(context, framebuffer_size, current_swapchain.images, [&]()
-    {
-        return create_model_renderer(framebuffer_size);
-    }, &ui_pipeline, &font_image);
-
-    if (ray_tracer)
-    {
-        ray_tracer->recreate_swapchain(context, framebuffer_size, current_swapchain.images);
-    }
-}
-
-model_renderer* vulkanapp::create_model_renderer(vk::Extent2D framebuffer_size)
-{
-    return new model_renderer(context.physical_device, context.device, context.descriptor_pool.get(),
-                              framebuffer_size, &model_pipeline, &mdl);
-}
-
-static glm::vec3 get_trackball_position(const input_state& input, glm::vec2 mouse_position)
-{
-    const glm::vec2 origin(input.width / 2.f, input.height / 2.f);
-    const auto radius = glm::min(input.width, input.height) / 2.f;
-
-    const auto xy = glm::vec2(mouse_position.x, input.height - mouse_position.y - 1) - origin;
-
-    if (dot(xy, xy) <= radius * radius / 2.f)
-    {
-        // Sphere
-        const auto z = glm::sqrt(radius * radius - dot(xy, xy));
-        return glm::vec3(xy, z);
-    }
-    // Hyperbola
-    const auto z = (radius * radius / 2.f) / length(xy);
-    return glm::vec3(xy, z);
-}
-
-void vulkanapp::update(vk::Device device, const input_state& input)
-{
-    vk::Result result;
-    try
-    {
-        //suspicious: no reason to believe semaphore is unsignaled
-        auto current_image = device.acquireNextImageKHR(current_swapchain.handle.get(), UINT64_MAX,
-                                                        acquired_semaphore.get(),
-                                                        nullptr).
-                                    value;
-
-        if (!input.ui_want_capture_mouse)
+    , surface(surface)
+    , mdl(read_model(physical_device, device, context.command_pool.get(), context.queue, model_path))
+    , textured_quad_pipeline(create_textured_quad_pipeline(device, context.render_pass.get()))
+    , model_pipeline(create_model_pipeline(device, context.render_pass.get()))
+    , ui_pipeline(create_ui_pipeline(device, context.render_pass.get()))
+    , acquired_semaphore(device.createSemaphoreUnique(vk::SemaphoreCreateInfo()))
+    , current_swapchain(physical_device, device, surface, nullptr)
+    , font_image(load_font_image(physical_device, device, context.command_pool.get(), context.queue))
+    , ray_tracer(context.is_ray_tracing_supported
+        ? std::make_unique<class ray_tracer>(context, current_swapchain.images, framebuffer_size, &mdl,
+            &ui_pipeline,
+            &font_image)
+        : nullptr)
+    , default_frame_set(create_frame_set(context, framebuffer_size, current_swapchain.images, [&]()
         {
-            if (input.left_mouse_button_down)
+            return create_model_renderer(framebuffer_size);
+        }, & ui_pipeline, & font_image))
+    , trackball_rotation(1.f, 0.f, 0.f, 0.f)
+            , camera_distance(2.f)
+{
+}
+
+        void vulkanapp::recreate_swapchain(vk::Extent2D framebuffer_size)
+        {
+            context.queue.waitIdle();
+            current_swapchain = swapchain(context.physical_device, context.device, surface, current_swapchain.handle.get());
+            default_frame_set = create_frame_set(context, framebuffer_size, current_swapchain.images, [&]()
+                {
+                    return create_model_renderer(framebuffer_size);
+                }, &ui_pipeline, &font_image);
+
+            if (ray_tracer)
             {
-                // Based on https://www.khronos.org/opengl/wiki/Object_Mouse_Trackball
-                const auto
-                    v1 = normalize(get_trackball_position(input, input.previous_mouse_position)),
-                    v2 = normalize(get_trackball_position(input, input.current_mouse_position));
-                trackball_rotation = glm::quat(v1, v2) * trackball_rotation;
+                ray_tracer->recreate_swapchain(context, framebuffer_size, current_swapchain.images);
             }
-            camera_distance *= static_cast<float>(1 - .1 * input.scroll_amount);
         }
 
-        model_uniform_data data;
-        data.projection = glm::perspective(glm::half_pi<float>(),
-                                           static_cast<float>(input.width) / static_cast<float>(input.height),
-                                           .001f, 100.f);
-        data.model_view =
-            lookAt(
-                glm::vec3(0.f, 0.f, camera_distance),
-                glm::vec3(0.f, 0.f, 0.f),
-                glm::vec3(0.f, 1.f, 0.f)
-            )
-            *
-            mat4_cast(trackball_rotation);
+        model_renderer* vulkanapp::create_model_renderer(vk::Extent2D framebuffer_size)
+        {
+            return new model_renderer(context.physical_device, context.device, context.descriptor_pool.get(),
+                framebuffer_size, &model_pipeline, &mdl);
+        }
 
-        const auto& current_frame_set = context.is_ray_tracing_supported && input.enable_ray_tracing
-                                            ? ray_tracer->frame_set
-                                            : default_frame_set;
-        const auto& frame = current_frame_set.get(current_image);
+        static glm::vec3 get_trackball_position(const input_state& input, glm::vec2 mouse_position)
+        {
+            const glm::vec2 origin(input.width / 2.f, input.height / 2.f);
+            const auto radius = glm::min(input.width, input.height) / 2.f;
 
-        device.waitForFences({frame.rendered_fence.get()}, true, UINT64_MAX);
-        device.resetFences({frame.rendered_fence.get()});
+            const auto xy = glm::vec2(mouse_position.x, input.height - mouse_position.y - 1) - origin;
 
-        frame.update(data);
+            if (dot(xy, xy) <= radius * radius / 2.f)
+            {
+                // Sphere
+                const auto z = glm::sqrt(radius * radius - dot(xy, xy));
+                return glm::vec3(xy, z);
+            }
+            // Hyperbola
+            const auto z = (radius * radius / 2.f) / length(xy);
+            return glm::vec3(xy, z);
+        }
 
-        auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-        context.queue.submit({
-                                 vk::SubmitInfo()
-                                 .setCommandBufferCount(1)
-                                 .setPCommandBuffers(&frame.command_buffer.get())
-                                 .setPWaitDstStageMask(&wait_dst_stage_mask)
-                                 .setWaitSemaphoreCount(1)
-                                 .setPWaitSemaphores(&acquired_semaphore.get())
-                             }, frame.rendered_fence.get());
+        void vulkanapp::update(vk::Device device, const input_state& input)
+        {
+            vk::Result result;
+            try
+            {
+                //suspicious: no reason to believe semaphore is unsignaled
+                auto current_image = device.acquireNextImageKHR(current_swapchain.handle.get(), UINT64_MAX,
+                    acquired_semaphore.get(),
+                    nullptr).
+                    value;
 
-        result = context.queue.presentKHR(
-            vk::PresentInfoKHR()
-            .setSwapchainCount(1)
-            .setPSwapchains(&current_swapchain.handle.get())
-            .setPImageIndices(&current_image)
-        );
-    }
-    catch (vk::OutOfDateKHRError&)
-    {
-        result = vk::Result::eErrorOutOfDateKHR;
-    }
+                if (!input.ui_want_capture_mouse)
+                {
+                    if (input.left_mouse_button_down)
+                    {
+                        // Based on https://www.khronos.org/opengl/wiki/Object_Mouse_Trackball
+                        const auto
+                            v1 = normalize(get_trackball_position(input, input.previous_mouse_position)),
+                            v2 = normalize(get_trackball_position(input, input.current_mouse_position));
+                        trackball_rotation = glm::quat(v1, v2) * trackball_rotation;
+                    }
+                    camera_distance *= static_cast<float>(1 - .1 * input.scroll_amount);
+                }
 
-    if (result == vk::Result::eSuboptimalKHR || result == vk::Result::eErrorOutOfDateKHR)
-    {
-        recreate_swapchain(vk::Extent2D(input.width, input.height));
-    }
-}
+                model_uniform_data data;
+                data.projection = glm::perspective(glm::half_pi<float>(),
+                    static_cast<float>(input.width) / static_cast<float>(input.height),
+                    .001f, 100.f);
+                data.model_view =
+                    lookAt(
+                        glm::vec3(0.f, 0.f, camera_distance),
+                        glm::vec3(0.f, 0.f, 0.f),
+                        glm::vec3(0.f, 1.f, 0.f)
+                    )
+                    *
+                    mat4_cast(trackball_rotation);
 
-vulkanapp::~vulkanapp()
-{
-    context.queue.waitIdle();
-}
+                const auto& current_frame_set = context.is_ray_tracing_supported && input.enable_ray_tracing
+                    ? ray_tracer->frame_set
+                    : default_frame_set;
+                const auto& frame = current_frame_set.get(current_image);
 
-static void error_callback(int error, const char* description)
-{
-    throw std::runtime_error(description);
-}
+                device.waitForFences({ frame.rendered_fence.get() }, true, UINT64_MAX);
+                device.resetFences({ frame.rendered_fence.get() });
 
-static vk::UniqueSurfaceKHR create_window_surface(vk::Instance instance, GLFWwindow* window)
-{
-    VkSurfaceKHR surface;
-    const auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
-    assert(result == VK_SUCCESS);
-    return vk::UniqueSurfaceKHR(surface, instance);
-}
+                frame.update(data);
 
-void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device, vk::Device device,
-                      const std::string& model_path)
-{
-    const auto success = glfwInit();
-    assert(success);
+                auto wait_dst_stage_mask = vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+                context.queue.submit({
+                                         vk::SubmitInfo()
+                                         .setCommandBufferCount(1)
+                                         .setPCommandBuffers(&frame.command_buffer.get())
+                                         .setPWaitDstStageMask(&wait_dst_stage_mask)
+                                         .setWaitSemaphoreCount(1)
+                                         .setPWaitSemaphores(&acquired_semaphore.get())
+                    }, frame.rendered_fence.get());
 
-    glfwSetErrorCallback(error_callback);
+                result = context.queue.presentKHR(
+                    vk::PresentInfoKHR()
+                    .setSwapchainCount(1)
+                    .setPSwapchains(&current_swapchain.handle.get())
+                    .setPImageIndices(&current_image)
+                );
+            }
+            catch (vk::OutOfDateKHRError&)
+            {
+                result = vk::Result::eErrorOutOfDateKHR;
+            }
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+            if (result == vk::Result::eSuboptimalKHR || result == vk::Result::eErrorOutOfDateKHR)
+            {
+                recreate_swapchain(vk::Extent2D(input.width, input.height));
+            }
+        }
 
-    auto* window = glfwCreateWindow(1024, 768, "Vulkan renderer", nullptr, nullptr);
-    assert(window);
+        vulkanapp::~vulkanapp()
+        {
+            context.queue.waitIdle();
+        }
 
-    auto surface = create_window_surface(instance, window);
+        static void error_callback(int error, const char* description)
+        {
+            throw std::runtime_error(description);
+        }
 
-    input_state input(window);
-    auto app = vulkanapp(physical_device, device, surface.get(), vk::Extent2D(input.width, input.height), model_path);
-    while (!glfwWindowShouldClose(window))
-    {
-        input.update();
-        app.update(device, input);
-    }
+        static vk::UniqueSurfaceKHR create_window_surface(vk::Instance instance, GLFWwindow* window)
+        {
+            VkSurfaceKHR surface;
+            const auto result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+            assert(result == VK_SUCCESS);
+            return vk::UniqueSurfaceKHR(surface, instance);
+        }
 
-    glfwTerminate();
+        void render_to_window(vk::Instance instance, vk::PhysicalDevice physical_device, vk::Device device,
+            const std::string& model_path)
+        {
+            const auto success = glfwInit();
+            assert(success);
 
-    ImGui::DestroyContext();
-}
+            glfwSetErrorCallback(error_callback);
+
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+            auto* window = glfwCreateWindow(1024, 768, "Vulkan renderer", nullptr, nullptr);
+            assert(window);
+
+            auto surface = create_window_surface(instance, window);
+
+            input_state input(window);
+            auto app = vulkanapp(physical_device, device, surface.get(), vk::Extent2D(input.width, input.height), model_path);
+            while (!glfwWindowShouldClose(window))
+            {
+                input.update();
+                app.update(device, input);
+            }
+
+            glfwTerminate();
+
+            ImGui::DestroyContext();
+        }

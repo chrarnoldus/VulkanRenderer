@@ -10,37 +10,37 @@
 vk::UniqueRenderPass create_render_pass(vk::Device device, vk::Format color_format, vk::ImageLayout final_layout)
 {
     const auto attachment0 = vk::AttachmentDescription()
-                             .setFormat(color_format)
-                             .setSamples(vk::SampleCountFlagBits::e1)
-                             .setLoadOp(vk::AttachmentLoadOp::eClear)
-                             .setStoreOp(vk::AttachmentStoreOp::eStore)
-                             .setInitialLayout(vk::ImageLayout::eUndefined)
-                             .setFinalLayout(final_layout);
+        .setFormat(color_format)
+        .setSamples(vk::SampleCountFlagBits::e1)
+        .setLoadOp(vk::AttachmentLoadOp::eClear)
+        .setStoreOp(vk::AttachmentStoreOp::eStore)
+        .setInitialLayout(vk::ImageLayout::eUndefined)
+        .setFinalLayout(final_layout);
 
     const auto attachment1 = vk::AttachmentDescription()
-                             .setFormat(vk::Format::eD24UnormS8Uint)
-                             .setSamples(vk::SampleCountFlagBits::e1)
-                             .setLoadOp(vk::AttachmentLoadOp::eClear)
-                             .setStoreOp(vk::AttachmentStoreOp::eStore)
-                             .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-                             .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
-                             .setInitialLayout(vk::ImageLayout::eUndefined)
-                             .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+        .setFormat(vk::Format::eD24UnormS8Uint)
+        .setSamples(vk::SampleCountFlagBits::e1)
+        .setLoadOp(vk::AttachmentLoadOp::eClear)
+        .setStoreOp(vk::AttachmentStoreOp::eStore)
+        .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
+        .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+        .setInitialLayout(vk::ImageLayout::eUndefined)
+        .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
     auto color_attachment = vk::AttachmentReference()
-                            .setAttachment(0)
-                            .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+        .setAttachment(0)
+        .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
     auto depth_attachment = vk::AttachmentReference()
-                            .setAttachment(1)
-                            .setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+        .setAttachment(1)
+        .setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
     auto subpass = vk::SubpassDescription()
-                   .setColorAttachmentCount(1)
-                   .setPColorAttachments(&color_attachment)
-                   .setPDepthStencilAttachment(&depth_attachment);
+        .setColorAttachmentCount(1)
+        .setPColorAttachments(&color_attachment)
+        .setPDepthStencilAttachment(&depth_attachment);
 
-    std::array attachments{attachment0, attachment1};
+    std::array attachments{ attachment0, attachment1 };
 
     return device.createRenderPassUnique(
         vk::RenderPassCreateInfo()
@@ -97,28 +97,28 @@ void render_to_image(
     renderers.emplace_back(new model_renderer(physical_device, device, descriptor_pool.get(), vk::Extent2D(device_image.width, device_image.height), &pipeline, &model));
 
     frame frame(physical_device, device, command_pool.get(), vk::Extent2D(device_image.width, device_image.height), device_image.image.get(),
-                vk::Format::eR8G8B8A8Unorm, render_pass.get(),
-                std::move(renderers));
+        vk::Format::eR8G8B8A8Unorm, render_pass.get(),
+        std::move(renderers));
 
     model_uniform_data data;
     data.projection = glm::perspective(glm::half_pi<float>(), static_cast<float>(device_image.width) / static_cast<float>(device_image.height),
-                                       .001f, 100.f);
+        .001f, 100.f);
     data.model_view = lookAt(camera_position, glm::vec3(0.f, 0.f, 0.f), camera_up);
     frame.update(data);
 
-    device.resetFences({frame.rendered_fence.get()});
+    device.resetFences({ frame.rendered_fence.get() });
     queue.submit({
                      vk::SubmitInfo()
                      .setCommandBufferCount(1)
                      .setPCommandBuffers(&frame.command_buffer.get())
-                 }, frame.rendered_fence.get());
-    device.waitForFences({frame.rendered_fence.get()}, true, UINT64_MAX);
+        }, frame.rendered_fence.get());
+    device.waitForFences({ frame.rendered_fence.get() }, true, UINT64_MAX);
 
     auto host_image = device_image.copy_from_device_to_host(physical_device, device, command_pool.get(), queue);
     queue.waitIdle();
 
     auto* ptr = static_cast<uint8_t*>(device.mapMemory(host_image->memory.get(), 0,
-                                                            4 * host_image->width * host_image->height));
+        4 * host_image->width * host_image->height));
     // TODO fix channels
     lodepng::encode(image_path, ptr, host_image->width, host_image->height);
     device.unmapMemory(host_image->memory.get());

@@ -53,9 +53,9 @@ image_with_memory::image_with_memory(
     device.bindImageMemory(image.get(), memory.get(), 0);
 
     sub_resource_range = vk::ImageSubresourceRange()
-                         .setAspectMask(aspect_flags)
-                         .setLevelCount(1)
-                         .setLayerCount(1);
+        .setAspectMask(aspect_flags)
+        .setLevelCount(1)
+        .setLayerCount(1);
 }
 
 std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_for_shader_read(
@@ -66,7 +66,7 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_f
         vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
         vk::ImageTiling::eOptimal, vk::ImageLayout::eUndefined, vk::MemoryPropertyFlagBits::eDeviceLocal,
         vk::ImageAspectFlagBits::eColor
-    );
+        );
 
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -104,7 +104,7 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_f
                 result->sub_resource_range
             ),
         }
-    );
+        );
     command_buffer.copyImage(
         image.get(), vk::ImageLayout::eTransferSrcOptimal, result->image.get(), vk::ImageLayout::eTransferDstOptimal, {
             vk::ImageCopy()
@@ -130,10 +130,10 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_host_to_device_f
                 result->sub_resource_range
             )
         }
-    );
+        );
     command_buffer.end();
 
-    queue.submit({vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer)}, nullptr);
+    queue.submit({ vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer) }, nullptr);
 
     return result;
 }
@@ -147,7 +147,7 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(
         vk::ImageTiling::eLinear, vk::ImageLayout::eUndefined,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
         vk::ImageAspectFlagBits::eColor
-    );
+        );
 
     auto command_buffer = device.allocateCommandBuffers(
         vk::CommandBufferAllocateInfo()
@@ -175,7 +175,7 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(
                 sub_resource_range
             )
         }
-    );
+        );
     command_buffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTopOfPipe,
         vk::PipelineStageFlagBits::eTransfer,
@@ -194,7 +194,7 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(
                 result->sub_resource_range
             )
         }
-    );
+        );
     command_buffer.copyImage(
         image.get(), vk::ImageLayout::eTransferSrcOptimal, result->image.get(), vk::ImageLayout::eTransferDstOptimal, {
             vk::ImageCopy()
@@ -220,16 +220,16 @@ std::unique_ptr<image_with_memory> image_with_memory::copy_from_device_to_host(
                 result->sub_resource_range
             )
         }
-    );
+        );
     command_buffer.end();
 
-    queue.submit({vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer)}, nullptr);
+    queue.submit({ vk::SubmitInfo().setCommandBufferCount(1).setPCommandBuffers(&command_buffer) }, nullptr);
 
     return result;
 }
 
 std::unique_ptr<image_with_memory> load_r8g8b8a8_unorm_texture(vk::PhysicalDevice physical_device, vk::Device device,
-                                                               uint32_t width, uint32_t height, const void* data)
+    uint32_t width, uint32_t height, const void* data)
 {
     auto image = std::make_unique<image_with_memory>(
         physical_device,
@@ -242,7 +242,7 @@ std::unique_ptr<image_with_memory> load_r8g8b8a8_unorm_texture(vk::PhysicalDevic
         vk::ImageLayout::ePreinitialized,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
         vk::ImageAspectFlagBits::eColor
-    );
+        );
 
     const auto size = 4 * width * height;
     auto* ptr = device.mapMemory(image->memory.get(), 0, size);

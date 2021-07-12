@@ -2,22 +2,22 @@
 #include "acceleration_structure.h"
 
 acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_device,
-                                               vk::Device device, vk::CommandPool command_pool, vk::Queue queue,
-                                               const vk::AccelerationStructureGeometryKHR& geometry,
-                                               vk::AccelerationStructureTypeKHR type,
-                                               uint32_t max_primitives,
-                                               std::unique_ptr<buffer> instance_data
-): instance_data(std::move(instance_data))
+    vk::Device device, vk::CommandPool command_pool, vk::Queue queue,
+    const vk::AccelerationStructureGeometryKHR& geometry,
+    vk::AccelerationStructureTypeKHR type,
+    uint32_t max_primitives,
+    std::unique_ptr<buffer> instance_data
+) : instance_data(std::move(instance_data))
 {
     const auto build_flags = vk::BuildAccelerationStructureFlagBitsKHR::eAllowCompaction | vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
     std::array geometries{ geometry };
     const auto build_sizes = device.getAccelerationStructureBuildSizesKHR(
         vk::AccelerationStructureBuildTypeKHR::eDevice,
         vk::AccelerationStructureBuildGeometryInfoKHR()
-            .setFlags(build_flags)
-            .setType(type)
-            .setGeometries(geometries),
-        {max_primitives}
+        .setFlags(build_flags)
+        .setType(type)
+        .setGeometries(geometries),
+        { max_primitives }
     );
 
     ac_buffer = std::make_unique<buffer>(physical_device, device, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR, vk::MemoryPropertyFlagBits::eDeviceLocal, build_sizes.accelerationStructureSize);
@@ -28,10 +28,10 @@ acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_devic
         .setBuffer(ac_buffer->buf.get())
         .setSize(ac_buffer->size)
     )
-    ;
+        ;
 
-    buffer scratch(physical_device, device, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR|vk::BufferUsageFlagBits::eShaderDeviceAddress,
-                   vk::MemoryPropertyFlagBits::eDeviceLocal, build_sizes.buildScratchSize);
+    buffer scratch(physical_device, device, vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+        vk::MemoryPropertyFlagBits::eDeviceLocal, build_sizes.buildScratchSize);
 
     auto command_buffer = std::move(device.allocateCommandBuffersUnique(
         vk::CommandBufferAllocateInfo()
@@ -52,14 +52,14 @@ acceleration_structure::acceleration_structure(vk::PhysicalDevice physical_devic
         .setType(type)
         .setScratchData(scratch.address)
         .setGeometries(geometries)
-    }, {
-        &build_range_info
-    });
+        }, {
+            &build_range_info
+        });
     command_buffer->end();
 
-    std::array command_buffers{command_buffer.get()};
+    std::array command_buffers{ command_buffer.get() };
     queue.submit({
                      vk::SubmitInfo().setCommandBuffers(command_buffers)
-                 }, nullptr);
+        }, nullptr);
     queue.waitIdle();
 }

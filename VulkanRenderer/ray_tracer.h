@@ -22,5 +22,5 @@ public:
         const pipeline* ui_pipeline,
         const image_with_view* font_image);
     void recreate_swapchain(const vulkan_context& context, vk::Extent2D framebuffer_size,
-                            const std::vector<vk::Image>& images);
+        const std::vector<vk::Image>& images);
 };

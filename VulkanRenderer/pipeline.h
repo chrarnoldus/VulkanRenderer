@@ -19,7 +19,7 @@ struct pipeline
     vk::UniquePipeline pl;
 
     pipeline(vk::Device device, std::vector<vk::ShaderModule> shader_modules, std::vector<vk::Sampler> samplers,
-             vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl);
+        vk::UniquePipelineLayout layout, vk::UniqueDescriptorSetLayout set_layout, vk::UniquePipeline pl);
     ~pipeline();
 };
 
@@ -28,4 +28,4 @@ pipeline create_ui_pipeline(vk::Device device, vk::RenderPass render_pass);
 pipeline create_textured_quad_pipeline(vk::Device device, vk::RenderPass render_pass);
 pipeline create_ray_tracing_pipeline(vk::Device device);
 std::unique_ptr<buffer> create_shader_binding_table(vk::PhysicalDevice physical_device, vk::Device device,
-                                                    vk::Pipeline pipeline);
+    vk::Pipeline pipeline);

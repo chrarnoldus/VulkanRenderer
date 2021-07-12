@@ -128,7 +128,7 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 input_state::input_state(GLFWwindow* window)
     : scroll_amount(0.), time(0.), left_mouse_button_down(false), right_mouse_button_down(false),
-      ui_want_capture_mouse(false), enable_ray_tracing(false)
+    ui_want_capture_mouse(false), enable_ray_tracing(false)
 {
     glfwGetFramebufferSize(window, &width, &height);
     initialize_imgui(width, height);

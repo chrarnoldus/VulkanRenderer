@@ -2,7 +2,7 @@
 #include "swapchain.h"
 
 static vk::UniqueSwapchainKHR create_swapchain(vk::PhysicalDevice physical_device, vk::Device device,
-                                               vk::SurfaceKHR surface, vk::SwapchainKHR old_swapchain)
+    vk::SurfaceKHR surface, vk::SwapchainKHR old_swapchain)
 {
     const auto supported = physical_device.getSurfaceSupportKHR(0, surface);
     assert(supported);

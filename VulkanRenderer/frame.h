@@ -18,7 +18,7 @@ public:
     vk::UniqueFence rendered_fence;
 
     frame(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool,
-          vk::Extent2D framebuffer_size, vk::Image image, vk::Format format, vk::RenderPass render_pass,
-          std::vector<std::unique_ptr<renderer>> renderers);
+        vk::Extent2D framebuffer_size, vk::Image image, vk::Format format, vk::RenderPass render_pass,
+        std::vector<std::unique_ptr<renderer>> renderers);
     void update(model_uniform_data model_uniform_data) const;
 };

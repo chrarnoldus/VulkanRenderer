@@ -8,5 +8,5 @@ struct ray_tracing_model
     std::unique_ptr<acceleration_structure> blas;
     std::unique_ptr<acceleration_structure> tlas;
     ray_tracing_model(vk::PhysicalDevice physical_device, vk::Device device, vk::CommandPool command_pool,
-                      vk::Queue queue, const model* mdl);
+        vk::Queue queue, const model* mdl);
 };
